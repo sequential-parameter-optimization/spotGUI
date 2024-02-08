@@ -19,6 +19,7 @@ def run_experiment():
     MAX_TIME = float(max_time_entry.get())
     INIT_SIZE = int(init_size_entry.get())
     PREFIX = prefix_entry.get()
+    NOISE = bool(noise_entry.get())
     n_total = n_total_entry.get()
     if n_total == "None" or n_total == "All":
         n_total = None
@@ -36,6 +37,7 @@ def run_experiment():
         MAX_TIME=MAX_TIME,
         INIT_SIZE=INIT_SIZE,
         PREFIX=PREFIX,
+        NOISE=NOISE,
         data_set=data_set,
         coremodel=core_model,
         log_level=50,
@@ -60,6 +62,44 @@ def call_progress_plot():
 def call_importance_plot():
     if result is not None:
         importance_plot(result)
+
+
+# TODO: If the core model selection changes, the hyperparameters should be updated
+def update_hyperparams():
+    model = core_model_combo.get()
+    dict = lhd.hyper_dict[model]
+    for i, (key, value) in enumerate(dict.items()):
+        if dict[key]["type"] == "int" or dict[key]["type"] == "float":
+            # Create a label with the key as text
+            label = tk.Label(run_tab, text=key)
+            label.grid(row=i + 2, column=2, sticky="W")
+            label.update()
+            # Create an entry with the default value as the default text
+            default_entry = tk.Entry(run_tab)
+            default_entry.insert(0, dict[key]["default"])
+            default_entry.grid(row=i + 2, column=3, sticky="W")
+            # add the lower bound values in column 2
+            lower_bound_entry = tk.Entry(run_tab)
+            lower_bound_entry.insert(0, dict[key]["lower"])
+            lower_bound_entry.grid(row=i + 2, column=4, sticky="W")
+            # add the upper bound values in column 3
+            upper_bound_entry = tk.Entry(run_tab)
+            upper_bound_entry.insert(0, dict[key]["upper"])
+            upper_bound_entry.grid(row=i + 2, column=5, sticky="W")
+        if dict[key]["type"] == "factor":
+            # Create a label with the key as text
+            label = tk.Label(run_tab, text=key)
+            label.grid(row=i + 2, column=2, sticky="W")
+            label.update()
+            # Create an entry with the default value as the default text
+            default_entry = tk.Entry(run_tab)
+            default_entry.insert(0, dict[key]["default"])
+            default_entry.grid(row=i + 2, column=3, sticky="W")
+            # add the lower bound values in column 2
+            factor_level_entry = tk.Entry(run_tab)
+            # add a comma to each level
+            dict[key]["levels"] = ", ".join(dict[key]["levels"])
+            factor_level_entry.insert(0, dict[key]["levels"])
 
 
 # Create the main application window
@@ -130,48 +170,50 @@ model_label.grid(row=0, column=5, sticky="W")
 core_model_label = tk.Label(run_tab, text="Select core model")
 core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
-core_model_combo = ttk.Combobox(run_tab, values=core_model_values)
+core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
 core_model_combo.set("NetLightRegression")  # Default selection
 core_model_combo.grid(row=1, column=3)
 
-# Get the hyperparameters for the selected core model
-# TODO: If the core model selection changes, the hyperparameters should be updated
+update_hyperparams()
 
-model = core_model_combo.get()
-dict = lhd.hyper_dict[model]
-# Loop over the dictionary and create labels and entries for each key-value pair
-for i, (key, value) in enumerate(dict.items()):
-    if dict[key]["type"] == "int" or dict[key]["type"] == "float":
-        # Create a label with the key as text
-        label = tk.Label(run_tab, text=key)
-        label.grid(row=i + 2, column=2, sticky="W")
-        # Create an entry with the default value as the default text
-        default_entry = tk.Entry(run_tab)
-        default_entry.insert(0, dict[key]["default"])
-        default_entry.grid(row=i + 2, column=3, sticky="W")
-        # add the lower bound values in column 2
-        lower_bound_entry = tk.Entry(run_tab)
-        lower_bound_entry.insert(0, dict[key]["lower"])
-        lower_bound_entry.grid(row=i + 2, column=4, sticky="W")
-        # add the upper bound values in column 3
-        upper_bound_entry = tk.Entry(run_tab)
-        upper_bound_entry.insert(0, dict[key]["upper"])
-        upper_bound_entry.grid(row=i + 2, column=5, sticky="W")
-    if dict[key]["type"] == "factor":
-        # Create a label with the key as text
-        label = tk.Label(run_tab, text=key)
-        label.grid(row=i + 2, column=2, sticky="W")
-        # Create an entry with the default value as the default text
-        default_entry = tk.Entry(run_tab)
-        default_entry.insert(0, dict[key]["default"])
-        default_entry.grid(row=i + 2, column=3, sticky="W")
-        # add the lower bound values in column 2
-        factor_level_entry = tk.Entry(run_tab)
-        # add a comma to each level
-        dict[key]["levels"] = ", ".join(dict[key]["levels"])
-        factor_level_entry.insert(0, dict[key]["levels"])
-        # TODO: Fix columnspan
-        factor_level_entry.grid(row=i + 2, column=4, columnspan=2, sticky="W")
+# # Get the hyperparameters for the selected core model
+# model = core_model_combo.get()
+# dict = lhd.hyper_dict[model]
+# # Loop over the dictionary and create labels and entries for each key-value pair
+# for i, (key, value) in enumerate(dict.items()):
+#     if dict[key]["type"] == "int" or dict[key]["type"] == "float":
+#         # Create a label with the key as text
+#         label = tk.Label(run_tab, text=key)
+#         label.grid(row=i + 2, column=2, sticky="W")
+#         label.update()
+#         # Create an entry with the default value as the default text
+#         default_entry = tk.Entry(run_tab)
+#         default_entry.insert(0, dict[key]["default"])
+#         default_entry.grid(row=i + 2, column=3, sticky="W")
+#         # add the lower bound values in column 2
+#         lower_bound_entry = tk.Entry(run_tab)
+#         lower_bound_entry.insert(0, dict[key]["lower"])
+#         lower_bound_entry.grid(row=i + 2, column=4, sticky="W")
+#         # add the upper bound values in column 3
+#         upper_bound_entry = tk.Entry(run_tab)
+#         upper_bound_entry.insert(0, dict[key]["upper"])
+#         upper_bound_entry.grid(row=i + 2, column=5, sticky="W")
+#     if dict[key]["type"] == "factor":
+#         # Create a label with the key as text
+#         label = tk.Label(run_tab, text=key)
+#         label.grid(row=i + 2, column=2, sticky="W")
+#         label.update()
+#         # Create an entry with the default value as the default text
+#         default_entry = tk.Entry(run_tab)
+#         default_entry.insert(0, dict[key]["default"])
+#         default_entry.grid(row=i + 2, column=3, sticky="W")
+#         # add the lower bound values in column 2
+#         factor_level_entry = tk.Entry(run_tab)
+#         # add a comma to each level
+#         dict[key]["levels"] = ", ".join(dict[key]["levels"])
+#         factor_level_entry.insert(0, dict[key]["levels"])
+#         # TODO: Fix columnspan
+#         factor_level_entry.grid(row=i + 2, column=4, columnspan=2, sticky="W")
 
 # columns 4+5: Experiment
 experiment_label = tk.Label(run_tab, text="Experiment options:")
@@ -195,17 +237,12 @@ prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "00")
 prefix_entry.grid(row=3, column=7)
 
-horizon_label = tk.Label(run_tab, text="horizon:")
-horizon_label.grid(row=4, column=6, sticky="W")
-horizon_entry = tk.Entry(run_tab)
-horizon_entry.insert(0, "1")
-horizon_entry.grid(row=4, column=7)
+noise_label = tk.Label(run_tab, text="NOISE:")
+noise_label.grid(row=4, column=6, sticky="W")
+noise_entry = tk.Entry(run_tab)
+noise_entry.insert(0, "1")
+noise_entry.grid(row=4, column=7)
 
-oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period:")
-oml_grace_period_label.grid(row=5, column=6, sticky="W")
-oml_grace_period_entry = tk.Entry(run_tab)
-oml_grace_period_entry.insert(0, "n_train")
-oml_grace_period_entry.grid(row=5, column=7)
 
 # column 6: Run button
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
