@@ -1,0 +1,82 @@
+site_name: spotGUI
+site_description: spotGUI - GUI for Sequential Parameter Optimization Toolbox in Python
+site_url: https://github.com/sequential-parameter-optimization/spotGUI
+repo_url: https://github.com/sequential-parameter-optimization/spotGUI/tree/main
+
+# Copyright
+copyright: Copyright &copy; 2004 - 2024
+
+nav:
+- Home: index.md
+- Code Reference: reference/
+- Documentation: hyperparameter-tuning-cookbook.md
+- Download: download.md
+- Examples: examples.md
+- About: about.md
+
+theme:
+  name: material
+  locale: en
+  highlightjs: true
+  favicon: images/favicon.png
+  logo: images/spotlogo.png
+
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: grey
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Fira Code
+  features:
+    - content.code.copy
+    - navigation.tabs
+    - navigation.instant
+    - navigation.indexes
+
+plugins:
+    - search:
+    - exclude:
+        glob:
+        - src/spotGUI/_version.py
+    - gen-files:
+        scripts:
+        - docs/gen_ref_pages.py
+    - literate-nav:
+        nav_file: SUMMARY.md
+    - section-index
+    - mkdocstrings:
+markdown_extensions:
+    - smarty
+    - sane_lists
+    - toc:
+        permalink: True
+    - pymdownx.arithmatex:
+        generic: true
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+use_directory_urls: true
+watch:
+- src/spotGUI
+extra:
+  social:
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/bartzbeielstein
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/thomas-bartz-beielstein-3157b541/
