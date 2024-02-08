@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
+from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 
-from spotRiver.tuner.run import (
-    run_spot_river_experiment,
-    compare_tuned_default,
+from spotGUI.gui.spotRun import (
+    run_spot_python_experiment,
     contour_plot,
     parallel_plot,
     importance_plot,
@@ -35,24 +35,15 @@ def run_experiment():
     prep_model = prep_model_combo.get()
     core_model = core_model_combo.get()
 
-    result, fun_control = run_spot_river_experiment(
+    result, fun_control = run_spot_python_experiment(
         MAX_TIME=MAX_TIME,
         INIT_SIZE=INIT_SIZE,
         PREFIX=PREFIX,
-        horizon=horizon,
-        n_total=n_total,
-        perc_train=perc_train,
-        oml_grace_period=oml_grace_period,
         data_set=data_set,
-        prepmodel=prep_model,
         coremodel=core_model,
-        log_level=20,
+        log_level=50,
     )
 
-
-def call_compare_tuned_default():
-    if result is not None and fun_control is not None:
-        compare_tuned_default(result, fun_control)
 
 
 def call_parallel_plot():
@@ -64,20 +55,21 @@ def call_contour_plot():
     if result is not None:
         contour_plot(result)
 
+def call_progress_plot():
+    if result is not None:
+        progress_plot(result)
 
 def call_importance_plot():
     if result is not None:
         importance_plot(result)
 
 
-def call_progress_plot():
-    if result is not None:
-        progress_plot(result)
-
-
 # Create the main application window
 app = tk.Tk()
-app.title("Spot River Hyperparameter Tuning GUI")
+app.title("Spot Python Hyperparameter Tuning GUI")
+
+# Create a LightHyperDict object
+lhd = LightHyperDict()
 
 # Create a notebook (tabbed interface)
 notebook = ttk.Notebook(app)
@@ -85,7 +77,7 @@ notebook = ttk.Notebook(app)
 
 # Create and pack entry fields for the "Run" tab
 run_tab = ttk.Frame(notebook)
-notebook.add(run_tab, text="Binary classification")
+notebook.add(run_tab, text="Pytorch Lightning")
 
 # colummns 0+1: Data
 
@@ -95,20 +87,11 @@ data_label.grid(row=0, column=0, sticky="W")
 data_set_label = tk.Label(run_tab, text="Select data_set:")
 data_set_label.grid(row=1, column=0, sticky="W")
 data_set_values = [
-    "Bananas",
-    "CreditCard",
-    "Elec2",
-    "Higgs",
-    "HTTP",
-    "MaliciousURL",
-    "Phishing",
-    "SMSSpam",
-    "SMTP",
-    "TREC07",
+    "Diabetes",
     "USER",
 ]
 data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
-data_set_combo.set("Phishing")  # Default selection
+data_set_combo.set("Diabetes")  # Default selection
 data_set_combo.grid(row=1, column=1)
 
 
@@ -128,77 +111,123 @@ perc_train_entry.grid(row=3, column=1, sticky="W")
 # colummns 2+3: Model
 model_label = tk.Label(run_tab, text="Model options:")
 model_label.grid(row=0, column=2, sticky="W")
+model_label = tk.Label(run_tab, text="Default values:")
+model_label.grid(row=0, column=3, sticky="W")
+model_label = tk.Label(run_tab, text="Lower bounds:")
+model_label.grid(row=0, column=4, sticky="W")
+model_label = tk.Label(run_tab, text="Upper bounds:")
+model_label.grid(row=0, column=5, sticky="W")
 
-prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
-prep_model_label.grid(row=1, column=2, sticky="W")
-prep_model_values = ["MinMaxScaler", "StandardScaler", "None"]
-prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
-prep_model_combo.set("StandardScaler")  # Default selection
-prep_model_combo.grid(row=1, column=3)
+
+# prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
+# prep_model_label.grid(row=1, column=2, sticky="W")
+# prep_model_values = ["MinMaxScaler", "StandardScaler", "None"]
+# prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
+# prep_model_combo.set("StandardScaler")  # Default selection
+# prep_model_combo.grid(row=1, column=3)
 
 
 core_model_label = tk.Label(run_tab, text="Select core model")
-core_model_label.grid(row=2, column=2, sticky="W")
-core_model_values = ["AMFClassifier", "HoeffdingAdaptiveTreeClassifier", "LogisticRegression"]
+core_model_label.grid(row=1, column=2, sticky="W")
+core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
 core_model_combo = ttk.Combobox(run_tab, values=core_model_values)
-core_model_combo.set("LogisticRegression")  # Default selection
-core_model_combo.grid(row=2, column=3)
+core_model_combo.set("NetLightRegression")  # Default selection
+core_model_combo.grid(row=1, column=3)
 
+# Get the hyperparameters for the selected core model
+# TODO: If the core model selection changes, the hyperparameters will be updated
+
+model = core_model_combo.get()
+dict =  lhd.hyper_dict[model]
+# Loop over the dictionary and create labels and entries for each key-value pair
+# TODO: Add labels to the column headers
+for i, (key, value) in enumerate(dict.items()):            
+        if dict[key]["type"] == "int" or dict[key]["type"] == "float":
+            # Create a label with the key as text
+            label = tk.Label(run_tab, text=key)
+            label.grid(row=i+2, column=2, sticky="W")
+            # Create an entry with the default value as the default text
+            default_entry = tk.Entry(run_tab)
+            default_entry.insert(0, dict[key]["default"])
+            default_entry.grid(row=i+2, column=3, sticky="W")
+            # add the lower bound values in column 2
+            lower_bound_entry = tk.Entry(run_tab)                
+            lower_bound_entry.insert(0, dict[key]["lower"])
+            lower_bound_entry.grid(row=i+2, column=4, sticky="W")
+            # add the upper bound values in column 3
+            upper_bound_entry = tk.Entry(run_tab)
+            upper_bound_entry.insert(0, dict[key]["upper"])
+            upper_bound_entry.grid(row=i+2, column=5, sticky="W")
+        if dict[key]["type"] == "factor":        
+            # Create a label with the key as text
+            label = tk.Label(run_tab, text=key)
+            label.grid(row=i+2, column=2, sticky="W")
+            # Create an entry with the default value as the default text
+            default_entry = tk.Entry(run_tab)
+            default_entry.insert(0, dict[key]["default"])
+            default_entry.grid(row=i+2, column=3, sticky="W")
+            # add the lower bound values in column 2
+            factor_level_entry = tk.Entry(run_tab)
+            # add a comma to each level
+            dict[key]["levels"] = ", ".join(dict[key]["levels"])                                
+            factor_level_entry.insert(0, dict[key]["levels"])
+            # TODO: Fix columnspan
+            factor_level_entry.grid(row=i+2, column=4, columnspan=2, sticky="W")
 
 # columns 4+5: Experiment
 experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=0, column=4, sticky="W")
+experiment_label.grid(row=0, column=6, sticky="W")
 
 max_time_label = tk.Label(run_tab, text="MAX_TIME:")
-max_time_label.grid(row=1, column=4, sticky="W")
+max_time_label.grid(row=1, column=6, sticky="W")
 max_time_entry = tk.Entry(run_tab)
 max_time_entry.insert(0, "1")
-max_time_entry.grid(row=1, column=5)
+max_time_entry.grid(row=1, column=7)
 
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
-init_size_label.grid(row=2, column=4, sticky="W")
+init_size_label.grid(row=2, column=6, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "3")
-init_size_entry.grid(row=2, column=5)
+init_size_entry.grid(row=2, column=7)
 
 prefix_label = tk.Label(run_tab, text="PREFIX:")
-prefix_label.grid(row=3, column=4, sticky="W")
+prefix_label.grid(row=3, column=6, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "00")
-prefix_entry.grid(row=3, column=5)
+prefix_entry.grid(row=3, column=7)
 
 horizon_label = tk.Label(run_tab, text="horizon:")
-horizon_label.grid(row=4, column=4, sticky="W")
+horizon_label.grid(row=4, column=6, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "1")
-horizon_entry.grid(row=4, column=5)
+horizon_entry.grid(row=4, column=7)
 
 oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period:")
-oml_grace_period_label.grid(row=5, column=4, sticky="W")
+oml_grace_period_label.grid(row=5, column=6, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "n_train")
-oml_grace_period_entry.grid(row=5, column=5)
+oml_grace_period_entry.grid(row=5, column=7)
 
 # column 6: Run button
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=7, column=6, columnspan=2, sticky="E")
+run_button.grid(row=7, column=8, columnspan=2, sticky="E")
 
 # Create and pack the "Regression" tab with a button to run the analysis
-regression_tab = ttk.Frame(notebook)
-notebook.add(regression_tab, text="Regression")
+river_tab = ttk.Frame(notebook)
+notebook.add(river_tab, text="River")
 
 # colummns 0+1: Data
 
-regression_data_label = tk.Label(regression_tab, text="Data options:")
-regression_data_label.grid(row=0, column=0, sticky="W")
+river_data_label = tk.Label(river_tab, text="Data options:")
+river_data_label.grid(row=0, column=0, sticky="W")
 
 # colummns 2+3: Model
-regression_model_label = tk.Label(regression_tab, text="Model options:")
-regression_model_label.grid(row=0, column=2, sticky="W")
+river_model_label = tk.Label(river_tab, text="Model options:")
+river_model_label.grid(row=0, column=2, sticky="W")
 
 # columns 4+5: Experiment
-regression_experiment_label = tk.Label(regression_tab, text="Experiment options:")
-regression_experiment_label.grid(row=0, column=4, sticky="W")
+river_experiment_label = tk.Label(river_tab, text="Experiment options:")
+river_experiment_label.grid(row=0, column=4, sticky="W")
 
 
 # Create and pack the "Analysis" tab with a button to run the analysis
@@ -211,18 +240,13 @@ notebook.pack()
 # Add the Logo image in both tabs
 logo_image = tk.PhotoImage(file="images/spotlogo.png")
 logo_label = tk.Label(run_tab, image=logo_image)
-logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
+logo_label.grid(row=0, column=8, rowspan=1, columnspan=1)
 
 analysis_label = tk.Label(analysis_tab, text="Analysis options:")
 analysis_label.grid(row=0, column=1, sticky="W")
 
 progress_plot_button = ttk.Button(analysis_tab, text="Progress plot", command=call_progress_plot)
 progress_plot_button.grid(row=1, column=1, columnspan=2, sticky="W")
-
-compare_tuned_default_button = ttk.Button(
-    analysis_tab, text="Compare tuned vs. default", command=call_compare_tuned_default
-)
-compare_tuned_default_button.grid(row=2, column=1, columnspan=2, sticky="W")
 
 importance_plot_button = ttk.Button(analysis_tab, text="Importance plot", command=call_importance_plot)
 importance_plot_button.grid(row=3, column=1, columnspan=2, sticky="W")
@@ -237,8 +261,8 @@ parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
 analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
-regression_logo_label = tk.Label(regression_tab, image=logo_image)
-regression_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
+river_logo_label = tk.Label(river_tab, image=logo_image)
+river_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
 # Run the mainloop
 
