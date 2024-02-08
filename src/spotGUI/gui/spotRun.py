@@ -3,14 +3,10 @@ import matplotlib.pyplot as plt
 import pylab
 import torch
 
-from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init
 from spotPython.hyperparameters.values import set_control_key_value
 
-# from spotPython.hyperparameters.values import modify_hyper_parameter_levels
-from spotPython.hyperparameters.values import get_one_core_model_from_X
-from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
 from spotPython.spot import spot
 from spotPython.utils.tensorboard import start_tensorboard
 
@@ -18,13 +14,14 @@ from spotPython.utils.device import getDevice
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.light.regression.netlightregression import NetLightRegression
+from spotPython.light.regression.netlightregression2 import NetLightRegression2
+
+from spotPython.light.regression.transformerlightregression import TransformerLightRegression
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
-
-
 from spotPython.utils.file import save_experiment, load_experiment
 from spotPython.data.lightdatamodule import LightDataModule
-from spotPython.light.regression.netlightregression2 import NetLightRegression2
 from spotPython.data.pkldataset import PKLDataset
+from spotPython.data.diabetes import Diabetes
 
 
 def run_spot_python_experiment(
@@ -37,7 +34,7 @@ def run_spot_python_experiment(
     FUN_REPEATS=1,
     n_total=None,
     perc_train=0.6,
-    data_set="Phishing",
+    data_set="Diabetes",
     target="is_phishing",
     filename="PhishingData.csv",
     directory="./userData",
@@ -78,19 +75,37 @@ def run_spot_python_experiment(
     )
 
     # Data set
-    dataset = PKLDataset(
-        directory="./userData/",
-        filename="data_sensitive.pkl",
-        target_column=target,
-        feature_type=torch.float32,
-        target_type=torch.float32,
-        rmNA=True,
-    )
-    set_control_key_value(control_dict=fun_control, key="data_set", value=dataset, replace=True)
-    print(len(dataset))
+    if data_set == "Diabetes":
+        dataset = Diabetes(feature_type=torch.float32, target_type=torch.float32)
+        set_control_key_value(control_dict=fun_control, key="data_set", value=dataset, replace=True)
+        print(len(dataset))
 
-    add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression2, hyper_dict=LightHyperDict)
-    print(gen_design_table(fun_control))
+    # TODO: Add more data sets, e.g. user specific data sets in ./userData:
+    # dataset = PKLDataset(
+    #     directory="./userData/",
+    #     filename="data_sensitive.pkl",
+    #     target_column=target,
+    #     feature_type=torch.float32,
+    #     target_type=torch.float32,
+    #     rmNA=True,
+    # )
+    # set_control_key_value(control_dict=fun_control, key="data_set", value=dataset, replace=True)
+    # print(len(dataset))
+
+    # Core model
+    if coremodel == "NetLightRegression2":
+        add_core_model_to_fun_control(
+            fun_control=fun_control, core_model=NetLightRegression2, hyper_dict=LightHyperDict
+        )
+        print(gen_design_table(fun_control))
+    elif coremodel == "NetLightRegression":
+        add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression, hyper_dict=LightHyperDict)
+        print(gen_design_table(fun_control))
+    elif coremodel == "TransformerLightRegression":
+        add_core_model_to_fun_control(
+            fun_control=fun_control, core_model=TransformerLightRegression, hyper_dict=LightHyperDict
+        )
+        print(gen_design_table(fun_control))
 
     fun = HyperLight(log_level=50).fun
 
@@ -99,6 +114,7 @@ def run_spot_python_experiment(
         repeats=REPEATS,
     )
 
+    # TODO: Pass more surrogate options
     surrogate_control = surrogate_control_init(
         noise=True,
         n_theta=2,
@@ -115,22 +131,6 @@ def run_spot_python_experiment(
     SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control)
 
     # tensorboard --logdir="runs/"
-
-    X_start = get_default_hyperparameters_as_array(fun_control)
-    fun = HyperRiver(log_level=fun_control["log_level"]).fun_oml_horizon
-
-    design_control = design_control_init()
-    set_control_key_value(control_dict=design_control, key="init_size", value=INIT_SIZE, replace=True)
-
-    surrogate_control = surrogate_control_init(noise=True, n_theta=2)
-
-    p_open = start_tensorboard()
-    print(fun_control)
-
-    spot_tuner = spot.Spot(
-        fun=fun, fun_control=fun_control, design_control=design_control, surrogate_control=surrogate_control
-    )
-    spot_tuner.run(X_start=X_start)
 
     # stop_tensorboard(p_open)
     return spot_tuner, fun_control

@@ -14,3 +14,8 @@ Figures.d/*
 notebooks/runs/
 notebook/runs/*
 notebook/runs/*/*
+src/spotGUI/gui/plot.png
+src/spotGUI/gui/runs/lightning_logs/*
+src/spotGUI/gui/runs/spot_logs/*
+src/spotGUI/gui/runs_OLD/*
+src/spotGUI/gui/spot_00experiment.pickle
