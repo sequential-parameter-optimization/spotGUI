@@ -2,20 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pylab
 import torch
-
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
-from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init
+from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import set_control_key_value
-
 from spotPython.spot import spot
 from spotPython.utils.tensorboard import start_tensorboard
-
 from spotPython.utils.device import getDevice
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.light.regression.netlightregression import NetLightRegression
 from spotPython.light.regression.netlightregression2 import NetLightRegression2
-
 from spotPython.light.regression.transformerlightregression import TransformerLightRegression
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotPython.utils.file import save_experiment, load_experiment
@@ -28,9 +24,10 @@ def run_spot_python_experiment(
     _L_in,
     _L_out,
     coremodel,
-    MAX_TIME=1,
-    INIT_SIZE=5,
-    PREFIX="0000-spot",
+    save_only,
+    MAX_TIME,
+    INIT_SIZE,
+    PREFIX,
     FUN_EVALS=10,
     FUN_REPEATS=1,
     n_total=None,
@@ -122,17 +119,28 @@ def run_spot_python_experiment(
         log_level=50,
     )
 
+    optimizer_control = optimizer_control_init()
+
     spot_tuner = spot.Spot(
-        fun=fun, fun_control=fun_control, design_control=design_control, surrogate_control=surrogate_control
+        fun=fun,
+        fun_control=fun_control,
+        design_control=design_control,
+        surrogate_control=surrogate_control,
+        optimizer_control=optimizer_control,
     )
-    spot_tuner.run()
+    # save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
 
-    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control)
+    if save_only:
+        return spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+    else:
+        spot_tuner.run()
 
-    # tensorboard --logdir="runs/"
+        SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control)
 
-    # stop_tensorboard(p_open)
-    return spot_tuner, fun_control
+        # tensorboard --logdir="runs/"
+
+        # stop_tensorboard(p_open)
+        return spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
 
 
 def parallel_plot(spot_tuner):

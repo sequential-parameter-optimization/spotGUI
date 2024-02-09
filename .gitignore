@@ -24,3 +24,7 @@ gui/runs/spot_logs/*
 src/spotGUI/tuner/runs/lightning_logs/*
 src/spotGUI/tuner/runs/spot_logs/*
 src/spotGUI/tuner/runs_OLD/*
+gui/runs_OLD/*
+gui/spot_SPOT_0000experiment.pickle
+gui/SPOT_0000_core_model.json
+gui/SPOT_0000_fun_control.json

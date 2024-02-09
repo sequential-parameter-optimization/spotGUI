@@ -14,7 +14,7 @@ result = None
 fun_control = None
 
 
-def run_experiment():
+def run_experiment(save_only=False):
     global result, fun_control
     MAX_TIME = float(max_time_entry.get())
     INIT_SIZE = int(init_size_entry.get())
@@ -31,7 +31,7 @@ def run_experiment():
     data_set = data_set_combo.get()
     core_model = core_model_combo.get()
 
-    result, fun_control = run_spot_python_experiment(
+    result, fun_control, design_control, surrogate_control, optimizer_control = run_spot_python_experiment(
         _L_in=lin,
         _L_out=lout,
         MAX_TIME=MAX_TIME,
@@ -41,6 +41,7 @@ def run_experiment():
         data_set=data_set,
         coremodel=core_model,
         log_level=50,
+        save_only=save_only
     )
 
 
@@ -64,7 +65,7 @@ def call_importance_plot():
         importance_plot(result)
 
 
-def update_hyperparams(model=None):
+def update_hyperparams():
     model = core_model_combo.get()
     dict = lhd.hyper_dict[model]
     for i, (key, value) in enumerate(dict.items()):
@@ -73,6 +74,7 @@ def update_hyperparams(model=None):
             label = tk.Label(run_tab, text=key)
             label.grid(row=i + 2, column=2, sticky="W")
             label.update()
+            print(f"key: {key}, value: {value}")
             # Create an entry with the default value as the default text
             default_entry = tk.Entry(run_tab)
             default_entry.insert(0, dict[key]["default"])
@@ -97,8 +99,9 @@ def update_hyperparams(model=None):
             # add the lower bound values in column 2
             factor_level_entry = tk.Entry(run_tab)
             # add a comma to each level
-            dict[key]["levels"] = ", ".join(dict[key]["levels"])
+            # dict[key]["levels"] = ", ".join(dict[key]["levels"])
             factor_level_entry.insert(0, dict[key]["levels"])
+            factor_level_entry.grid(row=i + 2, column=4, sticky="W")
 
 
 # Create the main application window
@@ -171,11 +174,10 @@ core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
 core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
 core_model_combo.set("NetLightRegression")  # Default selection
-core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
+core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams())
 core_model_combo.grid(row=1, column=3)
 
-model = core_model_combo.get()
-update_hyperparams(model)
+update_hyperparams()
 
 
 # columns 4+5: Experiment
@@ -197,19 +199,22 @@ init_size_entry.grid(row=2, column=7)
 prefix_label = tk.Label(run_tab, text="PREFIX:")
 prefix_label.grid(row=3, column=6, sticky="W")
 prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "00")
+prefix_entry.insert(0, "SPOT_0000")
 prefix_entry.grid(row=3, column=7)
 
 noise_label = tk.Label(run_tab, text="NOISE:")
 noise_label.grid(row=4, column=6, sticky="W")
 noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "1")
+noise_entry.insert(0, "TRUE")
 noise_entry.grid(row=4, column=7)
 
 
-# column 6: Run button
+# column 8: Save and run button
+save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
+save_button.grid(row=7, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=7, column=8, columnspan=2, sticky="E")
+run_button.grid(row=8, column=8, columnspan=2, sticky="E")
+
 
 # Create and pack the "Regression" tab with a button to run the analysis
 river_tab = ttk.Frame(notebook)
