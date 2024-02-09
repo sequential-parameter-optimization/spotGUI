@@ -64,8 +64,7 @@ def call_importance_plot():
         importance_plot(result)
 
 
-# TODO: If the core model selection changes, the hyperparameters should be updated
-def update_hyperparams():
+def update_hyperparams(model=None):
     model = core_model_combo.get()
     dict = lhd.hyper_dict[model]
     for i, (key, value) in enumerate(dict.items()):
@@ -172,48 +171,12 @@ core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
 core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
 core_model_combo.set("NetLightRegression")  # Default selection
+core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=1, column=3)
 
-update_hyperparams()
+model = core_model_combo.get()
+update_hyperparams(model)
 
-# # Get the hyperparameters for the selected core model
-# model = core_model_combo.get()
-# dict = lhd.hyper_dict[model]
-# # Loop over the dictionary and create labels and entries for each key-value pair
-# for i, (key, value) in enumerate(dict.items()):
-#     if dict[key]["type"] == "int" or dict[key]["type"] == "float":
-#         # Create a label with the key as text
-#         label = tk.Label(run_tab, text=key)
-#         label.grid(row=i + 2, column=2, sticky="W")
-#         label.update()
-#         # Create an entry with the default value as the default text
-#         default_entry = tk.Entry(run_tab)
-#         default_entry.insert(0, dict[key]["default"])
-#         default_entry.grid(row=i + 2, column=3, sticky="W")
-#         # add the lower bound values in column 2
-#         lower_bound_entry = tk.Entry(run_tab)
-#         lower_bound_entry.insert(0, dict[key]["lower"])
-#         lower_bound_entry.grid(row=i + 2, column=4, sticky="W")
-#         # add the upper bound values in column 3
-#         upper_bound_entry = tk.Entry(run_tab)
-#         upper_bound_entry.insert(0, dict[key]["upper"])
-#         upper_bound_entry.grid(row=i + 2, column=5, sticky="W")
-#     if dict[key]["type"] == "factor":
-#         # Create a label with the key as text
-#         label = tk.Label(run_tab, text=key)
-#         label.grid(row=i + 2, column=2, sticky="W")
-#         label.update()
-#         # Create an entry with the default value as the default text
-#         default_entry = tk.Entry(run_tab)
-#         default_entry.insert(0, dict[key]["default"])
-#         default_entry.grid(row=i + 2, column=3, sticky="W")
-#         # add the lower bound values in column 2
-#         factor_level_entry = tk.Entry(run_tab)
-#         # add a comma to each level
-#         dict[key]["levels"] = ", ".join(dict[key]["levels"])
-#         factor_level_entry.insert(0, dict[key]["levels"])
-#         # TODO: Fix columnspan
-#         factor_level_entry.grid(row=i + 2, column=4, columnspan=2, sticky="W")
 
 # columns 4+5: Experiment
 experiment_label = tk.Label(run_tab, text="Experiment options:")
