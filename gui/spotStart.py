@@ -67,7 +67,7 @@ def call_importance_plot():
 
 def update_hyperparams():
     model = core_model_combo.get()
-    dict = lhd.hyper_dict[model]
+    dict = lhd.hyper_dict[model]    
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int" or dict[key]["type"] == "float":
             # Create a label with the key as text
@@ -79,6 +79,12 @@ def update_hyperparams():
             default_entry = tk.Entry(run_tab)
             default_entry.insert(0, dict[key]["default"])
             default_entry.grid(row=i + 2, column=3, sticky="W")
+            default_entry.update()
+            default_entry_value = default_entry.get()
+            print(f"key: {dict[key]}, value: {default_entry_value}")
+            # TODO: Dummy update, replace with the update from the user input
+            dict[key].update({"default": str( float(default_entry_value) + 1000000.)})
+            print(f"dict: {dict}")
             # add the lower bound values in column 2
             lower_bound_entry = tk.Entry(run_tab)
             lower_bound_entry.insert(0, dict[key]["lower"])
@@ -178,6 +184,7 @@ core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams())
 core_model_combo.grid(row=1, column=3)
 
 update_hyperparams()
+print(f"\ndict after update: {dict}")
 
 
 # columns 4+5: Experiment
