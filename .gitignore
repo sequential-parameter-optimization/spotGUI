@@ -19,3 +19,8 @@ src/spotGUI/gui/runs/lightning_logs/*
 src/spotGUI/gui/runs/spot_logs/*
 src/spotGUI/gui/runs_OLD/*
 src/spotGUI/gui/spot_00experiment.pickle
+gui/runs/lightning_logs/*
+gui/runs/spot_logs/*
+src/spotGUI/tuner/runs/lightning_logs/*
+src/spotGUI/tuner/runs/spot_logs/*
+src/spotGUI/tuner/runs_OLD/*
