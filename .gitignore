@@ -28,3 +28,4 @@ gui/runs_OLD/*
 gui/spot_SPOT_0000experiment.pickle
 gui/SPOT_0000_core_model.json
 gui/SPOT_0000_fun_control.json
+gui/plot.png

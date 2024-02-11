@@ -1,7 +1,11 @@
+import numpy as np
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, StringVar
+import math
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
-
+from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
+from spotPython.hyperparameters.values import add_core_model_to_fun_control
+from spotPython.hyperparameters.values import set_control_hyperparameter_value
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
     contour_plot,
@@ -9,39 +13,133 @@ from spotGUI.tuner.spotRun import (
     importance_plot,
     progress_plot,
 )
+from spotPython.light.regression.netlightregression import NetLightRegression
+from spotPython.light.regression.netlightregression2 import NetLightRegression2
+from spotPython.light.regression.transformerlightregression import TransformerLightRegression
+from spotPython.utils.eda import gen_design_table
+from spotPython.data.diabetes import Diabetes
+import torch
 
 result = None
-fun_control = None
+# Create a LightHyperDict object
+lhd = LightHyperDict()
+# 
+n_keys = 25
+label = [None] * n_keys
+default_entry = [None] * n_keys
+lower_bound_entry = [None] * n_keys
+upper_bound_entry = [None] * n_keys
+factor_level_entry = [None] * n_keys
 
 
 def run_experiment(save_only=False):
-    global result, fun_control
-    MAX_TIME = float(max_time_entry.get())
-    INIT_SIZE = int(init_size_entry.get())
-    PREFIX = prefix_entry.get()
-    NOISE = bool(noise_entry.get())
+    global result, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
     n_total = n_total_entry.get()
     if n_total == "None" or n_total == "All":
         n_total = None
     else:
         n_total = int(n_total)
     perc_train = float(perc_train_entry.get())
-    lin = int(lin_entry.get())
-    lout = int(lout_entry.get())
+
+    fun_evals = fun_evals_entry.get()
+    if fun_evals == "None" or fun_evals == "inf":
+        fun_evals_val = math.inf
+    else:
+        fun_evals_val = int(fun_evals)
+    
     data_set = data_set_combo.get()
-    core_model = core_model_combo.get()
+    if data_set == "Diabetes":
+        dataset = Diabetes(feature_type=torch.float32, target_type=torch.float32)
+        print(f"Diabetes data set: {len(dataset)}")
+    else:
+        print(f"Error: Data set {data_set} not available.")        
+        return
+
+    # Initialize the fun_control dictionary with the static parameters,
+    # i.e., the parameters that are not hyperparameters (depending on the core model)
+    fun_control = fun_control_init(
+        _L_in=int(lin_entry.get()),
+        _L_out=int(lout_entry.get()),
+        PREFIX = prefix_entry.get(),
+        TENSORBOARD_CLEAN=True,
+        fun_evals=fun_evals_val,
+        fun_repeats=1,
+        max_time = float(max_time_entry.get()),
+        noise = bool(noise_entry.get()),
+        ocba_delta=0,
+        test_size=0.4,
+        tolerance_x=np.sqrt(np.spacing(1)),
+        verbosity=1,
+        data_set = dataset,
+        log_level =10,
+    )
+    
+    # Get the selected core model and add it to the fun_control dictionary
+    coremodel = core_model_combo.get()
+    if coremodel == "NetLightRegression2":
+        add_core_model_to_fun_control(
+            fun_control=fun_control, core_model=NetLightRegression2, hyper_dict=LightHyperDict
+        )
+        print(gen_design_table(fun_control))
+    elif coremodel == "NetLightRegression":
+        add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression,
+           hyper_dict=LightHyperDict)
+        print(gen_design_table(fun_control))
+    elif coremodel == "TransformerLightRegression":
+        add_core_model_to_fun_control(
+            fun_control=fun_control, core_model=TransformerLightRegression, hyper_dict=LightHyperDict
+        )
+
+    # update the keys and values in the fun_control dictionary with the keys and values in the dict dictionary
+    dict = lhd.hyper_dict[coremodel]
+    n_keys = len(dict)
+    print(f"n_keys in the dictionary: {n_keys}")    
+    for i, (key, value) in enumerate(dict.items()):
+        if dict[key]["type"] == "int":
+            print(f"fun_control: Setting control hyperparameter value: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            set_control_hyperparameter_value(fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())])
+        if dict[key]["type"] == "float":
+            print(f"fun_control: Setting control hyperparameter value: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            set_control_hyperparameter_value(fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())])
+        if dict[key]["type"] == "factor":
+            print(f"fun_control: getting control hyperparameter value: {key}, {factor_level_entry[i].get()}")
+            fle = factor_level_entry[i].get()
+            # convert the string to a list of strings
+            fle = fle.split()
+            print(f"fun_control: Key {key}: setting control hyperparameter value: {fle}")
+            set_control_hyperparameter_value(fun_control, key,fle)
+            # fun_control["core_model"][key].update({"upper": len(fle)})
+            # print the values from 'core_model_hyper_dict' in the fun_control dictionary
+            print("\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():", fun_control['core_model_hyper_dict'][key])
+            fun_control['core_model_hyper_dict'][key].update({"upper": len(fle) - 1})
+            print("\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():", fun_control['core_model_hyper_dict'][key])
+
+    print("\nfun_control in run_experiment():", fun_control)
+    # print the values from 'core_model_hyper_dict' in the fun_control dictionary
+    # print("\nfun_control['core_model_hyper_dict'] in run_experiment():", fun_control['core_model_hyper_dict'])
+
+    design_control = design_control_init(
+        init_size=int(init_size_entry.get()),
+        repeats=1,
+    )
+
+    surrogate_control = surrogate_control_init(
+        noise=True,
+        n_theta=2,
+        min_Lambda=1e-6,
+        max_Lambda=10,
+        log_level=50,
+    )
+
+    optimizer_control = optimizer_control_init()
+
 
     result, fun_control, design_control, surrogate_control, optimizer_control = run_spot_python_experiment(
-        _L_in=lin,
-        _L_out=lout,
-        MAX_TIME=MAX_TIME,
-        INIT_SIZE=INIT_SIZE,
-        PREFIX=PREFIX,
-        NOISE=NOISE,
-        data_set=data_set,
-        coremodel=core_model,
-        log_level=50,
-        save_only=save_only
+        save_only=save_only,
+        fun_control=fun_control,
+        design_control=design_control,
+        surrogate_control=surrogate_control,
+        optimizer_control=optimizer_control,
     )
 
 
@@ -66,56 +164,66 @@ def call_importance_plot():
 
 
 def update_hyperparams():
+    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
     model = core_model_combo.get()
-    dict = lhd.hyper_dict[model]    
+    dict = lhd.hyper_dict[model]
+    # get the number of keys in the dictionary
+    n_keys = len(dict)
+    print(f"n_keys in the dictionary: {n_keys}")
+    # Create a list of labels and entries with the same length as the number of keys in the dictionary
+    label = [None] * n_keys
+    default_entry = [None] * n_keys
+    lower_bound_entry = [None] * n_keys
+    upper_bound_entry = [None] * n_keys
+    factor_level_entry = [None] * n_keys
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int" or dict[key]["type"] == "float":
             # Create a label with the key as text
-            label = tk.Label(run_tab, text=key)
-            label.grid(row=i + 2, column=2, sticky="W")
-            label.update()
-            print(f"key: {key}, value: {value}")
+            label[i] = tk.Label(run_tab, text=key)
+            label[i].grid(row=i + 2, column=2, sticky="W")
+            label[i].update()
             # Create an entry with the default value as the default text
-            default_entry = tk.Entry(run_tab)
-            default_entry.insert(0, dict[key]["default"])
-            default_entry.grid(row=i + 2, column=3, sticky="W")
-            default_entry.update()
-            default_entry_value = default_entry.get()
-            print(f"key: {dict[key]}, value: {default_entry_value}")
-            # TODO: Dummy update, replace with the update from the user input
-            dict[key].update({"default": str( float(default_entry_value) + 1000000.)})
-            print(f"dict: {dict}")
+            default_entry[i] = tk.Entry(run_tab)
+            default_entry[i].insert(0, dict[key]["default"])
+            default_entry[i].grid(row=i + 2, column=3, sticky="W")
+            default_entry[i].update()
             # add the lower bound values in column 2
-            lower_bound_entry = tk.Entry(run_tab)
-            lower_bound_entry.insert(0, dict[key]["lower"])
-            lower_bound_entry.grid(row=i + 2, column=4, sticky="W")
+            lower_bound_entry[i] = tk.Entry(run_tab)
+            lower_bound_entry[i].insert(0, dict[key]["lower"])
+            lower_bound_entry[i].grid(row=i + 2, column=4, sticky="W")
             # add the upper bound values in column 3
-            upper_bound_entry = tk.Entry(run_tab)
-            upper_bound_entry.insert(0, dict[key]["upper"])
-            upper_bound_entry.grid(row=i + 2, column=5, sticky="W")
+            upper_bound_entry[i] = tk.Entry(run_tab)
+            upper_bound_entry[i].insert(0, dict[key]["upper"])
+            upper_bound_entry[i].grid(row=i + 2, column=5, sticky="W")
+            print(f"GUI: Inserting control hyperparameter value: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
         if dict[key]["type"] == "factor":
             # Create a label with the key as text
-            label = tk.Label(run_tab, text=key)
-            label.grid(row=i + 2, column=2, sticky="W")
-            label.update()
+            label[i] = tk.Label(run_tab, text=key)
+            label[i].grid(row=i + 2, column=2, sticky="W")
+            label[i].update()
             # Create an entry with the default value as the default text
-            default_entry = tk.Entry(run_tab)
-            default_entry.insert(0, dict[key]["default"])
-            default_entry.grid(row=i + 2, column=3, sticky="W")
+            default_entry[i] = tk.Entry(run_tab)
+            default_entry[i].insert(0, dict[key]["default"])
+            default_entry[i].grid(row=i + 2, column=3, sticky="W")
             # add the lower bound values in column 2
-            factor_level_entry = tk.Entry(run_tab)
-            # add a comma to each level
-            # dict[key]["levels"] = ", ".join(dict[key]["levels"])
-            factor_level_entry.insert(0, dict[key]["levels"])
-            factor_level_entry.grid(row=i + 2, column=4, sticky="W")
+            factor_level_entry[i] = tk.Entry(run_tab)
+            # replace " " with "," in the default value
+            print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
+            factor_level_entry[i].insert(0, dict[key]["levels"])
+            factor_level_entry[i].grid(row=i + 2, column=4, sticky="W")
+            print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
+
 
 
 # Create the main application window
 app = tk.Tk()
 app.title("Spot Python Hyperparameter Tuning GUI")
 
-# Create a LightHyperDict object
-lhd = LightHyperDict()
+# generate a list of StringVar() objects of size n_keys
+for i in range(n_keys):
+    factor_level_entry.append(StringVar())
+    print(f"factor_level_entry[{i}]: {factor_level_entry[i]}")
+
 
 # Create a notebook (tabbed interface)
 notebook = ttk.Notebook(app)
@@ -184,7 +292,7 @@ core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams())
 core_model_combo.grid(row=1, column=3)
 
 update_hyperparams()
-print(f"\ndict after update: {dict}")
+print(f"\ndict after update: {dict}\n")
 
 
 # columns 4+5: Experiment
@@ -197,23 +305,29 @@ max_time_entry = tk.Entry(run_tab)
 max_time_entry.insert(0, "1")
 max_time_entry.grid(row=1, column=7)
 
+fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
+fun_evals_label.grid(row=1, column=6, sticky="W")
+fun_evals_entry = tk.Entry(run_tab)
+fun_evals_entry.insert(0, "inf")
+fun_evals_entry.grid(row=2, column=7)
+
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
 init_size_label.grid(row=2, column=6, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "6")
-init_size_entry.grid(row=2, column=7)
+init_size_entry.grid(row=3, column=7)
 
 prefix_label = tk.Label(run_tab, text="PREFIX:")
 prefix_label.grid(row=3, column=6, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "SPOT_0000")
-prefix_entry.grid(row=3, column=7)
+prefix_entry.grid(row=4, column=7)
 
 noise_label = tk.Label(run_tab, text="NOISE:")
 noise_label.grid(row=4, column=6, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=4, column=7)
+noise_entry.grid(row=5, column=7)
 
 
 # column 8: Save and run button
