@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
-import pprint
 import pylab
 from spotPython.spot import spot
-from spotPython.utils.tensorboard import start_tensorboard
-from spotPython.utils.device import getDevice
+from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
-from spotPython.utils.file import save_experiment, load_experiment
-from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
+from spotPython.utils.file import save_experiment
+
+# TODO: Implement a function to load the experiment
+# from spotPython.utils.file import load_experiment
 
 
 def run_spot_python_experiment(
@@ -16,42 +16,13 @@ def run_spot_python_experiment(
     design_control,
     surrogate_control,
     optimizer_control,
+    fun=HyperLight(log_level=50).fun,
 ) -> spot.Spot:
     """Runs a spot experiment."""
 
-    # TODO: Add more data sets, e.g. user specific data sets in ./userData:
-    # dataset = PKLDataset(
-    #     directory="./userData/",
-    #     filename="data_sensitive.pkl",
-    #     target_column=target,
-    #     feature_type=torch.float32,
-    #     target_type=torch.float32,
-    #     rmNA=True,
-    # )
-    # set_control_key_value(control_dict=fun_control, key="data_set", value=dataset, replace=True)
-    # print(len(dataset))
-
-    # Core model
-    # if coremodel == "NetLightRegression2":
-    #     add_core_model_to_fun_control(
-    #         fun_control=fun_control, core_model=NetLightRegression2, hyper_dict=LightHyperDict
-    #     )
-    #     print(gen_design_table(fun_control))
-    # elif coremodel == "NetLightRegression":
-    #     add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression,
-    #        hyper_dict=LightHyperDict)
-    #     print(gen_design_table(fun_control))
-    # elif coremodel == "TransformerLightRegression":
-    #     add_core_model_to_fun_control(
-    #         fun_control=fun_control, core_model=TransformerLightRegression, hyper_dict=LightHyperDict
-    #     )
     print("\nfun_control in spotRun():", fun_control)
 
-    pprint.pprint(fun_control)
-
     print(gen_design_table(fun_control))
-
-    fun = HyperLight(log_level=10).fun
 
     spot_tuner = spot.Spot(
         fun=fun,
@@ -60,19 +31,22 @@ def run_spot_python_experiment(
         surrogate_control=surrogate_control,
         optimizer_control=optimizer_control,
     )
-    # save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+
+    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
 
     if save_only:
-        return spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
     else:
+        p_open = start_tensorboard()
+
         spot_tuner.run()
 
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control)
 
         # tensorboard --logdir="runs/"
 
-        # stop_tensorboard(p_open)
-        return spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+        stop_tensorboard(p_open)
+        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
 
 
 def parallel_plot(spot_tuner):

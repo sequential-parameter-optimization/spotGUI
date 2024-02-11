@@ -20,7 +20,7 @@ from spotPython.utils.eda import gen_design_table
 from spotPython.data.diabetes import Diabetes
 import torch
 
-result = None
+spot_tuner = None
 # Create a LightHyperDict object
 lhd = LightHyperDict()
 # 
@@ -33,7 +33,7 @@ factor_level_entry = [None] * n_keys
 
 
 def run_experiment(save_only=False):
-    global result, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+    global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
     n_total = n_total_entry.get()
     if n_total == "None" or n_total == "All":
         n_total = None
@@ -134,7 +134,7 @@ def run_experiment(save_only=False):
     optimizer_control = optimizer_control_init()
 
 
-    result, fun_control, design_control, surrogate_control, optimizer_control = run_spot_python_experiment(
+    SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = run_spot_python_experiment(
         save_only=save_only,
         fun_control=fun_control,
         design_control=design_control,
@@ -144,30 +144,29 @@ def run_experiment(save_only=False):
 
 
 def call_parallel_plot():
-    if result is not None:
-        parallel_plot(result)
+    if spot_tuner is not None:
+        parallel_plot(spot_tuner)
 
 
 def call_contour_plot():
-    if result is not None:
-        contour_plot(result)
+    if spot_tuner is not None:
+        contour_plot(spot_tuner)
 
 
 def call_progress_plot():
-    if result is not None:
-        progress_plot(result)
+    if spot_tuner is not None:
+        progress_plot(spot_tuner)
 
 
 def call_importance_plot():
-    if result is not None:
-        importance_plot(result)
+    if spot_tuner is not None:
+        importance_plot(spot_tuner)
 
 
 def update_hyperparams():
     global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
     model = core_model_combo.get()
     dict = lhd.hyper_dict[model]
-    # get the number of keys in the dictionary
     n_keys = len(dict)
     print(f"n_keys in the dictionary: {n_keys}")
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
@@ -207,12 +206,11 @@ def update_hyperparams():
             default_entry[i].grid(row=i + 2, column=3, sticky="W")
             # add the lower bound values in column 2
             factor_level_entry[i] = tk.Entry(run_tab)
-            # replace " " with "," in the default value
+            # TODO: replace " " with ", " for the levels
             print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
             factor_level_entry[i].insert(0, dict[key]["levels"])
             factor_level_entry[i].grid(row=i + 2, column=4, sticky="W")
             print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
-
 
 
 # Create the main application window
@@ -306,25 +304,25 @@ max_time_entry.insert(0, "1")
 max_time_entry.grid(row=1, column=7)
 
 fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
-fun_evals_label.grid(row=1, column=6, sticky="W")
+fun_evals_label.grid(row=2, column=6, sticky="W")
 fun_evals_entry = tk.Entry(run_tab)
 fun_evals_entry.insert(0, "inf")
 fun_evals_entry.grid(row=2, column=7)
 
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
-init_size_label.grid(row=2, column=6, sticky="W")
+init_size_label.grid(row=3, column=6, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "6")
 init_size_entry.grid(row=3, column=7)
 
 prefix_label = tk.Label(run_tab, text="PREFIX:")
-prefix_label.grid(row=3, column=6, sticky="W")
+prefix_label.grid(row=4, column=6, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "SPOT_0000")
 prefix_entry.grid(row=4, column=7)
 
 noise_label = tk.Label(run_tab, text="NOISE:")
-noise_label.grid(row=4, column=6, sticky="W")
+noise_label.grid(row=5, column=6, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
 noise_entry.grid(row=5, column=7)
