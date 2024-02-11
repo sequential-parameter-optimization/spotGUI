@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, StringVar
@@ -141,6 +142,11 @@ def run_experiment(save_only=False):
         surrogate_control=surrogate_control,
         optimizer_control=optimizer_control,
     )
+    if SPOT_PKL_NAME is not None and save_only:
+        print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
+    elif SPOT_PKL_NAME is not None and not save_only:
+        print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
+
 
 
 def call_parallel_plot():
@@ -238,67 +244,83 @@ data_label.grid(row=0, column=0, sticky="W")
 
 data_set_label = tk.Label(run_tab, text="Select data_set:")
 data_set_label.grid(row=1, column=0, sticky="W")
-data_set_values = [
-    "Diabetes",
-    "USER",
-]
+data_set_values = ["Diabetes"]
+# get all *.csv files in the data directory "userData" and append them to the list of data_set_values
+data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
 data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
 data_set_combo.set("Diabetes")  # Default selection
 data_set_combo.grid(row=1, column=1)
 
+feature_type_label = tk.Label(run_tab, text="feature_type:")
+feature_type_label.grid(row=2, column=0, sticky="W")
+feature_type_entry = tk.Entry(run_tab)
+feature_type_entry.insert(0, "torch.float32")
+feature_type_entry.grid(row=2, column=1, sticky="W")
+
+target_type_label = tk.Label(run_tab, text="target_type:")
+target_type_label.grid(row=3, column=0, sticky="W")
+target_type_entry = tk.Entry(run_tab)
+target_type_entry.insert(0, "torch.float32")
+target_type_entry.grid(row=3, column=1, sticky="W")
+
+target_column_label = tk.Label(run_tab, text="target_column:")
+target_column_label.grid(row=4, column=0, sticky="W")
+target_column_entry = tk.Entry(run_tab)
+target_column_entry.insert(0, "target")
+target_column_entry.grid(row=4, column=1, sticky="W")
 
 n_total_label = tk.Label(run_tab, text="n_total:")
-n_total_label.grid(row=2, column=0, sticky="W")
+n_total_label.grid(row=5, column=0, sticky="W")
 n_total_entry = tk.Entry(run_tab)
 n_total_entry.insert(0, "All")
-n_total_entry.grid(row=2, column=1, sticky="W")
+n_total_entry.grid(row=5, column=1, sticky="W")
 
 perc_train_label = tk.Label(run_tab, text="perc_train:")
-perc_train_label.grid(row=3, column=0, sticky="W")
+perc_train_label.grid(row=6, column=0, sticky="W")
 perc_train_entry = tk.Entry(run_tab)
 perc_train_entry.insert(0, "0.90")
-perc_train_entry.grid(row=3, column=1, sticky="W")
+perc_train_entry.grid(row=6, column=1, sticky="W")
 
 lin_label = tk.Label(run_tab, text="_L_in:")
-lin_label.grid(row=4, column=0, sticky="W")
+lin_label.grid(row=7, column=0, sticky="W")
 lin_entry = tk.Entry(run_tab)
 lin_entry.insert(0, "10")
-lin_entry.grid(row=4, column=1, sticky="W")
+lin_entry.grid(row=7, column=1, sticky="W")
 
 lout_label = tk.Label(run_tab, text="_L_out:")
-lout_label.grid(row=5, column=0, sticky="W")
+lout_label.grid(row=8, column=0, sticky="W")
 lout_entry = tk.Entry(run_tab)
 lout_entry.insert(0, "1")
-lout_entry.grid(row=5, column=1, sticky="W")
+lout_entry.grid(row=8, column=1, sticky="W")
 
 
 # columns 0+1: Experiment
 experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=6, column=0, sticky="W")
+experiment_label.grid(row=9, column=0, sticky="W")
 
 max_time_label = tk.Label(run_tab, text="MAX_TIME:")
-max_time_label.grid(row=7, column=0, sticky="W")
+max_time_label.grid(row=10, column=0, sticky="W")
 max_time_entry = tk.Entry(run_tab)
 max_time_entry.insert(0, "1")
-max_time_entry.grid(row=7, column=1)
+max_time_entry.grid(row=10, column=1)
 
 fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
-fun_evals_label.grid(row=8, column=0, sticky="W")
+fun_evals_label.grid(row=11, column=0, sticky="W")
 fun_evals_entry = tk.Entry(run_tab)
 fun_evals_entry.insert(0, "inf")
-fun_evals_entry.grid(row=8, column=1)
+fun_evals_entry.grid(row=11, column=1)
 
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
-init_size_label.grid(row=9, column=0, sticky="W")
+init_size_label.grid(row=12, column=0, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "6")
-init_size_entry.grid(row=9, column=1)
+init_size_entry.grid(row=12, column=1)
 
 prefix_label = tk.Label(run_tab, text="PREFIX:")
-prefix_label.grid(row=10, column=0, sticky="W")
+prefix_label.grid(row=13, column=0, sticky="W")
 prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "SPOT_0000")
-prefix_entry.grid(row=10, column=1)
+prefix_entry.insert(0, "0000-0000")
+prefix_entry.grid(row=13, column=1)
 
 noise_label = tk.Label(run_tab, text="NOISE:")
 noise_label.grid(row=11, column=0, sticky="W")

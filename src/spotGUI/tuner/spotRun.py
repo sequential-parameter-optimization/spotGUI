@@ -18,7 +18,22 @@ def run_spot_python_experiment(
     optimizer_control,
     fun=HyperLight(log_level=50).fun,
 ) -> spot.Spot:
-    """Runs a spot experiment."""
+    """Runs a spot experiment.
+
+    Args:
+        save_only (bool): If True, the experiment will be saved and the spot run will not be executed.
+        fun_control (dict): A dictionary with the function control parameters.
+        design_control (dict): A dictionary with the design control parameters.
+        surrogate_control (dict): A dictionary with the surrogate control parameters.
+        optimizer_control (dict): A dictionary with the optimizer control parameters.
+        fun (function): The function to be optimized.
+
+    Returns:
+        spot.Spot: The spot experiment.
+
+
+
+    """
 
     print("\nfun_control in spotRun():", fun_control)
 
@@ -33,19 +48,18 @@ def run_spot_python_experiment(
     )
 
     # TODO: Fix error when saving the experiment w/o spot run execution
-    # SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+
     SPOT_PKL_NAME = None
     if save_only:
+        if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
+            fun_control["spot_writer"].close()
+        SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
     else:
         p_open = start_tensorboard()
-
         spot_tuner.run()
-
-        SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control)
-
+        SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         # tensorboard --logdir="runs/"
-
         stop_tensorboard(p_open)
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
 
