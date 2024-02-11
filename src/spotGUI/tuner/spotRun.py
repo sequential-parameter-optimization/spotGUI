@@ -32,8 +32,9 @@ def run_spot_python_experiment(
         optimizer_control=optimizer_control,
     )
 
-    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
-
+    # TODO: Fix error when saving the experiment w/o spot run execution
+    # SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+    SPOT_PKL_NAME = None
     if save_only:
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
     else:

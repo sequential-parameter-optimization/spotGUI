@@ -272,6 +272,41 @@ lout_entry.insert(0, "1")
 lout_entry.grid(row=5, column=1, sticky="W")
 
 
+# columns 0+1: Experiment
+experiment_label = tk.Label(run_tab, text="Experiment options:")
+experiment_label.grid(row=6, column=0, sticky="W")
+
+max_time_label = tk.Label(run_tab, text="MAX_TIME:")
+max_time_label.grid(row=7, column=0, sticky="W")
+max_time_entry = tk.Entry(run_tab)
+max_time_entry.insert(0, "1")
+max_time_entry.grid(row=7, column=1)
+
+fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
+fun_evals_label.grid(row=8, column=0, sticky="W")
+fun_evals_entry = tk.Entry(run_tab)
+fun_evals_entry.insert(0, "inf")
+fun_evals_entry.grid(row=8, column=1)
+
+init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
+init_size_label.grid(row=9, column=0, sticky="W")
+init_size_entry = tk.Entry(run_tab)
+init_size_entry.insert(0, "6")
+init_size_entry.grid(row=9, column=1)
+
+prefix_label = tk.Label(run_tab, text="PREFIX:")
+prefix_label.grid(row=10, column=0, sticky="W")
+prefix_entry = tk.Entry(run_tab)
+prefix_entry.insert(0, "SPOT_0000")
+prefix_entry.grid(row=10, column=1)
+
+noise_label = tk.Label(run_tab, text="NOISE:")
+noise_label.grid(row=11, column=0, sticky="W")
+noise_entry = tk.Entry(run_tab)
+noise_entry.insert(0, "TRUE")
+noise_entry.grid(row=11, column=1)
+
+
 # colummns 2+3: Model
 model_label = tk.Label(run_tab, text="Model options:")
 model_label.grid(row=0, column=2, sticky="W")
@@ -291,41 +326,6 @@ core_model_combo.grid(row=1, column=3)
 
 update_hyperparams()
 print(f"\ndict after update: {dict}\n")
-
-
-# columns 4+5: Experiment
-experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=0, column=6, sticky="W")
-
-max_time_label = tk.Label(run_tab, text="MAX_TIME:")
-max_time_label.grid(row=1, column=6, sticky="W")
-max_time_entry = tk.Entry(run_tab)
-max_time_entry.insert(0, "1")
-max_time_entry.grid(row=1, column=7)
-
-fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
-fun_evals_label.grid(row=2, column=6, sticky="W")
-fun_evals_entry = tk.Entry(run_tab)
-fun_evals_entry.insert(0, "inf")
-fun_evals_entry.grid(row=2, column=7)
-
-init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
-init_size_label.grid(row=3, column=6, sticky="W")
-init_size_entry = tk.Entry(run_tab)
-init_size_entry.insert(0, "6")
-init_size_entry.grid(row=3, column=7)
-
-prefix_label = tk.Label(run_tab, text="PREFIX:")
-prefix_label.grid(row=4, column=6, sticky="W")
-prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "SPOT_0000")
-prefix_entry.grid(row=4, column=7)
-
-noise_label = tk.Label(run_tab, text="NOISE:")
-noise_label.grid(row=5, column=6, sticky="W")
-noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=5, column=7)
 
 
 # column 8: Save and run button
@@ -350,7 +350,7 @@ river_model_label.grid(row=0, column=2, sticky="W")
 
 # columns 4+5: Experiment
 river_experiment_label = tk.Label(river_tab, text="Experiment options:")
-river_experiment_label.grid(row=0, column=4, sticky="W")
+river_experiment_label.grid(row=6, column=0, sticky="W")
 
 
 # Create and pack the "Analysis" tab with a button to run the analysis
