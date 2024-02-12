@@ -6,7 +6,7 @@ import math
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
-from spotPython.hyperparameters.values import set_control_hyperparameter_value
+from spotPython.hyperparameters.values import set_control_hyperparameter_value, set_control_key_value
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
     contour_plot,
@@ -20,6 +20,8 @@ from spotPython.light.regression.transformerlightregression import TransformerLi
 from spotPython.utils.eda import gen_design_table
 from spotPython.data.diabetes import Diabetes
 import torch
+from spotPython.data.csvdataset import CSVDataset
+from spotPython.data.pkldataset import PKLDataset
 
 spot_tuner = None
 # Create a LightHyperDict object
@@ -47,11 +49,27 @@ def run_experiment(save_only=False):
         fun_evals_val = math.inf
     else:
         fun_evals_val = int(fun_evals)
-    
+
     data_set = data_set_combo.get()
     if data_set == "Diabetes":
         dataset = Diabetes(feature_type=torch.float32, target_type=torch.float32)
         print(f"Diabetes data set: {len(dataset)}")
+    # check if data_set ends with .csv
+    elif data_set.endswith(".csv"):
+        dataset = CSVDataset(directory="./userData/",
+                            filename=data_set,
+                            target_column=target_column_entry.get(),
+                            feature_type=getattr(torch, feature_type_entry.get()),
+                            target_type=getattr(torch, target_type_entry.get()))
+        print(len(dataset))
+    # check if data_set ends with .pkl
+    elif data_set.endswith(".pkl"):
+        dataset = PKLDataset(directory="./userData/",
+                            filename=data_set,
+                            target_column=target_column_entry.get(),
+                            feature_type=getattr(torch, feature_type_entry.get()),
+                            target_type=getattr(torch, target_type_entry.get()))
+        print(len(dataset))  
     else:
         print(f"Error: Data set {data_set} not available.")        
         return
@@ -68,10 +86,10 @@ def run_experiment(save_only=False):
         max_time = float(max_time_entry.get()),
         noise = bool(noise_entry.get()),
         ocba_delta=0,
+        data_set = dataset,
         test_size=0.4,
         tolerance_x=np.sqrt(np.spacing(1)),
         verbosity=1,
-        data_set = dataset,
         log_level =10,
     )
     
@@ -115,9 +133,10 @@ def run_experiment(save_only=False):
             fun_control['core_model_hyper_dict'][key].update({"upper": len(fle) - 1})
             print("\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():", fun_control['core_model_hyper_dict'][key])
 
+
+
     print("\nfun_control in run_experiment():", fun_control)
-    # print the values from 'core_model_hyper_dict' in the fun_control dictionary
-    # print("\nfun_control['core_model_hyper_dict'] in run_experiment():", fun_control['core_model_hyper_dict'])
+
 
     design_control = design_control_init(
         init_size=int(init_size_entry.get()),
@@ -133,7 +152,6 @@ def run_experiment(save_only=False):
     )
 
     optimizer_control = optimizer_control_init()
-
 
     SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = run_spot_python_experiment(
         save_only=save_only,
@@ -251,16 +269,16 @@ data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
 data_set_combo.set("Diabetes")  # Default selection
 data_set_combo.grid(row=1, column=1)
 
-feature_type_label = tk.Label(run_tab, text="feature_type:")
+feature_type_label = tk.Label(run_tab, text="torch feature_type:")
 feature_type_label.grid(row=2, column=0, sticky="W")
 feature_type_entry = tk.Entry(run_tab)
-feature_type_entry.insert(0, "torch.float32")
+feature_type_entry.insert(0, "float32")
 feature_type_entry.grid(row=2, column=1, sticky="W")
 
-target_type_label = tk.Label(run_tab, text="target_type:")
+target_type_label = tk.Label(run_tab, text="torch target_type:")
 target_type_label.grid(row=3, column=0, sticky="W")
 target_type_entry = tk.Entry(run_tab)
-target_type_entry.insert(0, "torch.float32")
+target_type_entry.insert(0, "float32")
 target_type_entry.grid(row=3, column=1, sticky="W")
 
 target_column_label = tk.Label(run_tab, text="target_column:")
