@@ -128,40 +128,24 @@ def run_experiment(save_only=False):
         upper = get_bound_values(fun_control, "upper", as_list=False)
         fun_control.update({"var_type": var_type, "var_name": var_name, "lower": lower, "upper": upper})
 
-    print(gen_design_table(fun_control))
-
     n_keys = len(dict)
-    print(f"n_keys in the dictionary: {n_keys}")
     for i, (key, value) in enumerate(dict.items()):
-        if dict[key]["type"] == "int":
-            print(f"fun_control: Set hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+        if dict[key]["type"] == "int":            
             set_control_hyperparameter_value(
                 fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
             )
-        if dict[key]["type"] == "float":
-            print(f"fun_control: Set hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+        if dict[key]["type"] == "float":            
             set_control_hyperparameter_value(
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
             )
-        if dict[key]["type"] == "factor":
-            print(f"fun_control: getting control hyperparameter value: {key}, {factor_level_entry[i].get()}")
+        if dict[key]["type"] == "factor":            
             fle = factor_level_entry[i].get()
             # convert the string to a list of strings
             fle = fle.split()
-            print(f"fun_control: Key {key}: setting control hyperparameter value: {fle}")
             set_control_hyperparameter_value(fun_control, key, fle)
-            # fun_control["core_model"][key].update({"upper": len(fle)})
-            # print the values from 'core_model_hyper_dict' in the fun_control dictionary
-            print(
-                "\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():",
-                fun_control["core_model_hyper_dict"][key],
-            )
             fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
-            print(
-                "\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():",
-                fun_control["core_model_hyper_dict"][key],
-            )
-    print("\nfun_control in run_experiment():", fun_control)
+
+    print(gen_design_table(fun_control))
 
     design_control = design_control_init(
         init_size=int(init_size_entry.get()),
@@ -196,6 +180,8 @@ def run_experiment(save_only=False):
         print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
     elif SPOT_PKL_NAME is not None and not save_only:
         print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
+    else:
+        print(f"\nExperiment failed. No result saved.")
 
 
 def call_parallel_plot():
@@ -227,7 +213,6 @@ def update_hyperparams():
     else:
         dict = load_dict_from_file(coremodel, dirname="userModel")
     n_keys = len(dict)
-    print(f"n_keys in the dictionary: {n_keys}")
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
     label = [None] * n_keys
     default_entry = [None] * n_keys
@@ -412,22 +397,22 @@ run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
 run_button.grid(row=8, column=8, columnspan=2, sticky="E")
 
 
-# Create and pack the "Regression" tab with a button to run the analysis
-river_tab = ttk.Frame(notebook)
-notebook.add(river_tab, text="River")
+# TODO: Add river tab
+# river_tab = ttk.Frame(notebook)
+# notebook.add(river_tab, text="River")
 
-# colummns 0+1: Data
+# # colummns 0+1: Data
 
-river_data_label = tk.Label(river_tab, text="Data options:")
-river_data_label.grid(row=0, column=0, sticky="W")
+# river_data_label = tk.Label(river_tab, text="Data options:")
+# river_data_label.grid(row=0, column=0, sticky="W")
 
-# colummns 2+3: Model
-river_model_label = tk.Label(river_tab, text="Model options:")
-river_model_label.grid(row=0, column=2, sticky="W")
+# # colummns 2+3: Model
+# river_model_label = tk.Label(river_tab, text="Model options:")
+# river_model_label.grid(row=0, column=2, sticky="W")
 
-# columns 4+5: Experiment
-river_experiment_label = tk.Label(river_tab, text="Experiment options:")
-river_experiment_label.grid(row=6, column=0, sticky="W")
+# # columns 4+5: Experiment
+# river_experiment_label = tk.Label(river_tab, text="Experiment options:")
+# river_experiment_label.grid(row=6, column=0, sticky="W")
 
 
 # Create and pack the "Analysis" tab with a button to run the analysis
@@ -461,8 +446,9 @@ parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
 analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
-river_logo_label = tk.Label(river_tab, image=logo_image)
-river_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
+# TODO: Add logo to river tab
+# river_logo_label = tk.Label(river_tab, image=logo_image)
+# river_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
 # Run the mainloop
 
