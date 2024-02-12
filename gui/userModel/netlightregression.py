@@ -5,7 +5,7 @@ from torch import nn
 from spotPython.hyperparameters.optimizer import optimizer_handler
 
 
-class NetLightRegression(L.LightningModule):
+class netlightregression(L.LightningModule):
     """
     A LightningModule class for a regresssion neural network model.
 
@@ -38,7 +38,7 @@ class NetLightRegression(L.LightningModule):
     Examples:
         >>> from torch.utils.data import DataLoader
             from spotPython.data.diabetes import Diabetes
-            from spotPython.light.netlightregression import NetLightRegression
+            from spotPython.light.netlightregression import netlightregression
             from torch import nn
             import lightning as L
             PATH_DATASETS = './data'
@@ -50,7 +50,7 @@ class NetLightRegression(L.LightningModule):
             batch_x, batch_y = next(iter(train_loader))
             print(batch_x.shape)
             print(batch_y.shape)
-            net_light_base = NetLightRegression(l1=128,
+            net_light_base = netlightregression(l1=128,
                                                 epochs=10,
                                                 batch_size=BATCH_SIZE,
                                                 initialization='xavier',
@@ -106,7 +106,7 @@ class NetLightRegression(L.LightningModule):
         _L_out: int,
     ):
         """
-        Initializes the NetLightRegression object.
+        Initializes the netlightregression object.
 
         Args:
             l1 (int): The number of neurons in the first hidden layer.

@@ -1,4 +1,6 @@
 import os
+import json
+import sys
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, StringVar
@@ -6,7 +8,7 @@ import math
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
-from spotPython.hyperparameters.values import set_control_hyperparameter_value, set_control_key_value
+from spotPython.hyperparameters.values import set_control_hyperparameter_value, get_var_type, get_var_name, get_bound_values
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
     contour_plot,
@@ -22,6 +24,7 @@ from spotPython.data.diabetes import Diabetes
 import torch
 from spotPython.data.csvdataset import CSVDataset
 from spotPython.data.pkldataset import PKLDataset
+import importlib
 
 spot_tuner = None
 # Create a LightHyperDict object
@@ -99,18 +102,44 @@ def run_experiment(save_only=False):
         add_core_model_to_fun_control(
             fun_control=fun_control, core_model=NetLightRegression2, hyper_dict=LightHyperDict
         )
-        print(gen_design_table(fun_control))
+        dict = lhd.hyper_dict[coremodel]
     elif coremodel == "NetLightRegression":
         add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression,
            hyper_dict=LightHyperDict)
-        print(gen_design_table(fun_control))
+        dict = lhd.hyper_dict[coremodel]
     elif coremodel == "TransformerLightRegression":
         add_core_model_to_fun_control(
             fun_control=fun_control, core_model=TransformerLightRegression, hyper_dict=LightHyperDict
         )
+        dict = lhd.hyper_dict[coremodel]
+    else:
+        sys.path.insert(0, './userModel')
+        module = importlib.import_module(coremodel)
+        core_model = getattr(module, coremodel)
+        fun_control.update({"core_model": core_model})
+        #
+        fn = coremodel
+        # Construct the full file path
+        file_path = os.path.join("userModel", f"{fn}.json")
+        # Check if the file exists
+        if os.path.isfile(file_path):
+            # If the file exists, read its content
+            with open(file_path, 'r') as f:
+                dict_tmp = json.load(f)
+                dict = dict_tmp[coremodel]
+        else:
+            print(f"The file {file_path} does not exist.")
+        
+        # We have to reimplement the add_core_model_to_fun_control function here:
+        fun_control.update({"core_model_hyper_dict": dict})
+        var_type = get_var_type(fun_control)
+        var_name = get_var_name(fun_control)
+        lower = get_bound_values(fun_control, "lower", as_list=False)
+        upper = get_bound_values(fun_control, "upper", as_list=False)
+        fun_control.update({"var_type": var_type, "var_name": var_name, "lower": lower, "upper": upper})
 
-    # update the keys and values in the fun_control dictionary with the keys and values in the dict dictionary
-    dict = lhd.hyper_dict[coremodel]
+    print(gen_design_table(fun_control))
+
     n_keys = len(dict)
     print(f"n_keys in the dictionary: {n_keys}")    
     for i, (key, value) in enumerate(dict.items()):
@@ -190,7 +219,21 @@ def call_importance_plot():
 def update_hyperparams():
     global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
     model = core_model_combo.get()
-    dict = lhd.hyper_dict[model]
+    # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
+    if model in lhd.hyper_dict:
+        dict = lhd.hyper_dict[model]
+    else:
+        fn = model
+        # Construct the full file path
+        file_path = os.path.join("userModel", f"{fn}.json")
+        # Check if the file exists
+        if os.path.isfile(file_path):
+            # If the file exists, read its content
+            with open(file_path, 'r') as f:
+                dict_tmp = json.load(f)
+                dict = dict_tmp[model]
+        else:
+            print(f"The file {file_path} does not exist.")
     n_keys = len(dict)
     print(f"n_keys in the dictionary: {n_keys}")
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
@@ -341,10 +384,10 @@ prefix_entry.insert(0, "0000-0000")
 prefix_entry.grid(row=13, column=1)
 
 noise_label = tk.Label(run_tab, text="NOISE:")
-noise_label.grid(row=11, column=0, sticky="W")
+noise_label.grid(row=14, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=11, column=1)
+noise_entry.grid(row=14, column=1)
 
 
 # colummns 2+3: Model
@@ -359,6 +402,9 @@ model_label.grid(row=0, column=5, sticky="W")
 core_model_label = tk.Label(run_tab, text="Select core model")
 core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
+for filename in os.listdir('userModel'):
+    if filename.endswith('.json'):
+        core_model_values.append(os.path.splitext(filename)[0])
 core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
 core_model_combo.set("NetLightRegression")  # Default selection
 core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams())
