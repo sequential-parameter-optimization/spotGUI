@@ -5,9 +5,7 @@ from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.utils.file import save_experiment
-
-# TODO: Implement a function to load the experiment
-# from spotPython.utils.file import load_experiment
+from spotPython.utils.file import load_experiment
 
 
 def run_spot_python_experiment(
@@ -83,3 +81,23 @@ def importance_plot(spot_tuner):
 def progress_plot(spot_tuner):
     spot_tuner.plot_progress(show=False)
     plt.show()
+
+
+def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
+    """Loads and runs a spot experiment.
+
+    Args:
+        spot_pkl_name (str): The name of the spot experiment file.
+
+    Returns:
+        spot.Spot: The spot experiment.
+
+    """
+    (spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) = load_experiment(spot_pkl_name)
+    print(gen_design_table(fun_control))
+    p_open = start_tensorboard()
+    spot_tuner.run()
+    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+    # tensorboard --logdir="runs/"
+    stop_tensorboard(p_open)
+    return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
