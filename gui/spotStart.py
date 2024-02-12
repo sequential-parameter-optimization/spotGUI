@@ -1,6 +1,4 @@
 import os
-import json
-import sys
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, StringVar
@@ -8,7 +6,12 @@ import math
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
-from spotPython.hyperparameters.values import set_control_hyperparameter_value, get_var_type, get_var_name, get_bound_values
+from spotPython.hyperparameters.values import (
+    set_control_hyperparameter_value,
+    get_var_type,
+    get_var_name,
+    get_bound_values,
+)
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
     contour_plot,
@@ -24,12 +27,11 @@ from spotPython.data.diabetes import Diabetes
 import torch
 from spotPython.data.csvdataset import CSVDataset
 from spotPython.data.pkldataset import PKLDataset
-import importlib
+from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
 
 spot_tuner = None
-# Create a LightHyperDict object
 lhd = LightHyperDict()
-# 
+#
 n_keys = 25
 label = [None] * n_keys
 default_entry = [None] * n_keys
@@ -45,7 +47,6 @@ def run_experiment(save_only=False):
         n_total = None
     else:
         n_total = int(n_total)
-    perc_train = float(perc_train_entry.get())
 
     fun_evals = fun_evals_entry.get()
     if fun_evals == "None" or fun_evals == "inf":
@@ -53,28 +54,33 @@ def run_experiment(save_only=False):
     else:
         fun_evals_val = int(fun_evals)
 
+    # check if data_set provided by spotPython as a DataSet object
     data_set = data_set_combo.get()
     if data_set == "Diabetes":
         dataset = Diabetes(feature_type=torch.float32, target_type=torch.float32)
         print(f"Diabetes data set: {len(dataset)}")
-    # check if data_set ends with .csv
+    # check if data_set is available as .csv
     elif data_set.endswith(".csv"):
-        dataset = CSVDataset(directory="./userData/",
-                            filename=data_set,
-                            target_column=target_column_entry.get(),
-                            feature_type=getattr(torch, feature_type_entry.get()),
-                            target_type=getattr(torch, target_type_entry.get()))
+        dataset = CSVDataset(
+            directory="./userData/",
+            filename=data_set,
+            target_column=target_column_entry.get(),
+            feature_type=getattr(torch, feature_type_entry.get()),
+            target_type=getattr(torch, target_type_entry.get()),
+        )
         print(len(dataset))
-    # check if data_set ends with .pkl
+    #  check if data_set is available as .pkl
     elif data_set.endswith(".pkl"):
-        dataset = PKLDataset(directory="./userData/",
-                            filename=data_set,
-                            target_column=target_column_entry.get(),
-                            feature_type=getattr(torch, feature_type_entry.get()),
-                            target_type=getattr(torch, target_type_entry.get()))
-        print(len(dataset))  
+        dataset = PKLDataset(
+            directory="./userData/",
+            filename=data_set,
+            target_column=target_column_entry.get(),
+            feature_type=getattr(torch, feature_type_entry.get()),
+            target_type=getattr(torch, target_type_entry.get()),
+        )
+        print(len(dataset))
     else:
-        print(f"Error: Data set {data_set} not available.")        
+        print(f"Error: Data set {data_set} not available.")
         return
 
     # Initialize the fun_control dictionary with the static parameters,
@@ -82,20 +88,20 @@ def run_experiment(save_only=False):
     fun_control = fun_control_init(
         _L_in=int(lin_entry.get()),
         _L_out=int(lout_entry.get()),
-        PREFIX = prefix_entry.get(),
+        PREFIX=prefix_entry.get(),
         TENSORBOARD_CLEAN=True,
         fun_evals=fun_evals_val,
         fun_repeats=1,
-        max_time = float(max_time_entry.get()),
-        noise = bool(noise_entry.get()),
+        max_time=float(max_time_entry.get()),
+        noise=bool(noise_entry.get()),
         ocba_delta=0,
-        data_set = dataset,
-        test_size=0.4,
+        data_set=dataset,
+        test_size=float(test_size_entry.get()),
         tolerance_x=np.sqrt(np.spacing(1)),
         verbosity=1,
-        log_level =10,
+        log_level=50,
     )
-    
+
     # Get the selected core model and add it to the fun_control dictionary
     coremodel = core_model_combo.get()
     if coremodel == "NetLightRegression2":
@@ -104,8 +110,7 @@ def run_experiment(save_only=False):
         )
         dict = lhd.hyper_dict[coremodel]
     elif coremodel == "NetLightRegression":
-        add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression,
-           hyper_dict=LightHyperDict)
+        add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression, hyper_dict=LightHyperDict)
         dict = lhd.hyper_dict[coremodel]
     elif coremodel == "TransformerLightRegression":
         add_core_model_to_fun_control(
@@ -113,24 +118,9 @@ def run_experiment(save_only=False):
         )
         dict = lhd.hyper_dict[coremodel]
     else:
-        sys.path.insert(0, './userModel')
-        module = importlib.import_module(coremodel)
-        core_model = getattr(module, coremodel)
+        core_model = load_core_model_from_file(coremodel, dirname="userModel")
+        dict = load_dict_from_file(coremodel, dirname="userModel")
         fun_control.update({"core_model": core_model})
-        #
-        fn = coremodel
-        # Construct the full file path
-        file_path = os.path.join("userModel", f"{fn}.json")
-        # Check if the file exists
-        if os.path.isfile(file_path):
-            # If the file exists, read its content
-            with open(file_path, 'r') as f:
-                dict_tmp = json.load(f)
-                dict = dict_tmp[coremodel]
-        else:
-            print(f"The file {file_path} does not exist.")
-        
-        # We have to reimplement the add_core_model_to_fun_control function here:
         fun_control.update({"core_model_hyper_dict": dict})
         var_type = get_var_type(fun_control)
         var_name = get_var_name(fun_control)
@@ -141,31 +131,37 @@ def run_experiment(save_only=False):
     print(gen_design_table(fun_control))
 
     n_keys = len(dict)
-    print(f"n_keys in the dictionary: {n_keys}")    
+    print(f"n_keys in the dictionary: {n_keys}")
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int":
-            print(f"fun_control: Setting control hyperparameter value: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
-            set_control_hyperparameter_value(fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())])
+            print(f"fun_control: Set hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            set_control_hyperparameter_value(
+                fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
+            )
         if dict[key]["type"] == "float":
-            print(f"fun_control: Setting control hyperparameter value: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
-            set_control_hyperparameter_value(fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())])
+            print(f"fun_control: Set hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            set_control_hyperparameter_value(
+                fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
+            )
         if dict[key]["type"] == "factor":
             print(f"fun_control: getting control hyperparameter value: {key}, {factor_level_entry[i].get()}")
             fle = factor_level_entry[i].get()
             # convert the string to a list of strings
             fle = fle.split()
             print(f"fun_control: Key {key}: setting control hyperparameter value: {fle}")
-            set_control_hyperparameter_value(fun_control, key,fle)
+            set_control_hyperparameter_value(fun_control, key, fle)
             # fun_control["core_model"][key].update({"upper": len(fle)})
             # print the values from 'core_model_hyper_dict' in the fun_control dictionary
-            print("\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():", fun_control['core_model_hyper_dict'][key])
-            fun_control['core_model_hyper_dict'][key].update({"upper": len(fle) - 1})
-            print("\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():", fun_control['core_model_hyper_dict'][key])
-
-
-
+            print(
+                "\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():",
+                fun_control["core_model_hyper_dict"][key],
+            )
+            fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
+            print(
+                "\n****\nfun_control['core_model_hyper_dict'][key] in run_experiment():",
+                fun_control["core_model_hyper_dict"][key],
+            )
     print("\nfun_control in run_experiment():", fun_control)
-
 
     design_control = design_control_init(
         init_size=int(init_size_entry.get()),
@@ -182,7 +178,14 @@ def run_experiment(save_only=False):
 
     optimizer_control = optimizer_control_init()
 
-    SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = run_spot_python_experiment(
+    (
+        SPOT_PKL_NAME,
+        spot_tuner,
+        fun_control,
+        design_control,
+        surrogate_control,
+        optimizer_control,
+    ) = run_spot_python_experiment(
         save_only=save_only,
         fun_control=fun_control,
         design_control=design_control,
@@ -193,7 +196,6 @@ def run_experiment(save_only=False):
         print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
     elif SPOT_PKL_NAME is not None and not save_only:
         print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
-
 
 
 def call_parallel_plot():
@@ -218,22 +220,12 @@ def call_importance_plot():
 
 def update_hyperparams():
     global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
-    model = core_model_combo.get()
+    coremodel = core_model_combo.get()
     # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
-    if model in lhd.hyper_dict:
-        dict = lhd.hyper_dict[model]
+    if coremodel in lhd.hyper_dict:
+        dict = lhd.hyper_dict[coremodel]
     else:
-        fn = model
-        # Construct the full file path
-        file_path = os.path.join("userModel", f"{fn}.json")
-        # Check if the file exists
-        if os.path.isfile(file_path):
-            # If the file exists, read its content
-            with open(file_path, 'r') as f:
-                dict_tmp = json.load(f)
-                dict = dict_tmp[model]
-        else:
-            print(f"The file {file_path} does not exist.")
+        dict = load_dict_from_file(coremodel, dirname="userModel")
     n_keys = len(dict)
     print(f"n_keys in the dictionary: {n_keys}")
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
@@ -261,7 +253,7 @@ def update_hyperparams():
             upper_bound_entry[i] = tk.Entry(run_tab)
             upper_bound_entry[i].insert(0, dict[key]["upper"])
             upper_bound_entry[i].grid(row=i + 2, column=5, sticky="W")
-            print(f"GUI: Inserting control hyperparameter value: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            print(f"GUI: Insert hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
         if dict[key]["type"] == "factor":
             # Create a label with the key as text
             label[i] = tk.Label(run_tab, text=key)
@@ -288,7 +280,6 @@ app.title("Spot Python Hyperparameter Tuning GUI")
 for i in range(n_keys):
     factor_level_entry.append(StringVar())
     print(f"factor_level_entry[{i}]: {factor_level_entry[i]}")
-
 
 # Create a notebook (tabbed interface)
 notebook = ttk.Notebook(app)
@@ -336,11 +327,11 @@ n_total_entry = tk.Entry(run_tab)
 n_total_entry.insert(0, "All")
 n_total_entry.grid(row=5, column=1, sticky="W")
 
-perc_train_label = tk.Label(run_tab, text="perc_train:")
-perc_train_label.grid(row=6, column=0, sticky="W")
-perc_train_entry = tk.Entry(run_tab)
-perc_train_entry.insert(0, "0.90")
-perc_train_entry.grid(row=6, column=1, sticky="W")
+test_size_label = tk.Label(run_tab, text="test_size:")
+test_size_label.grid(row=6, column=0, sticky="W")
+test_size_entry = tk.Entry(run_tab)
+test_size_entry.insert(0, "0.10")
+test_size_entry.grid(row=6, column=1, sticky="W")
 
 lin_label = tk.Label(run_tab, text="_L_in:")
 lin_label.grid(row=7, column=0, sticky="W")
@@ -402,8 +393,8 @@ model_label.grid(row=0, column=5, sticky="W")
 core_model_label = tk.Label(run_tab, text="Select core model")
 core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
-for filename in os.listdir('userModel'):
-    if filename.endswith('.json'):
+for filename in os.listdir("userModel"):
+    if filename.endswith(".json"):
         core_model_values.append(os.path.splitext(filename)[0])
 core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
 core_model_combo.set("NetLightRegression")  # Default selection
