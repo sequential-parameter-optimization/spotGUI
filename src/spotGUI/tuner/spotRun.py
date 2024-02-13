@@ -36,12 +36,8 @@ def run_spot_python_experiment(
     Returns:
         spot.Spot: The spot experiment.
 
-
-
     """
-
     print("\nfun_control in spotRun():", fun_control)
-
     print(gen_design_table(fun_control))
 
     spot_tuner = spot.Spot(
@@ -60,6 +56,8 @@ def run_spot_python_experiment(
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
     else:
         p_open = start_tensorboard()
+        # TODO: Implement X_Start handling
+        # X_start = get_default_hyperparameters_as_array(fun_control)
         spot_tuner.run()
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         # tensorboard --logdir="runs/"
