@@ -42,6 +42,7 @@ factor_level_entry = [None] * n_keys
 
 def run_experiment(save_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+
     n_total = n_total_entry.get()
     if n_total == "None" or n_total == "All":
         n_total = None
@@ -366,15 +367,19 @@ noise_entry.insert(0, "TRUE")
 noise_entry.grid(row=14, column=1)
 
 
-# colummns 2+3: Model
+# colummns 2 - 5: Model
 model_label = tk.Label(run_tab, text="Model options:")
 model_label.grid(row=0, column=2, sticky="W")
+
 model_label = tk.Label(run_tab, text="Default values:")
 model_label.grid(row=0, column=3, sticky="W")
+
 model_label = tk.Label(run_tab, text="Lower bounds:")
 model_label.grid(row=0, column=4, sticky="W")
+
 model_label = tk.Label(run_tab, text="Upper bounds:")
 model_label.grid(row=0, column=5, sticky="W")
+
 core_model_label = tk.Label(run_tab, text="Select core model")
 core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]

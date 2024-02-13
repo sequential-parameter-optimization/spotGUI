@@ -7,6 +7,13 @@ from spotPython.fun.hyperlight import HyperLight
 from spotPython.utils.file import save_experiment
 from spotPython.utils.file import load_experiment
 
+from spotRiver.evaluation.eval_bml import eval_oml_horizon
+from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics
+from spotPython.plot.validation import plot_roc_from_dataframes
+from spotPython.plot.validation import plot_confusion_matrix
+from spotPython.hyperparameters.values import get_one_core_model_from_X
+from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
+
 
 def run_spot_python_experiment(
     save_only,
@@ -45,8 +52,6 @@ def run_spot_python_experiment(
         optimizer_control=optimizer_control,
     )
 
-    # TODO: Fix error when saving the experiment w/o spot run execution
-
     SPOT_PKL_NAME = None
     if save_only:
         if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
@@ -60,6 +65,26 @@ def run_spot_python_experiment(
         # tensorboard --logdir="runs/"
         stop_tensorboard(p_open)
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+
+
+def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
+    """Loads and runs a spot experiment.
+
+    Args:
+        spot_pkl_name (str): The name of the spot experiment file.
+
+    Returns:
+        spot.Spot: The spot experiment.
+
+    """
+    (spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) = load_experiment(spot_pkl_name)
+    print(gen_design_table(fun_control))
+    p_open = start_tensorboard()
+    spot_tuner.run()
+    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+    # tensorboard --logdir="runs/"
+    stop_tensorboard(p_open)
+    return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
 
 
 def parallel_plot(spot_tuner):
@@ -83,21 +108,68 @@ def progress_plot(spot_tuner):
     plt.show()
 
 
-def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
-    """Loads and runs a spot experiment.
+def compare_tuned_default(spot_tuner, fun_control) -> None:
+    X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
+    print(f"X = {X}")
+    model_spot = get_one_core_model_from_X(X, fun_control)
+    df_eval_spot, df_true_spot = eval_oml_horizon(
+        model=model_spot,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+    X_start = get_default_hyperparameters_as_array(fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control)
+    df_eval_default, df_true_default = eval_oml_horizon(
+        model=model_default,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
 
-    Args:
-        spot_pkl_name (str): The name of the spot experiment file.
+    df_labels = ["default", "spot"]
 
-    Returns:
-        spot.Spot: The spot experiment.
+    # First Plot
 
-    """
-    (spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) = load_experiment(spot_pkl_name)
-    print(gen_design_table(fun_control))
-    p_open = start_tensorboard()
-    spot_tuner.run()
-    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
-    # tensorboard --logdir="runs/"
-    stop_tensorboard(p_open)
-    return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+    plot_bml_oml_horizon_metrics(
+        df_eval=[df_eval_default, df_eval_spot],
+        log_y=False,
+        df_labels=df_labels,
+        metric=fun_control["metric_sklearn"],
+        filename=None,
+        show=False,
+    )
+    plt.figure(1)
+
+    # Second Plot
+    plot_roc_from_dataframes(
+        [df_true_default, df_true_spot],
+        model_names=["default", "spot"],
+        target_column=fun_control["target_column"],
+        show=False,
+    )
+    plt.figure(2)
+    # Third Plot
+
+    plot_confusion_matrix(
+        df=df_true_default,
+        title="Default",
+        y_true_name=fun_control["target_column"],
+        y_pred_name="Prediction",
+        show=False,
+    )
+    plt.figure(2)
+    # Fourth Plot
+
+    plot_confusion_matrix(
+        df=df_true_spot, title="Spot", y_true_name=fun_control["target_column"], y_pred_name="Prediction", show=False
+    )
+    plt.figure(3)
+
+    plt.show()  # Display all four plots simultaneously
