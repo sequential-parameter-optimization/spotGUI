@@ -66,7 +66,8 @@ def run_experiment(save_only=False):
     data_set = data_set_combo.get()
     dataset, n_samples = data_selector(
         data_set=data_set,
-        target=target_column_entry.get()        
+        target_column=target_column_entry.get(),
+        n_total=n_total,        
     )
 
     print(f"n_samples = {n_samples}")
@@ -77,7 +78,7 @@ def run_experiment(save_only=False):
     # but if the user has specified more samples than available, correct the number of samples:
     if n_total > n_samples:
         n_total = n_samples
-    train, test, n_samples = get_train_test_from_data_set(dataset=dataset,
+    train, test, n_samples = get_train_test_from_data_set(df=dataset,
                                  n_total=n_total,
                                  test_size=float(test_size_entry.get()))
     
