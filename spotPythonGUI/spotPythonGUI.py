@@ -204,8 +204,34 @@ def call_importance_plot():
         importance_plot(spot_tuner)
 
 
-def update_hyperparams():
+def update_hyperparams(event):
     global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+
+    if label is not None:
+        for i in range(len(label)):
+            if label[i] is not None:
+                label[i].destroy()
+
+    if default_entry is not None:
+        for i in range(len(default_entry)):
+            if default_entry[i] is not None:
+                default_entry[i].destroy()
+
+    if lower_bound_entry is not None:
+        for i in range(len(lower_bound_entry)):
+            if lower_bound_entry[i] is not None:
+                lower_bound_entry[i].destroy()
+
+    if upper_bound_entry is not None:
+        for i in range(len(upper_bound_entry)):
+            if upper_bound_entry[i] is not None:
+                upper_bound_entry[i].destroy()
+
+    if factor_level_entry is not None:
+        for i in range(len(factor_level_entry)):
+            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
+                factor_level_entry[i].destroy()
+                
     coremodel = core_model_combo.get()
     # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
     if coremodel in lhd.hyper_dict:
@@ -253,7 +279,7 @@ def update_hyperparams():
             # TODO: replace " " with ", " for the levels
             print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
             factor_level_entry[i].insert(0, dict[key]["levels"])
-            factor_level_entry[i].grid(row=i + 2, column=4, sticky="W")
+            factor_level_entry[i].grid(row=i + 2, column=4, columnspan= 2, sticky=tk.W+tk.E)
             print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
 
 
@@ -379,18 +405,17 @@ model_label.grid(row=0, column=4, sticky="W")
 model_label = tk.Label(run_tab, text="Upper bounds:")
 model_label.grid(row=0, column=5, sticky="W")
 
-core_model_label = tk.Label(run_tab, text="Select core model")
+core_model_label = tk.Label(run_tab, text="Core model")
 core_model_label.grid(row=1, column=2, sticky="W")
-core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
+core_model_values = ["Select model","NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_values.append(os.path.splitext(filename)[0])
-core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
-core_model_combo.set("NetLightRegression")  # Default selection
-core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams())
+core_model_combo = ttk.Combobox(run_tab, values=core_model_values)
+core_model_combo.set("Select model")  # Default selection
+core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=1, column=3)
 
-update_hyperparams()
 print(f"\ndict after update: {dict}\n")
 
 
