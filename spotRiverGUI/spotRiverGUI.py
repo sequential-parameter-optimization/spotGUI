@@ -64,27 +64,63 @@ def run_experiment(save_only=False):
     else:
         oml_grace_period = int(oml_grace_period)
 
-    converters = {
-        "empty_server_form_handler": float,
-        "popup_window": float,
-        "https": float,
-        "request_from_other_domain": float,
-        "anchor_from_other_domain": float,
-        "is_popular": float,
-        "long_url": float,
-        "age_of_domain": int,
-        "ip_in_url": int,
-        "is_phishing": lambda x: x == "1",
-    }
-    target = "is_phishing"
-    filename = "PhishingData.csv"
-    directory = "./userData"
-    n_samples = 1_250
-    n_features = 9
-    parse_dates = None
-
     # check if data_set provided by spotRiver as a data set from the river package
     data_set = data_set_combo.get()
+    filename = None
+    directory = None
+    target = target_column_entry.get()
+    n_features = None
+    n_samples = None
+    converters = None
+    parse_dates = None
+
+    # check if data_set is provided as .csv
+    if data_set.endswith(".csv"):
+        directory = "./userData/"
+        filename = data_set
+        target_column = target_column_entry.get()
+        # TODO: This is correct for the Phishing data set,
+        # but needs to be adapted for other data sets:
+        n_samples = 1_250
+        n_features = 9
+        parse_dates = None
+        converters = {
+            "empty_server_form_handler": float,
+            "popup_window": float,
+            "https": float,
+            "request_from_other_domain": float,
+            "anchor_from_other_domain": float,
+            "is_popular": float,
+            "long_url": float,
+            "age_of_domain": int,
+            "ip_in_url": int,
+            "is_phishing": lambda x: x == "1",
+            }
+
+    # TODO: Add user specified types for feature and target columns:
+    # feature_type=getattr(torch, feature_type_entry.get())
+    # target_type=getattr(torch, target_type_entry.get())
+
+    # TODO: This is a template for user specified data sets:
+    # if data_set == "PhishingData.csv":
+    #     filename = "PhishingData.csv"
+    #     directory = "./userData"
+    #     n_samples = 1_250
+    #     n_features = 9
+    #     parse_dates = None
+    #     converters = {
+    #         "empty_server_form_handler": float,
+    #         "popup_window": float,
+    #         "https": float,
+    #         "request_from_other_domain": float,
+    #         "anchor_from_other_domain": float,
+    #         "is_popular": float,
+    #         "long_url": float,
+    #         "age_of_domain": int,
+    #         "ip_in_url": int,
+    #         "is_phishing": lambda x: x == "1",
+    #         }
+
     dataset, n_samples = data_selector(
         data_set=data_set,
         filename=filename,
@@ -123,7 +159,9 @@ def run_experiment(save_only=False):
         noise=bool(noise_entry.get()),
         ocba_delta=0,
         data_set=dataset,
-        test_size=float(test_size_entry.get()),
+        test_size=test_size,
+        test=test,
+        train=train,
         tolerance_x=np.sqrt(np.spacing(1)),
         verbosity=1,
         log_level=50,
@@ -182,7 +220,7 @@ def run_experiment(save_only=False):
         fun_control.update({"var_type": var_type, "var_name": var_name, "lower": lower, "upper": upper})
 
     for i, (key, value) in enumerate(dict.items()):
-        if dict[key]["type"] == "int":
+        if dict[key]["type"] == "int" or "core_model_parameter_type" == "bool":
             set_control_hyperparameter_value(
                 fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
             )
@@ -190,7 +228,7 @@ def run_experiment(save_only=False):
             set_control_hyperparameter_value(
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
             )
-        if dict[key]["type"] == "factor":
+        if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             fle = factor_level_entry[i].get()
             # convert the string to a list of strings
             fle = fle.split()
@@ -320,7 +358,7 @@ def update_hyperparams():
             upper_bound_entry[i].insert(0, dict[key]["upper"])
             upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
             print(f"GUI: Insert hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
-        if dict[key]["type"] == "factor":
+        if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             # Create a label with the key as text
             label[i] = tk.Label(run_tab, text=key)
             label[i].grid(row=i + 3, column=2, sticky="W")
@@ -372,9 +410,10 @@ data_set_values = [
     "Phishing",
     "SMSSpam",
     "SMTP",
-    "TREC07",
-    "USER",
+    "TREC07"
 ]
+# get all *.csv files in the data directory "userData" and append them to the list of data_set_values
+data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
 data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
 data_set_combo.set("Phishing")  # Default selection
 data_set_combo.grid(row=1, column=1)
@@ -382,7 +421,7 @@ data_set_combo.grid(row=1, column=1)
 target_column_label = tk.Label(run_tab, text="target_column:")
 target_column_label.grid(row=2, column=0, sticky="W")
 target_column_entry = tk.Entry(run_tab)
-target_column_entry.insert(0, "target")
+target_column_entry.insert(0, "is_phishing")
 target_column_entry.grid(row=2, column=1, sticky="W")
 
 
