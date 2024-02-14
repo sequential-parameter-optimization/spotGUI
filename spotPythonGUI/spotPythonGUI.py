@@ -407,7 +407,7 @@ model_label.grid(row=0, column=5, sticky="W")
 
 core_model_label = tk.Label(run_tab, text="Core model")
 core_model_label.grid(row=1, column=2, sticky="W")
-core_model_values = ["Select model","NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
+core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_values.append(os.path.splitext(filename)[0])
@@ -416,33 +416,12 @@ core_model_combo.set("Select model")  # Default selection
 core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=1, column=3)
 
-print(f"\ndict after update: {dict}\n")
-
 
 # column 8: Save and run button
 save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
 save_button.grid(row=7, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
 run_button.grid(row=8, column=8, columnspan=2, sticky="E")
-
-
-# TODO: Add river tab
-# river_tab = ttk.Frame(notebook)
-# notebook.add(river_tab, text="River")
-
-# # colummns 0+1: Data
-
-# river_data_label = tk.Label(river_tab, text="Data options:")
-# river_data_label.grid(row=0, column=0, sticky="W")
-
-# # colummns 2+3: Model
-# river_model_label = tk.Label(river_tab, text="Model options:")
-# river_model_label.grid(row=0, column=2, sticky="W")
-
-# # columns 4+5: Experiment
-# river_experiment_label = tk.Label(river_tab, text="Experiment options:")
-# river_experiment_label.grid(row=6, column=0, sticky="W")
-
 
 # Create and pack the "Analysis" tab with a button to run the analysis
 analysis_tab = ttk.Frame(notebook)

@@ -3,10 +3,9 @@ from spotRiver.data.river_hyper_dict import RiverHyperDict
 from river.forest import AMFClassifier
 from river.tree import HoeffdingAdaptiveTreeClassifier
 from river.linear_model import LogisticRegression
-from spotRiver.utils.data_conversion import convert_to_df
 from river import preprocessing
 import tkinter as tk
-from spotRiver.data.selector import data_selector
+from spotRiver.data.selector import data_selector,  get_train_test_from_data_set
 import os
 import numpy as np
 from tkinter import ttk, StringVar
@@ -64,87 +63,28 @@ def run_experiment(save_only=False):
     else:
         oml_grace_period = int(oml_grace_period)
 
-    # check if data_set provided by spotRiver as a data set from the river package
     data_set = data_set_combo.get()
-    filename = None
-    directory = None
-    target = target_column_entry.get()
-    n_features = None
-    n_samples = None
-    converters = None
-    parse_dates = None
-
-    # check if data_set is provided as .csv
-    if data_set.endswith(".csv"):
-        directory = "./userData/"
-        filename = data_set
-        target_column = target_column_entry.get()
-        # TODO: This is correct for the Phishing data set,
-        # but needs to be adapted for other data sets:
-        n_samples = 1_250
-        n_features = 9
-        parse_dates = None
-        converters = {
-            "empty_server_form_handler": float,
-            "popup_window": float,
-            "https": float,
-            "request_from_other_domain": float,
-            "anchor_from_other_domain": float,
-            "is_popular": float,
-            "long_url": float,
-            "age_of_domain": int,
-            "ip_in_url": int,
-            "is_phishing": lambda x: x == "1",
-            }
-
-    # TODO: Add user specified types for feature and target columns:
-    # feature_type=getattr(torch, feature_type_entry.get())
-    # target_type=getattr(torch, target_type_entry.get())
-
-    # TODO: This is a template for user specified data sets:
-    # if data_set == "PhishingData.csv":
-    #     filename = "PhishingData.csv"
-    #     directory = "./userData"
-    #     n_samples = 1_250
-    #     n_features = 9
-    #     parse_dates = None
-    #     converters = {
-    #         "empty_server_form_handler": float,
-    #         "popup_window": float,
-    #         "https": float,
-    #         "request_from_other_domain": float,
-    #         "anchor_from_other_domain": float,
-    #         "is_popular": float,
-    #         "long_url": float,
-    #         "age_of_domain": int,
-    #         "ip_in_url": int,
-    #         "is_phishing": lambda x: x == "1",
-    #         }
-
     dataset, n_samples = data_selector(
         data_set=data_set,
-        filename=filename,
-        directory=directory,
-        target=target,
-        n_features=n_features,
-        n_samples=n_samples,
-        converters=converters,
-        parse_dates=parse_dates,
+        target=target_column_entry.get()        
     )
-    # target_column is the name of the target column in the resulting data frame df:
-    target_column = "y"
-    df = convert_to_df(dataset, target_column=target_column, n_total=n_total)
-    df.columns = [f"x{i}" for i in range(1, dataset.n_features + 1)] + ["y"]
-    df["y"] = df["y"].astype(int)
-    # update n_samples to the actual number of samples in the data set,
-    # because n_total might be smaller than n_samples which results in a smaller data set:
-    test_size = float(test_size_entry.get())
-    n_samples = len(df)
-    n_train = int((1.0 - test_size) * n_samples)
-    train = df[:n_train]
-    print(f"train = {train.describe(include='all')}")
-    test = df[n_train:]
-    print(f"test = {test.describe(include='all')}")
+
+    print(f"n_samples = {n_samples}")
+
+    # if the user has no specified a sample set size, take the entire data set:
+    if n_total is None:
+        n_total = n_samples
+    # but if the user has specified more samples than available, correct the number of samples:
+    if n_total > n_samples:
+        n_total = n_samples
+    train, test, n_samples = get_train_test_from_data_set(dataset=dataset,
+                                 n_total=n_total,
+                                 test_size=float(test_size_entry.get()))
+    
+    print(f"train = {train.shape}")
+    print(f"train = {train.head()}")
+    print(f"test = {test.shape}")
+    print(f"test = {test.tail()}")
 
     # Initialize the fun_control dictionary with the static parameters,
     # i.e., the parameters that are not hyperparameters (depending on the core model)
@@ -153,13 +93,11 @@ def run_experiment(save_only=False):
         TENSORBOARD_CLEAN=True,
         fun_evals=fun_evals_val,
         fun_repeats=1,
-        # TODO: add horizon to fun_control and not as an update below
-        # horizon=int(horizon_entry.get()),
+        horizon=int(horizon_entry.get()),
         max_time=float(max_time_entry.get()),
         noise=bool(noise_entry.get()),
         ocba_delta=0,
-        data_set=dataset,
-        test_size=test_size,
+        oml_grace_period=oml_grace_period,
         test=test,
         train=train,
         tolerance_x=np.sqrt(np.spacing(1)),
@@ -240,17 +178,12 @@ def run_experiment(save_only=False):
 
     fun_control.update(
         {
-            "train": train,
-            "oml_grace_period": oml_grace_period,
-            "test": test,
             "n_samples": n_samples,
-            "target_column": target_column,
             "prep_model": prep_model,
-            "oml_grace_period": oml_grace_period,
             "weights": weights,
             "weight_coeff": weight_coeff,
             "metric_sklearn": accuracy_score,
-            "horizon": int(horizon_entry.get()),
+            "target_column": "y",
         }
     )
 
@@ -319,8 +252,34 @@ def call_progress_plot():
         progress_plot(spot_tuner)
 
 
-def update_hyperparams():
+def update_hyperparams(event):
     global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+
+    if label is not None:
+        for i in range(len(label)):
+            if label[i] is not None:
+                label[i].destroy()
+
+    if default_entry is not None:
+        for i in range(len(default_entry)):
+            if default_entry[i] is not None:
+                default_entry[i].destroy()
+
+    if lower_bound_entry is not None:
+        for i in range(len(lower_bound_entry)):
+            if lower_bound_entry[i] is not None:
+                lower_bound_entry[i].destroy()
+
+    if upper_bound_entry is not None:
+        for i in range(len(upper_bound_entry)):
+            if upper_bound_entry[i] is not None:
+                upper_bound_entry[i].destroy()
+
+    if factor_level_entry is not None:
+        for i in range(len(factor_level_entry)):
+            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
+                factor_level_entry[i].destroy()
+
     coremodel = core_model_combo.get()
     # if model is a key in rhd.hyper_dict set dict = rhd.hyper_dict[model]
     if coremodel in rhd.hyper_dict:
@@ -372,7 +331,7 @@ def update_hyperparams():
             # TODO: replace " " with ", " for the levels
             print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
             factor_level_entry[i].insert(0, dict[key]["levels"])
-            factor_level_entry[i].grid(row=i + 3, column=4, sticky="W")
+            factor_level_entry[i].grid(row=i + 2, column=4, columnspan= 2, sticky=tk.W+tk.E)
             print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
 
 
@@ -383,7 +342,6 @@ app.title("Spot River Hyperparameter Tuning GUI")
 # generate a list of StringVar() objects of size n_keys
 for i in range(n_keys):
     factor_level_entry.append(StringVar())
-    print(f"factor_level_entry[{i}]: {factor_level_entry[i]}")
 
 # Create a notebook (tabbed interface)
 notebook = ttk.Notebook(app)
@@ -424,64 +382,63 @@ target_column_entry = tk.Entry(run_tab)
 target_column_entry.insert(0, "is_phishing")
 target_column_entry.grid(row=2, column=1, sticky="W")
 
-
 n_total_label = tk.Label(run_tab, text="n_total:")
 n_total_label.grid(row=3, column=0, sticky="W")
 n_total_entry = tk.Entry(run_tab)
 n_total_entry.insert(0, "All")
 n_total_entry.grid(row=3, column=1, sticky="W")
 
-test_size_label = tk.Label(run_tab, text="test_size:")
-test_size_label.grid(row=3, column=0, sticky="W")
+test_size_label = tk.Label(run_tab, text="test_size (perc.):")
+test_size_label.grid(row=4, column=0, sticky="W")
 test_size_entry = tk.Entry(run_tab)
 test_size_entry.insert(0, "0.10")
-test_size_entry.grid(row=3, column=1, sticky="W")
+test_size_entry.grid(row=4, column=1, sticky="W")
 
 # columns 0+1: Experiment
 experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=4, column=0, sticky="W")
+experiment_label.grid(row=5, column=0, sticky="W")
 
 max_time_label = tk.Label(run_tab, text="MAX_TIME:")
-max_time_label.grid(row=5, column=0, sticky="W")
+max_time_label.grid(row=6, column=0, sticky="W")
 max_time_entry = tk.Entry(run_tab)
 max_time_entry.insert(0, "1")
-max_time_entry.grid(row=5, column=1)
+max_time_entry.grid(row=6, column=1)
 
 fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
-fun_evals_label.grid(row=6, column=0, sticky="W")
+fun_evals_label.grid(row=7, column=0, sticky="W")
 fun_evals_entry = tk.Entry(run_tab)
 fun_evals_entry.insert(0, "inf")
-fun_evals_entry.grid(row=6, column=1)
+fun_evals_entry.grid(row=7, column=1)
 
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
-init_size_label.grid(row=7, column=0, sticky="W")
+init_size_label.grid(row=8, column=0, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "3")
-init_size_entry.grid(row=7, column=1)
+init_size_entry.grid(row=8, column=1)
 
 prefix_label = tk.Label(run_tab, text="PREFIX:")
-prefix_label.grid(row=8, column=0, sticky="W")
+prefix_label.grid(row=9, column=0, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "00")
-prefix_entry.grid(row=8, column=1)
+prefix_entry.grid(row=9, column=1)
 
 noise_label = tk.Label(run_tab, text="NOISE:")
-noise_label.grid(row=9, column=0, sticky="W")
+noise_label.grid(row=10, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=9, column=1)
+noise_entry.grid(row=10, column=1)
 
 horizon_label = tk.Label(run_tab, text="horizon:")
-horizon_label.grid(row=10, column=0, sticky="W")
+horizon_label.grid(row=11, column=0, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "1")
-horizon_entry.grid(row=10, column=1)
+horizon_entry.grid(row=11, column=1)
 
 oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period:")
-oml_grace_period_label.grid(row=11, column=0, sticky="W")
+oml_grace_period_label.grid(row=12, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "n_train")
-oml_grace_period_entry.grid(row=11, column=1)
+oml_grace_period_entry.grid(row=12, column=1)
 
 
 # colummns 2-5: Model
@@ -504,19 +461,17 @@ prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
 prep_model_combo.set("StandardScaler")  # Default selection
 prep_model_combo.grid(row=1, column=3)
 
-core_model_label = tk.Label(run_tab, text="Select core model")
+core_model_label = tk.Label(run_tab, text="Core model")
 core_model_label.grid(row=2, column=2, sticky="W")
 core_model_values = ["AMFClassifier", "HoeffdingAdaptiveTreeClassifier", "LogisticRegression"]
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_values.append(os.path.splitext(filename)[0])
-core_model_combo = ttk.Combobox(run_tab, values=core_model_values, postcommand=update_hyperparams)
-core_model_combo.set("LogisticRegression")  # Default selection
-core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams())
+core_model_combo = ttk.Combobox(run_tab, values=core_model_values)
+core_model_combo.set("Select Model")  # Default selection
+core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=2, column=3)
 
-
-update_hyperparams()
 
 # column 6: Save and run button
 save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
