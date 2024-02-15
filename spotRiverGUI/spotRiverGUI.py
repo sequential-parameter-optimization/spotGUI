@@ -340,7 +340,7 @@ def update_hyperparams(event):
             # TODO: replace " " with ", " for the levels
             print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
             factor_level_entry[i].insert(0, dict[key]["levels"])
-            factor_level_entry[i].grid(row=i + 2, column=4, columnspan= 2, sticky=tk.W+tk.E)
+            factor_level_entry[i].grid(row=i + 3, column=4, columnspan= 2, sticky=tk.W+tk.E)
             print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
 
 
