@@ -41,6 +41,7 @@ default_entry = [None] * n_keys
 lower_bound_entry = [None] * n_keys
 upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
+transform_entry = [None] * n_keys
 
 
 def run_experiment(save_only=False):
@@ -262,7 +263,7 @@ def call_progress_plot():
 
 
 def update_hyperparams(event):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry
 
     if label is not None:
         for i in range(len(label)):
@@ -284,6 +285,11 @@ def update_hyperparams(event):
             if upper_bound_entry[i] is not None:
                 upper_bound_entry[i].destroy()
 
+    if transform_entry is not None:
+        for i in range(len(transform_entry)):
+            if transform_entry[i] is not None:
+                transform_entry[i].destroy()
+
     if factor_level_entry is not None:
         for i in range(len(factor_level_entry)):
             if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
@@ -302,6 +308,7 @@ def update_hyperparams(event):
     lower_bound_entry = [None] * n_keys
     upper_bound_entry = [None] * n_keys
     factor_level_entry = [None] * n_keys
+    transform_entry = [None] * n_keys
     for i, (key, value) in enumerate(dict.items()):
         if (
             dict[key]["type"] == "int"
@@ -317,15 +324,19 @@ def update_hyperparams(event):
             default_entry[i].insert(0, dict[key]["default"])
             default_entry[i].grid(row=i + 3, column=3, sticky="W")
             default_entry[i].update()
-            # add the lower bound values in column 2
+            # add the lower bound values in column 4
             lower_bound_entry[i] = tk.Entry(run_tab)
             lower_bound_entry[i].insert(0, dict[key]["lower"])
             lower_bound_entry[i].grid(row=i + 3, column=4, sticky="W")
-            # add the upper bound values in column 3
+            # add the upper bound values in column 5
             upper_bound_entry[i] = tk.Entry(run_tab)
             upper_bound_entry[i].insert(0, dict[key]["upper"])
             upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
-            print(f"GUI: Insert hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            # add the transformation values in column 6
+            transform_entry[i] = tk.Entry(run_tab)
+            transform_entry[i].insert(0, dict[key]["transform"])
+            transform_entry[i].grid(row=i + 3, column=6, sticky="W")
+
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             # Create a label with the key as text
             label[i] = tk.Label(run_tab, text=key)
@@ -341,7 +352,6 @@ def update_hyperparams(event):
             print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
             factor_level_entry[i].insert(0, dict[key]["levels"])
             factor_level_entry[i].grid(row=i + 3, column=4, columnspan= 2, sticky=tk.W+tk.E)
-            print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
 
 
 # Create the main application window
@@ -377,7 +387,7 @@ data_set_combo.grid(row=1, column=1)
 target_column_label = tk.Label(run_tab, text="target_column:")
 target_column_label.grid(row=2, column=0, sticky="W")
 target_column_entry = tk.Entry(run_tab)
-target_column_entry.insert(0, "is_phishing")
+target_column_entry.insert(0, "y")
 target_column_entry.grid(row=2, column=1, sticky="W")
 
 n_total_label = tk.Label(run_tab, text="n_total:")
@@ -396,16 +406,16 @@ test_size_entry.grid(row=4, column=1, sticky="W")
 experiment_label = tk.Label(run_tab, text="Experiment options:")
 experiment_label.grid(row=5, column=0, sticky="W")
 
-max_time_label = tk.Label(run_tab, text="MAX_TIME:")
+max_time_label = tk.Label(run_tab, text="MAX_TIME (min):")
 max_time_label.grid(row=6, column=0, sticky="W")
 max_time_entry = tk.Entry(run_tab)
 max_time_entry.insert(0, "1")
 max_time_entry.grid(row=6, column=1)
 
-fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
+fun_evals_label = tk.Label(run_tab, text="FUN_EVALS (int|inf):")
 fun_evals_label.grid(row=7, column=0, sticky="W")
 fun_evals_entry = tk.Entry(run_tab)
-fun_evals_entry.insert(0, "inf")
+fun_evals_entry.insert(0, "30")
 fun_evals_entry.grid(row=7, column=1)
 
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
@@ -426,20 +436,26 @@ noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
 noise_entry.grid(row=10, column=1)
 
+metric_label = tk.Label(run_tab, text="metric (sklearn):")
+metric_label.grid(row=11, column=0, sticky="W")
+metric_entry = tk.Entry(run_tab)
+metric_entry.insert(0, "accuracy_score")
+metric_entry.grid(row=11, column=1)
+
 horizon_label = tk.Label(run_tab, text="horizon:")
-horizon_label.grid(row=11, column=0, sticky="W")
+horizon_label.grid(row=12, column=0, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "1")
-horizon_entry.grid(row=11, column=1)
+horizon_entry.grid(row=12, column=1)
 
 oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period:")
-oml_grace_period_label.grid(row=12, column=0, sticky="W")
+oml_grace_period_label.grid(row=13, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "n_train")
-oml_grace_period_entry.grid(row=12, column=1)
+oml_grace_period_entry.grid(row=13, column=1)
 
 
-# colummns 2-5: Model
+# colummns 2-6: Model
 model_label = tk.Label(run_tab, text="Model options:")
 model_label.grid(row=0, column=2, sticky="W")
 
@@ -451,6 +467,9 @@ model_label.grid(row=0, column=4, sticky="W")
 
 model_label = tk.Label(run_tab, text="Upper bounds:")
 model_label.grid(row=0, column=5, sticky="W")
+
+model_label = tk.Label(run_tab, text="Transformation:")
+model_label.grid(row=0, column=6, sticky="W")
 
 prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
 prep_model_label.grid(row=1, column=2, sticky="W")
@@ -471,11 +490,11 @@ core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=2, column=3)
 
 
-# column 6: Save and run button
+# column 8: Save and run button
 save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
-save_button.grid(row=7, column=6, columnspan=2, sticky="E")
+save_button.grid(row=7, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=8, column=6, columnspan=2, sticky="E")
+run_button.grid(row=8, column=8, columnspan=2, sticky="E")
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 # regression_tab = ttk.Frame(notebook)
