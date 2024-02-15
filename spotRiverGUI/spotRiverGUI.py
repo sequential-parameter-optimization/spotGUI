@@ -29,6 +29,8 @@ from spotGUI.tuner.spotRun import (
 from spotPython.utils.eda import gen_design_table
 from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
 from spotRiver.fun.hyperriver import HyperRiver
+from spotRiver.utils.data_conversion import convert_to_df
+from spotRiver.data.csvdataset import CSVDataset
 
 spot_tuner = None
 rhd = RiverHyperDict()
@@ -64,24 +66,30 @@ def run_experiment(save_only=False):
         oml_grace_period = int(oml_grace_period)
 
     data_set = data_set_combo.get()
-    dataset, n_samples = data_selector(
-        data_set=data_set,
-        target_column=target_column_entry.get(),
-        n_total=n_total,        
-    )
+    # if the user has not specified a data set, take the default data set:
+    # this can be one of the following:
+    river_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
+    if data_set in river_datasets:
+        dataset, n_samples = data_selector(
+            data_set=data_set,
+        )
+        # convert the river datasets to a pandas DataFrame
+        df = convert_to_df(dataset, target_column="y", n_total=n_total)
+    # data_set ends with ".csv" or data_set ends with ".pkl":
+    elif data_set.endswith(".csv") or data_set.endswith(".pkl"):
+        df = CSVDataset(filename=data_set, directory="./userData/").data
+        n_samples = df.shape[0]
+    # TODO: Check the total number of samples in the dataset and
+    # the number of samples the user wants to use:
+    # # if the user has no specified a sample set size, take the entire data set:
+    # if n_total is None:
+    #     n_total = n_samples
+    # # but if the user has specified more samples than available, correct the number of samples:
+    # if n_total > n_samples:
+    #     n_total = n_samples
 
-    print(f"n_samples = {n_samples}")
+    train, test, n_samples = get_train_test_from_data_set(df=df, n_total=n_total, test_size=float(test_size_entry.get()))
 
-    # if the user has no specified a sample set size, take the entire data set:
-    if n_total is None:
-        n_total = n_samples
-    # but if the user has specified more samples than available, correct the number of samples:
-    if n_total > n_samples:
-        n_total = n_samples
-    train, test, n_samples = get_train_test_from_data_set(df=dataset,
-                                 n_total=n_total,
-                                 test_size=float(test_size_entry.get()))
-    
     print(f"train = {train.shape}")
     print(f"train = {train.head()}")
     print(f"test = {test.shape}")
@@ -359,18 +367,7 @@ data_label.grid(row=0, column=0, sticky="W")
 
 data_set_label = tk.Label(run_tab, text="Select data_set:")
 data_set_label.grid(row=1, column=0, sticky="W")
-data_set_values = [
-    "Bananas",
-    "CreditCard",
-    "Elec2",
-    "Higgs",
-    "HTTP",
-    "MaliciousURL",
-    "Phishing",
-    "SMSSpam",
-    "SMTP",
-    "TREC07"
-]
+data_set_values = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
 # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
 data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
 data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
