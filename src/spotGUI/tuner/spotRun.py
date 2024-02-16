@@ -24,7 +24,7 @@ def run_spot_python_experiment(
     surrogate_control,
     optimizer_control,
     fun=HyperLight(log_level=50).fun,
-    eda=True,
+    eda=False,
 ) -> spot.Spot:
     """Runs a spot experiment.
 
