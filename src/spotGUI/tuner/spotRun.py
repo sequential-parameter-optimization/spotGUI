@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pylab
+import pprint
 from spotPython.spot import spot
 from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
 from spotPython.utils.eda import gen_design_table
@@ -13,6 +14,7 @@ from spotPython.plot.validation import plot_roc_from_dataframes
 from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
 from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
+from spotGUI.eda.pairplot import generate_pairplot
 
 
 def run_spot_python_experiment(
@@ -22,11 +24,13 @@ def run_spot_python_experiment(
     surrogate_control,
     optimizer_control,
     fun=HyperLight(log_level=50).fun,
+    eda=True,
 ) -> spot.Spot:
     """Runs a spot experiment.
 
     Args:
         save_only (bool): If True, the experiment will be saved and the spot run will not be executed.
+        eda (bool): If True, exploratory data analysis will be performed.
         fun_control (dict): A dictionary with the function control parameters.
         design_control (dict): A dictionary with the design control parameters.
         surrogate_control (dict): A dictionary with the surrogate control parameters.
@@ -37,7 +41,8 @@ def run_spot_python_experiment(
         spot.Spot: The spot experiment.
 
     """
-    print("\nfun_control in spotRun():", fun_control)
+    print("\nfun_control in spotRun():")
+    pprint.pprint(fun_control)
     print(gen_design_table(fun_control))
 
     spot_tuner = spot.Spot(
@@ -47,6 +52,9 @@ def run_spot_python_experiment(
         surrogate_control=surrogate_control,
         optimizer_control=optimizer_control,
     )
+
+    if eda:
+        generate_pairplot(fun_control["test"])
 
     SPOT_PKL_NAME = None
     if save_only:
@@ -76,6 +84,8 @@ def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
 
     """
     (spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) = load_experiment(spot_pkl_name)
+    print("\nLoaded fun_control in spotRun():")
+    pprint.pprint(fun_control)
     print(gen_design_table(fun_control))
     p_open = start_tensorboard()
     spot_tuner.run()

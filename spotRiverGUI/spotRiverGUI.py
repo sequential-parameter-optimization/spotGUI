@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score
+import sklearn.metrics
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 from river.forest import AMFClassifier
 from river.tree import HoeffdingAdaptiveTreeClassifier
@@ -59,6 +59,10 @@ def run_experiment(save_only=False):
     else:
         fun_evals_val = int(fun_evals)
 
+    # metrics
+    metric_name = metric_combo.get()
+    metric_sklearn = getattr(sklearn.metrics, metric_name)
+
     # River specific parameters
     oml_grace_period = oml_grace_period_entry.get()
     if oml_grace_period == "None" or oml_grace_period == "n_train":
@@ -105,9 +109,11 @@ def run_experiment(save_only=False):
         fun_repeats=1,
         horizon=int(horizon_entry.get()),
         max_time=float(max_time_entry.get()),
+        metric_sklearn=metric_sklearn,
         noise=bool(noise_entry.get()),
         ocba_delta=0,
         oml_grace_period=oml_grace_period,
+        target_column=target_column_entry.get(),
         test=test,
         train=train,
         tolerance_x=np.sqrt(np.spacing(1)),
@@ -192,8 +198,6 @@ def run_experiment(save_only=False):
             "prep_model": prep_model,
             "weights": weights,
             "weight_coeff": weight_coeff,
-            "metric_sklearn": accuracy_score,
-            "target_column": "y",
         }
     )
 
@@ -349,7 +353,6 @@ def update_hyperparams(event):
             # add the lower bound values in column 2
             factor_level_entry[i] = tk.Entry(run_tab)
             # TODO: replace " " with ", " for the levels
-            print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
             factor_level_entry[i].insert(0, dict[key]["levels"])
             factor_level_entry[i].grid(row=i + 3, column=4, columnspan= 2, sticky=tk.W+tk.E)
 
@@ -421,7 +424,7 @@ fun_evals_entry.grid(row=7, column=1)
 init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
 init_size_label.grid(row=8, column=0, sticky="W")
 init_size_entry = tk.Entry(run_tab)
-init_size_entry.insert(0, "3")
+init_size_entry.insert(0, "5")
 init_size_entry.grid(row=8, column=1)
 
 prefix_label = tk.Label(run_tab, text="PREFIX:")
@@ -438,9 +441,11 @@ noise_entry.grid(row=10, column=1)
 
 metric_label = tk.Label(run_tab, text="metric (sklearn):")
 metric_label.grid(row=11, column=0, sticky="W")
-metric_entry = tk.Entry(run_tab)
-metric_entry.insert(0, "accuracy_score")
-metric_entry.grid(row=11, column=1)
+metric_levels = ["accuracy_score"]
+metric_combo = ttk.Combobox(run_tab, values=metric_levels)
+metric_combo.set("accuracy_score")  # Default selection
+metric_combo.grid(row=11, column=1)
+
 
 horizon_label = tk.Label(run_tab, text="horizon:")
 horizon_label.grid(row=12, column=0, sticky="W")
