@@ -38,7 +38,7 @@ default_entry = [None] * n_keys
 lower_bound_entry = [None] * n_keys
 upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
-
+transform_entry = [None] * n_keys
 
 def run_experiment(save_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
@@ -139,9 +139,13 @@ def run_experiment(save_only=False):
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
             )
         if dict[key]["type"] == "factor":
-            fle = factor_level_entry[i].get()
-            # convert the string to a list of strings
-            fle = fle.split()
+
+            # load from combo box and add to empty list
+            fle = []
+            for name, var in choices[i].items():
+                if(var.get() == 1):
+                    fle.append(name)
+
             set_control_hyperparameter_value(fun_control, key, fle)
             fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
 
@@ -203,9 +207,40 @@ def call_importance_plot():
     if spot_tuner is not None:
         importance_plot(spot_tuner)
 
+def selection_changed(i):
+    if factor_level_entry[i]["text"] == "":
+        factor_level_entry[i]["text"] = "Select something"
+
+def show_selection(choices, i):
+    factor_level_entry[i]["text"] = ""
+    first_element = True
+    all_selected = True  # Flag to check if all choices are selected
+    for j, (name, var) in enumerate(choices.items()):
+        if var.get() == 1:
+            if first_element:
+                factor_level_entry[i]["text"] = name
+                first_element = False
+            else:
+                factor_level_entry[i]["text"] += ", " + name
+        else:
+            all_selected = False  # Set flag to False if any choice is not selected
+    if all_selected:
+        selectValue[i].set(1)  # Check the checkbox if all choices are selected
+    else:
+        selectValue[i].set(0)  # Uncheck the checkbox if not all choices are selected
+    selection_changed(i)
+
+def selectAll(choices, i):
+    if(selectValue[i].get() == 1):
+        for name, var in choices.items():
+            var.set(1)
+    elif(selectValue[i].get() == 0):
+        for name, var in choices.items():
+            var.set(0)
+    show_selection(choices, i)
 
 def update_hyperparams(event):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
 
     if label is not None:
         for i in range(len(label)):
@@ -227,6 +262,11 @@ def update_hyperparams(event):
             if upper_bound_entry[i] is not None:
                 upper_bound_entry[i].destroy()
 
+    if transform_entry is not None:
+        for i in range(len(transform_entry)):
+            if transform_entry[i] is not None:
+                transform_entry[i].destroy()
+
     if factor_level_entry is not None:
         for i in range(len(factor_level_entry)):
             if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
@@ -244,7 +284,12 @@ def update_hyperparams(event):
     default_entry = [None] * n_keys
     lower_bound_entry = [None] * n_keys
     upper_bound_entry = [None] * n_keys
+    transform_entry = [None] * n_keys
     factor_level_entry = [None] * n_keys
+    choices = [None] * n_keys
+    menu = [None] * n_keys
+    selectValue = [tk.IntVar(value=0) for _ in range(n_keys)]
+    select = [None] * n_keys
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int" or dict[key]["type"] == "float":
             # Create a label with the key as text
@@ -265,6 +310,10 @@ def update_hyperparams(event):
             upper_bound_entry[i].insert(0, dict[key]["upper"])
             upper_bound_entry[i].grid(row=i + 2, column=5, sticky="W")
             print(f"GUI: Insert hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
+            # add the transformation values in column 6
+            transform_entry[i] = tk.Entry(run_tab)
+            transform_entry[i].insert(0, dict[key]["transform"])
+            transform_entry[i].grid(row=i + 2, column=6, sticky="W")
         if dict[key]["type"] == "factor":
             # Create a label with the key as text
             label[i] = tk.Label(run_tab, text=key)
@@ -274,13 +323,22 @@ def update_hyperparams(event):
             default_entry[i] = tk.Entry(run_tab)
             default_entry[i].insert(0, dict[key]["default"])
             default_entry[i].grid(row=i + 2, column=3, sticky="W")
-            # add the lower bound values in column 2
-            factor_level_entry[i] = tk.Entry(run_tab)
-            # TODO: replace " " with ", " for the levels
-            print(f"GUI: dict[key][levels]: {dict[key]['levels']}")
-            factor_level_entry[i].insert(0, dict[key]["levels"])
-            factor_level_entry[i].grid(row=i + 2, column=4, columnspan= 2, sticky=tk.W+tk.E)
-            print(f"GUI: Key: {key}. Inserting control hyperparameter value: {factor_level_entry[i].get()}")
+
+            # Factor_Levels
+            factor_level_entry[i]= tk.Menubutton(run_tab, text="Select something", indicatoron=True, borderwidth=1, relief="raised")
+            menu[i] = tk.Menu(factor_level_entry[i], tearoff=False )
+            factor_level_entry[i].configure(menu=menu[i])
+            factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
+
+            choices[i] = {}
+            for choice in dict[key]["levels"]:
+                choices[i][choice] = tk.IntVar(value=0)
+                menu[i].add_checkbutton(label=choice, variable=choices[i][choice], 
+                                    onvalue=1, offvalue=0, command=lambda i=i, choices=choices[i]: show_selection(choices, i))
+
+            select[i] = tk.Checkbutton(run_tab,text="Select all", variable=selectValue[i], onvalue=1, offvalue=0, command=lambda i=i, choices=choices[i]: selectAll(choices, i))
+            select[i].grid(row=i + 2, column=6, sticky=tk.W)
+
 
 
 # Create the main application window
@@ -405,6 +463,9 @@ model_label.grid(row=0, column=4, sticky="W")
 model_label = tk.Label(run_tab, text="Upper bounds:")
 model_label.grid(row=0, column=5, sticky="W")
 
+model_label = tk.Label(run_tab, text="Transformation:")
+model_label.grid(row=0, column=6, sticky="W")
+
 core_model_label = tk.Label(run_tab, text="Core model")
 core_model_label.grid(row=1, column=2, sticky="W")
 core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
@@ -459,5 +520,7 @@ analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 # river_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
 # Run the mainloop
+
+
 
 app.mainloop()
