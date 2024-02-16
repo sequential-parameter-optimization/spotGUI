@@ -176,9 +176,38 @@ def compare_tuned_default(spot_tuner, fun_control) -> None:
     )
 
     df_labels = ["default", "spot"]
+    # Create a figure with 1 row and 2 columns of subplots
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 
     # First Plot
-
+    plot_confusion_matrix(
+        df=df_true_default,
+        title="Default",
+        y_true_name=fun_control["target_column"],
+        y_pred_name="Prediction",
+        show=False,
+        ax=axs[0],
+    )
+    # plt.figure(1)
+    # Second Plot
+    plot_confusion_matrix(
+        df=df_true_spot,
+        title="Spot",
+        y_true_name=fun_control["target_column"],
+        y_pred_name="Prediction",
+        show=False,
+        ax=axs[1],
+    )
+    # plt.figure(2)
+    # Third Plot
+    plot_roc_from_dataframes(
+        [df_true_default, df_true_spot],
+        model_names=["default", "spot"],
+        target_column=fun_control["target_column"],
+        show=False,
+    )
+    plt.figure(1)
+    # Fourth Plot
     plot_bml_oml_horizon_metrics(
         df_eval=[df_eval_default, df_eval_spot],
         log_y=False,
@@ -187,31 +216,5 @@ def compare_tuned_default(spot_tuner, fun_control) -> None:
         filename=None,
         show=False,
     )
-    plt.figure(1)
-
-    # Second Plot
-    plot_roc_from_dataframes(
-        [df_true_default, df_true_spot],
-        model_names=["default", "spot"],
-        target_column=fun_control["target_column"],
-        show=False,
-    )
     plt.figure(2)
-    # Third Plot
-
-    plot_confusion_matrix(
-        df=df_true_default,
-        title="Default",
-        y_true_name=fun_control["target_column"],
-        y_pred_name="Prediction",
-        show=False,
-    )
-    plt.figure(2)
-    # Fourth Plot
-
-    plot_confusion_matrix(
-        df=df_true_spot, title="Spot", y_true_name=fun_control["target_column"], y_pred_name="Prediction", show=False
-    )
-    plt.figure(3)
-
-    plt.show()  # Display all four plots simultaneously
+    plt.show()
