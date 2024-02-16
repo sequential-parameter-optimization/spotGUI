@@ -24,13 +24,13 @@ def run_spot_python_experiment(
     surrogate_control,
     optimizer_control,
     fun=HyperLight(log_level=50).fun,
-    eda=False,
+    show_data_only=False,
 ) -> spot.Spot:
     """Runs a spot experiment.
 
     Args:
         save_only (bool): If True, the experiment will be saved and the spot run will not be executed.
-        eda (bool): If True, exploratory data analysis will be performed.
+        show_data_only (bool): If True, the data will be shown and the spot run will not be executed.
         fun_control (dict): A dictionary with the function control parameters.
         design_control (dict): A dictionary with the design control parameters.
         surrogate_control (dict): A dictionary with the surrogate control parameters.
@@ -41,6 +41,8 @@ def run_spot_python_experiment(
         spot.Spot: The spot experiment.
 
     """
+    SPOT_PKL_NAME = None
+
     print("\nfun_control in spotRun():")
     pprint.pprint(fun_control)
     print(gen_design_table(fun_control))
@@ -53,10 +55,42 @@ def run_spot_python_experiment(
         optimizer_control=optimizer_control,
     )
 
-    if eda:
-        generate_pairplot(fun_control["test"])
+    if show_data_only:
+        train = fun_control["train"]
+        train_size = len(train)
+        test = fun_control["test"]
+        test_size = len(test)
+        target_column = fun_control["target_column"]
+        print(f"\nTrain data summary:\n {train.describe(include='all')}")
+        print(f"\nTest data summary:\n {test.describe(include='all')}")
+        # if the data set has more than 1000 entries,
+        # select 1000 random samples to display
+        train_sample = test_sample = False
+        if train_size > 1000:
+            train = train.sample(n=1000)
+            train_sample = True
+        if test_size > 1000:
+            test = test.sample(n=1000)
+            test_sample = True
 
-    SPOT_PKL_NAME = None
+        # generate a histogram of the target column
+        plt.figure()
+        # Create the first subplot for the training data
+        plt.subplot(1, 2, 1)  # 1 row, 2 columns, index 1
+        train[target_column].hist()
+        plt.title("Train Data")
+        # Create the second subplot for the test data
+        plt.subplot(1, 2, 2)  # 1 row, 2 columns, index 2
+        test[target_column].hist()
+        plt.title("Test Data")
+
+        generate_pairplot(
+            data=train, target_column=target_column, title="Train Data", sample=train_sample, size=train_size
+        )
+        generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
+        plt.show()
+        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+
     if save_only:
         if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
             fun_control["spot_writer"].close()

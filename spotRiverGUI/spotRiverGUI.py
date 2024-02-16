@@ -44,7 +44,7 @@ factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 
 
-def run_experiment(save_only=False):
+def run_experiment(save_only=False, show_data_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
 
     n_total = n_total_entry.get()
@@ -227,6 +227,7 @@ def run_experiment(save_only=False):
         optimizer_control,
     ) = run_spot_python_experiment(
         save_only=save_only,
+        show_data_only=show_data_only,
         fun_control=fun_control,
         design_control=design_control,
         surrogate_control=surrogate_control,
@@ -237,6 +238,8 @@ def run_experiment(save_only=False):
         print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
     elif SPOT_PKL_NAME is not None and not save_only:
         print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
+    elif show_data_only:
+        print("\nData shown. No result saved.")
     else:
         print("\nExperiment failed. No result saved.")
 
@@ -496,10 +499,12 @@ core_model_combo.grid(row=2, column=3)
 
 
 # column 8: Save and run button
+data_button = ttk.Button(run_tab, text="Show Data", command=lambda: run_experiment(show_data_only=True))
+data_button.grid(row=7, column=8, columnspan=2, sticky="E")
 save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
-save_button.grid(row=7, column=8, columnspan=2, sticky="E")
+save_button.grid(row=8, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=8, column=8, columnspan=2, sticky="E")
+run_button.grid(row=9, column=8, columnspan=2, sticky="E")
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 # regression_tab = ttk.Frame(notebook)
