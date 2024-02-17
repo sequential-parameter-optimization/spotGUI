@@ -135,7 +135,7 @@ def parallel_plot(spot_tuner):
 
 
 def contour_plot(spot_tuner):
-    spot_tuner.plot_important_hyperparameter_contour(show=False, max_imp=3)
+    spot_tuner.plot_important_hyperparameter_contour(show=False, max_imp=3, threshold=0)
     pylab.show()
 
 
