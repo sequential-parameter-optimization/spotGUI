@@ -246,10 +246,13 @@ def run_experiment(save_only=False, show_data_only=False):
     #     fun_control.update({"var_type": var_type, "var_name": var_name, "lower": lower, "upper": upper})
 
     for i, (key, value) in enumerate(dict.items()):
-        if dict[key]["type"] == "int" or "core_model_parameter_type" == "bool":
+        if dict[key]["type"] == "int":
             set_control_hyperparameter_value(
                 fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
             )
+        if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
+            fun_control["core_model_hyper_dict"][key].update({"lower": int(lower_bound_entry[i].get())})
+            fun_control["core_model_hyper_dict"][key].update({"upper": int(upper_bound_entry[i].get())})
         if dict[key]["type"] == "float":
             set_control_hyperparameter_value(
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
