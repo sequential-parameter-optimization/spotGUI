@@ -1,7 +1,8 @@
 import sklearn.metrics
 from spotRiver.data.river_hyper_dict import RiverHyperDict
-from river import preprocessing, forest, tree, linear_model
 import river
+from river import forest, tree, linear_model
+from river import preprocessing
 import tkinter as tk
 from spotRiver.data.selector import data_selector
 import os
@@ -25,7 +26,7 @@ from spotGUI.tuner.spotRun import (
     compare_tuned_default,
 )
 from spotPython.utils.eda import gen_design_table
-from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
+from spotPython.utils.file import load_dict_from_file
 from spotRiver.fun.hyperriver import HyperRiver
 from spotRiver.utils.data_conversion import convert_to_df
 from spotRiver.data.csvdataset import CSVDataset
@@ -92,18 +93,10 @@ def run_experiment(save_only=False, show_data_only=False):
     print(f"metric_weights = {metric_weights}")
     # split the string into a list of strings
     mw = metric_weights.split(",")
-    print(f"mw = {mw}")
-    print(f"len(mw) = {len(mw)}")
     # if len(mw) != 3, set the weights to the default values [1000, 1, 1]
     if len(mw) != 3:
         mw = ["1000", "1", "1"]
-    print(f"mw = {mw}")
     weights = np.array([weight_sgn * float(mw[0]), float(mw[1]), float(mw[2])])
-    print(f"weights = {weights}")
-
-    # how to weight older measeurements
-    weight_coeff = 1.0
-
     # River specific parameters
     oml_grace_period = oml_grace_period_entry.get()
     if oml_grace_period == "None" or oml_grace_period == "n_train":
@@ -126,17 +119,9 @@ def run_experiment(save_only=False, show_data_only=False):
     elif data_set.endswith(".csv"):
         df = CSVDataset(filename=data_set, directory="./userData/").data
         n_samples = df.shape[0]
-    # TODO: Check the total number of samples in the dataset and
-    # the number of samples the user wants to use:
-    # # if the user has no specified a sample set size, take the entire data set:
-    # if n_total is None:
-    #     n_total = n_samples
-    # # but if the user has specified more samples than available, correct the number of samples:
-    # if n_total > n_samples:
-    #     n_total = n_samples
-
     # Rename the columns of a DataFrame to x1, x2, ..., xn, y.
-    # From now on we assume that the target column is called "y" and is of type int.
+    # From now on we assume that the target column is called "y" and
+    # is of type int (binary classification)
     df = rename_df_to_xy(df=df, target_column="y")
     df["y"] = df["y"].astype(int)
     target_column = "y"
@@ -145,8 +130,6 @@ def run_experiment(save_only=False, show_data_only=False):
     # where the test set is a percentage of the data set given as test_size:
     X = df.drop(columns=[target_column])
     Y = df[target_column]
-    print(f"X = {X}")
-    print(f"Y = {Y}")
     # Split the data into training and test sets
     # test_size is the percentage of the data that should be held over for testing
     # random_state is a seed for the random number generator to make your train and test splits reproducible
@@ -158,30 +141,6 @@ def run_experiment(save_only=False, show_data_only=False):
     test = pd.concat([test_features, test_target], axis=1)
     n_samples = train.shape[0] + test.shape[0]
 
-    # Initialize the fun_control dictionary with the static parameters,
-    # i.e., the parameters that are not hyperparameters (depending on the core model)
-    fun_control = fun_control_init(
-        PREFIX=prefix_entry.get(),
-        TENSORBOARD_CLEAN=True,
-        fun_evals=fun_evals_val,
-        fun_repeats=1,
-        horizon=int(horizon_entry.get()),
-        max_time=float(max_time_entry.get()),
-        metric_sklearn=metric_sklearn,
-        noise=bool(noise_entry.get()),
-        ocba_delta=0,
-        oml_grace_period=oml_grace_period,
-        target_column=target_column,
-        test=test,
-        test_size=test_size,
-        train=train,
-        tolerance_x=np.sqrt(np.spacing(1)),
-        verbosity=1,
-        weights=weights,
-        weight_coeff=weight_coeff,
-        log_level=50,
-    )
-
     # Get the selected prep and core model and add it to the fun_control dictionary
     prepmodel = prep_model_combo.get()
     if prepmodel == "StandardScaler":
@@ -190,6 +149,33 @@ def run_experiment(save_only=False, show_data_only=False):
         prep_model = preprocessing.MinMaxScaler()
     else:
         prep_model = None
+
+    TENSORBOARD_CLEAN = bool(tb_clean.get())
+
+    # Initialize the fun_control dictionary with the static parameters,
+    # i.e., the parameters that are not hyperparameters (depending on the core model)
+    fun_control = fun_control_init(
+        PREFIX=prefix_entry.get(),
+        TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
+        fun_evals=fun_evals_val,
+        fun_repeats=1,
+        horizon=int(horizon_entry.get()),
+        max_time=float(max_time_entry.get()),
+        metric_sklearn=metric_sklearn,
+        noise=bool(noise_entry.get()),
+        n_samples=n_samples,
+        ocba_delta=0,
+        oml_grace_period=oml_grace_period,
+        prep_model=prep_model,
+        target_column=target_column,
+        test=test,
+        test_size=test_size,
+        train=train,
+        tolerance_x=np.sqrt(np.spacing(1)),
+        verbosity=1,
+        weights=weights,
+        log_level=50,
+    )
 
     core_model = core_model_combo.get()
     core_model_module = core_model.split(".")[0]
@@ -203,38 +189,18 @@ def run_experiment(save_only=False, show_data_only=False):
         filename=None,
     )
     dict = rhd.hyper_dict[coremodel]
-    # if coremodel == "LogisticRegression":
-    #     add_core_model_to_fun_control(
-    #         core_model=LogisticRegression,
-    #         fun_control=fun_control,
-    #         hyper_dict=RiverHyperDict,
-    #         filename=None,
-    #     )
-    #     dict = rhd.hyper_dict[coremodel]
-    #     # modify_hyper_parameter_bounds(fun_control, "l2", bounds=[0.0, 0.01])
-    #     # set_control_hyperparameter_value(fun_control, "l2", [0.0, 0.01])
-    #     # Note (from the River documentation):
-    #     # For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
-    #     # Therefore, we set l1 bounds to 0.0:
-    #     # modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
-    #     # set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
-    #     # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
-    # elif coremodel == "AMFClassifier":
-    #     add_core_model_to_fun_control(
-    #         core_model=AMFClassifier, fun_control=fun_control, hyper_dict=RiverHyperDict, filename=None
-    #     )
-    #     set_control_hyperparameter_value(fun_control, "n_estimators", [2, 10])
-    #     set_control_hyperparameter_value(fun_control, "step", [0.5, 2])
-    #     dict = rhd.hyper_dict[coremodel]
-    # elif coremodel == "HoeffdingAdaptiveTreeClassifier":
-    #     add_core_model_to_fun_control(
-    #         core_model=HoeffdingAdaptiveTreeClassifier,
-    #         fun_control=fun_control,
-    #         hyper_dict=RiverHyperDict,
-    #         filename=None,
-    #     )
-    #     dict = rhd.hyper_dict[coremodel]
-    # else:
+
+    # TODO:
+    # Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
+    # > For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
+    # Therefore, we set l1 bounds to 0.0:
+    # modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
+    # set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
+    # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
+
+    # TODO:
+    #  Enable user specific core models:
+    # if core_model is not in core_model_values:
     #     core_model = load_core_model_from_file(coremodel, dirname="userModel")
     #     dict = load_dict_from_file(coremodel, dirname="userModel")
     #     fun_control.update({"core_model": core_model})
@@ -264,15 +230,6 @@ def run_experiment(save_only=False, show_data_only=False):
             set_control_hyperparameter_value(fun_control, key, fle)
             fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
 
-    fun_control.update(
-        {
-            "n_samples": n_samples,
-            "prep_model": prep_model,
-        }
-    )
-
-    print(gen_design_table(fun_control))
-
     design_control = design_control_init(
         init_size=int(init_size_entry.get()),
         repeats=1,
@@ -287,6 +244,8 @@ def run_experiment(save_only=False, show_data_only=False):
     )
 
     optimizer_control = optimizer_control_init()
+
+    print(gen_design_table(fun_control))
 
     (
         SPOT_PKL_NAME,
@@ -574,6 +533,10 @@ core_model_combo.grid(row=1, column=3)
 
 
 # column 8: Save and run button
+tb_clean = tk.BooleanVar()
+tb_clean.set(True)
+tf_clean_checkbutton = tk.Checkbutton(run_tab, text="TENSORBOARD_CLEAN", variable=tb_clean)
+tf_clean_checkbutton.grid(row=2, column=8, sticky="E")
 data_button = ttk.Button(run_tab, text="Show Data", command=lambda: run_experiment(show_data_only=True))
 data_button.grid(row=7, column=8, columnspan=2, sticky="E")
 save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
@@ -602,9 +565,7 @@ run_button.grid(row=9, column=8, columnspan=2, sticky="E")
 # Create and pack the "Analysis" tab with a button to run the analysis
 analysis_tab = ttk.Frame(notebook)
 notebook.add(analysis_tab, text="Analysis")
-
 notebook.pack()
-
 
 # Add the Logo image in both tabs
 logo_image = tk.PhotoImage(file="images/spotlogo.png")
@@ -630,7 +591,6 @@ contour_plot_button.grid(row=4, column=1, columnspan=2, sticky="W")
 
 parallel_plot_button = ttk.Button(analysis_tab, text="Parallel plot (Browser)", command=call_parallel_plot)
 parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
-
 
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
 analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
