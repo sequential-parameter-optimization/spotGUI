@@ -99,7 +99,7 @@ def run_experiment(save_only=False, show_data_only=False):
     weights = np.array([weight_sgn * float(mw[0]), float(mw[1]), float(mw[2])])
     # River specific parameters
     oml_grace_period = oml_grace_period_entry.get()
-    if oml_grace_period == "None" or oml_grace_period == "n_train":
+    if oml_grace_period == "None":
         oml_grace_period = None
     else:
         oml_grace_period = int(oml_grace_period)
@@ -421,13 +421,13 @@ data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
 data_set_combo.set("Phishing")  # Default selection
 data_set_combo.grid(row=1, column=1)
 
-target_column_label = tk.Label(run_tab, text="target_column:")
+target_column_label = tk.Label(run_tab, text="target_column (str):")
 target_column_label.grid(row=2, column=0, sticky="W")
 target_column_entry = tk.Entry(run_tab)
 target_column_entry.insert(0, "y")
 target_column_entry.grid(row=2, column=1, sticky="W")
 
-n_total_label = tk.Label(run_tab, text="n_total:")
+n_total_label = tk.Label(run_tab, text="n_total (int|All):")
 n_total_label.grid(row=3, column=0, sticky="W")
 n_total_entry = tk.Entry(run_tab)
 n_total_entry.insert(0, "All")
@@ -462,47 +462,52 @@ fun_evals_entry = tk.Entry(run_tab)
 fun_evals_entry.insert(0, "30")
 fun_evals_entry.grid(row=8, column=1)
 
-init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
+init_size_label = tk.Label(run_tab, text="INIT_SIZE (int):")
 init_size_label.grid(row=9, column=0, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "5")
 init_size_entry.grid(row=9, column=1)
 
-prefix_label = tk.Label(run_tab, text="PREFIX:")
+prefix_label = tk.Label(run_tab, text="PREFIX (str):")
 prefix_label.grid(row=10, column=0, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "00")
 prefix_entry.grid(row=10, column=1)
 
-noise_label = tk.Label(run_tab, text="NOISE:")
+noise_label = tk.Label(run_tab, text="NOISE (bool):")
 noise_label.grid(row=11, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
 noise_entry.grid(row=11, column=1)
 
+# columns 0+1: Evaluation
+experiment_label = tk.Label(run_tab, text="Evaluation options:")
+experiment_label.grid(row=12, column=0, sticky="W")
+
+
 metric_label = tk.Label(run_tab, text="metric (sklearn):")
-metric_label.grid(row=12, column=0, sticky="W")
+metric_label.grid(row=13, column=0, sticky="W")
 metric_combo = ttk.Combobox(run_tab, values=metric_levels)
 metric_combo.set("accuracy_score")  # Default selection
-metric_combo.grid(row=12, column=1)
+metric_combo.grid(row=13, column=1)
 
-metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0):")
-metric_weights_label.grid(row=13, column=0, sticky="W")
+metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
+metric_weights_label.grid(row=14, column=0, sticky="W")
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
-metric_weights_entry.grid(row=13, column=1)
+metric_weights_entry.grid(row=14, column=1)
 
-horizon_label = tk.Label(run_tab, text="horizon:")
-horizon_label.grid(row=14, column=0, sticky="W")
+horizon_label = tk.Label(run_tab, text="horizon (int):")
+horizon_label.grid(row=15, column=0, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "10")
-horizon_entry.grid(row=14, column=1)
+horizon_entry.grid(row=15, column=1)
 
-oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period:")
-oml_grace_period_label.grid(row=15, column=0, sticky="W")
+oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
+oml_grace_period_label.grid(row=16, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
-oml_grace_period_entry.insert(0, "n_train")
-oml_grace_period_entry.grid(row=15, column=1)
+oml_grace_period_entry.insert(0, "None")
+oml_grace_period_entry.grid(row=16, column=1)
 
 
 # colummns 2-6: Model
