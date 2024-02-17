@@ -524,7 +524,7 @@ metric_combo = ttk.Combobox(run_tab, values=metric_levels)
 metric_combo.set("accuracy_score")  # Default selection
 metric_combo.grid(row=12, column=1)
 
-metric_weights_label = tk.Label(run_tab, text="y,time,mem weights:")
+metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0):")
 metric_weights_label.grid(row=13, column=0, sticky="W")
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
