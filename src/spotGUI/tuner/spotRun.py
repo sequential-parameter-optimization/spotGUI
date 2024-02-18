@@ -103,6 +103,7 @@ def run_spot_python_experiment(
         spot_tuner.run()
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         # tensorboard --logdir="runs/"
+        print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
         stop_tensorboard(p_open)
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
 
