@@ -1,4 +1,5 @@
 import os
+import pickle
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, StringVar
@@ -28,6 +29,8 @@ import torch
 from spotPython.data.csvdataset import CSVDataset
 from spotPython.data.pkldataset import PKLDataset
 from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
+from tkinter import filedialog as fd
+import os
 
 spot_tuner = None
 lhd = LightHyperDict()
@@ -101,6 +104,7 @@ def run_experiment(save_only=False):
         tolerance_x=np.sqrt(np.spacing(1)),
         verbosity=1,
         log_level=50,
+        #n_total=n_total
     )
 
     # Get the selected core model and add it to the fun_control dictionary
@@ -187,6 +191,70 @@ def run_experiment(save_only=False):
     else:
         print("\nExperiment failed. No result saved.")
 
+def load_experiment():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
+    filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
+    if filename:
+        print("Filename: ", filename)
+        with open(filename, 'rb') as file:
+            data = pickle.load(file)
+            
+            print("test:", data)
+
+            #TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
+
+            feature_type_entry.delete(0, tk.END)
+            feature_type_entry.insert(0, str(vars(data['fun_control']['data_set'])['feature_type']).replace('torch.', ''))
+            target_type_entry.delete(0, tk.END)
+            target_type_entry.insert(0, str(vars(data['fun_control']['data_set'])['target_type']).replace('torch.', ''))
+            data_set_combo.delete(0, tk.END)
+            target_column_entry.delete(0, tk.END)
+
+            if not isinstance(data['fun_control']['data_set'], Diabetes):
+                target_column_entry.insert(0, str(vars(data['fun_control']['data_set'])['target_column']))
+                filename = vars(data['fun_control']['data_set'])['filename']
+                print("filename: ", filename)
+                # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
+                data_set_combo.set(filename)
+            
+            else:
+                target_column_entry.insert(0, "target")
+                data_set_combo.insert(0, "Diabetes")
+            
+            
+            # static parameters, that are not hyperparameters (depending on the core model)
+            #n_total wird aktuell noch nciht übergeben. nur bei River
+            # TODO Thomas hat das mittlerweile eingebaut.
+            #n_total_entry.delete(0, tk.END)
+            #n_total_entry.insert(0, str(data['fun_control']['n_total']))
+            
+            fun_evals_entry.delete(0, tk.END)
+            fun_evals_entry.insert(0, str(data['fun_control']['fun_evals']))
+
+            # TODO mal angucken das nciht das Objekt als String angegeben wird sondern der Name
+            data_set_combo.delete(0, tk.END)
+            data_set_combo.insert(0, str(data['fun_control']['data_set']))
+
+            lin_entry.delete(0, tk.END)
+            lin_entry.insert(0, str(data['fun_control']['_L_in']))
+
+            lout_entry.delete(0, tk.END)
+            lout_entry.insert(0, str(data['fun_control']['_L_out']))
+            
+            prefix_entry.delete(0, tk.END)
+            prefix_entry.insert(0, str(data['fun_control']['PREFIX']))
+
+            max_time_entry.delete(0, tk.END)
+            max_time_entry.insert(0, str(data['fun_control']['max_time']))
+
+            noise_entry.delete(0, tk.END)
+            noise_entry.insert(0, str(data['fun_control']['noise']))
+
+            test_size_entry.delete(0, tk.END)
+            test_size_entry.insert(0, str(data['fun_control']['test_size']))    
+
+              
 
 def call_parallel_plot():
     if spot_tuner is not None:
@@ -483,6 +551,8 @@ save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_ex
 save_button.grid(row=7, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
 run_button.grid(row=8, column=8, columnspan=2, sticky="E")
+load_button = ttk.Button(run_tab, text="Load Experiment", command=load_experiment)
+load_button.grid(row=9, column=8, columnspan=2, sticky="E")
 
 # Create and pack the "Analysis" tab with a button to run the analysis
 analysis_tab = ttk.Frame(notebook)
