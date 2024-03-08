@@ -42,6 +42,14 @@ upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 
+def str_to_bool(s):
+    if s.lower() == 'true':
+        return True
+    elif s.lower() == 'false':
+        return False
+    else:
+        raise ValueError("Cannot convert string to boolean value")
+
 
 def run_experiment(save_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
@@ -97,7 +105,7 @@ def run_experiment(save_only=False):
         fun_evals=fun_evals_val,
         fun_repeats=1,
         max_time=float(max_time_entry.get()),
-        noise=bool(noise_entry.get()),
+        noise=str_to_bool(noise_entry.get()),
         ocba_delta=0,
         data_set=dataset,
         test_size=float(test_size_entry.get()),
@@ -511,7 +519,7 @@ prefix_entry.grid(row=13, column=1)
 noise_label = tk.Label(run_tab, text="NOISE:")
 noise_label.grid(row=14, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "TRUE")
+noise_entry.insert(0, "True")
 noise_entry.grid(row=14, column=1)
 
 
