@@ -142,7 +142,7 @@ def run_experiment(save_only=False):
             # load from combo box and add to empty list
             fle = []
             for name, var in choices[i].items():
-                if(var.get() == 1):
+                if var.get() == 1:
                     fle.append(name)
 
             set_control_hyperparameter_value(fun_control, key, fle)
@@ -190,9 +190,11 @@ def run_experiment(save_only=False):
 def load_experiment():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
-    filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
+    filename = fd.askopenfilename(title="Select a Pickle File",
+                                  initialdir=current_dir,
+                                  filetypes=filetypes)
     if filename:
-        spot_tuner, fun_control, design_control, surrogate_control, optimizer_control =  load_experiment_spot(filename)
+        spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
 
         print("gui: ", spot_tuner)
         print("gui2: ", dir(spot_tuner))
@@ -206,7 +208,7 @@ def load_experiment():
         target_type_entry.insert(0, str(vars(fun_control['data_set'])['target_type']).replace('torch.', ''))
         data_set_combo.delete(0, tk.END)
         target_column_entry.delete(0, tk.END)
-        
+
         data_set_name = fun_control['data_set'].__class__.__name__
         print(f"\ndata_set_name: {data_set_name}\n")
 
@@ -225,7 +227,6 @@ def load_experiment():
 
         fun_evals_entry.delete(0, tk.END)
         fun_evals_entry.insert(0, str(fun_control['fun_evals']))
-
 
         lin_entry.delete(0, tk.END)
         lin_entry.insert(0, str(fun_control['_L_in']))
@@ -247,7 +248,6 @@ def load_experiment():
 
         init_size_entry.delete(0, tk.END)
         init_size_entry.insert(0, str(design_control['init_size']))
-
 
 
 def call_parallel_plot():
@@ -296,47 +296,46 @@ def show_selection(choices, i):
 
 
 def selectAll(choices, i):
-    if(selectValue[i].get() == 1):
+    if selectValue[i].get() == 1:
         for name, var in choices.items():
             var.set(1)
-    elif(selectValue[i].get() == 0):
+    elif selectValue[i].get() == 0:
         for name, var in choices.items():
             var.set(0)
     show_selection(choices, i)
 
 
+def destroy_entries(entries):
+    """
+    Destroys all non-None entries in the provided list of entries.
+
+    Args:
+        entries: A list of entries to be destroyed.
+
+    Returns:
+        None
+    """
+    if entries is not None:
+        for entry in entries:
+            if entry is not None:
+                entry.destroy()
+
+
+
 def update_hyperparams(event):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
 
-    if label is not None:
-        for i in range(len(label)):
-            if label[i] is not None:
-                label[i].destroy()
-
-    if default_entry is not None:
-        for i in range(len(default_entry)):
-            if default_entry[i] is not None:
-                default_entry[i].destroy()
-
-    if lower_bound_entry is not None:
-        for i in range(len(lower_bound_entry)):
-            if lower_bound_entry[i] is not None:
-                lower_bound_entry[i].destroy()
-
-    if upper_bound_entry is not None:
-        for i in range(len(upper_bound_entry)):
-            if upper_bound_entry[i] is not None:
-                upper_bound_entry[i].destroy()
-
-    if transform_entry is not None:
-        for i in range(len(transform_entry)):
-            if transform_entry[i] is not None:
-                transform_entry[i].destroy()
+    destroy_entries(label)
+    destroy_entries(default_entry)
+    destroy_entries(lower_bound_entry)
+    destroy_entries(upper_bound_entry)
+    destroy_entries(transform_entry)
 
     if factor_level_entry is not None:
         for i in range(len(factor_level_entry)):
             if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
                 factor_level_entry[i].destroy()
+
     coremodel = core_model_combo.get()
     # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
     if coremodel in lhd.hyper_dict:
@@ -388,22 +387,30 @@ def update_hyperparams(event):
             default_entry[i] = tk.Entry(run_tab)
             default_entry[i].insert(0, dict[key]["default"])
             default_entry[i].grid(row=i + 2, column=3, sticky="W")
-
             # Factor_Levels
             factor_level_entry[i]= tk.Menubutton(run_tab, text="Select something", indicatoron=True, borderwidth=1, relief="raised")
-            menu[i] = tk.Menu(factor_level_entry[i], tearoff=False )
+            menu[i] = tk.Menu(factor_level_entry[i], tearoff=False)
             factor_level_entry[i].configure(menu=menu[i])
             factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
 
             choices[i] = {}
             for choice in dict[key]["levels"]:
                 choices[i][choice] = tk.IntVar(value=0)
-                menu[i].add_checkbutton(label=choice, variable=choices[i][choice], 
-                                    onvalue=1, offvalue=0, command=lambda i=i, choices=choices[i]: show_selection(choices, i))
+                menu[i].add_checkbutton(label=choice,
+                                        variable=choices[i][choice],
+                                        onvalue=1,
+                                        offvalue=0,
+                                        command=lambda i=i,
+                                        choices=choices[i]: show_selection(choices, i))
 
-            select[i] = tk.Checkbutton(run_tab,text="Select all", variable=selectValue[i], onvalue=1, offvalue=0, command=lambda i=i, choices=choices[i]: selectAll(choices, i))
+            select[i] = tk.Checkbutton(run_tab,
+                                       text="Select all",
+                                       variable=selectValue[i],
+                                       onvalue=1,
+                                       offvalue=0,
+                                       command=lambda i=i,
+                                       choices=choices[i]: selectAll(choices, i))
             select[i].grid(row=i + 2, column=6, sticky=tk.W)
-
 
 
 # Create the main application window
