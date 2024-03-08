@@ -275,6 +275,27 @@ def load_experiment():
         #hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
         core_model_combo.set(fun_control['core_model'].__name__)
 
+        var_type = fun_control['var_type']
+        var_name = fun_control['var_name']
+        lower = fun_control['lower']
+        upper = fun_control['upper']
+        default = [hyperparam["default"] for hyperparam in fun_control['core_model_hyper_dict'].values()]
+        transform = [hyperparam["transform"] for hyperparam in fun_control['core_model_hyper_dict'].values()]
+
+        zipped_lists = zip(var_type, var_name, lower, upper, default, transform)
+
+        hyper_dict = {}
+        for var_type, var_name, lower, upper, default, transform in zipped_lists:
+            hyper_dict[var_name] = {
+                "type": var_type,
+                "default": default,
+                "transform": transform,
+                "lower": lower,
+                "upper": upper
+            }
+        print("hyperDict: ",hyper_dict)
+
+        
 
 
 def call_parallel_plot():
