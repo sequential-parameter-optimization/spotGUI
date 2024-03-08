@@ -21,7 +21,6 @@ from spotGUI.tuner.spotRun import (
     progress_plot,
 )
 from spotPython.light.regression.netlightregression import NetLightRegression
-from spotPython.light.regression.netlightregression2 import NetLightRegression2
 from spotPython.light.regression.transformerlightregression import TransformerLightRegression
 from spotPython.utils.eda import gen_design_table
 from spotPython.data.diabetes import Diabetes
@@ -109,12 +108,7 @@ def run_experiment(save_only=False):
 
     # Get the selected core model and add it to the fun_control dictionary
     coremodel = core_model_combo.get()
-    if coremodel == "NetLightRegression2":
-        add_core_model_to_fun_control(
-            fun_control=fun_control, core_model=NetLightRegression2, hyper_dict=LightHyperDict
-        )
-        dict = lhd.hyper_dict[coremodel]
-    elif coremodel == "NetLightRegression":
+    if coremodel == "NetLightRegression":
         add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression, hyper_dict=LightHyperDict)
         dict = lhd.hyper_dict[coremodel]
     elif coremodel == "TransformerLightRegression":
@@ -536,7 +530,7 @@ model_label.grid(row=0, column=6, sticky="W")
 
 core_model_label = tk.Label(run_tab, text="Core model")
 core_model_label.grid(row=1, column=2, sticky="W")
-core_model_values = ["NetLightRegression", "NetLightRegression2", "TransformerLightRegression"]
+core_model_values = ["NetLightRegression", "TransformerLightRegression"]
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_values.append(os.path.splitext(filename)[0])
