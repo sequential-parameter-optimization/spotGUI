@@ -28,6 +28,7 @@ import torch
 from spotPython.data.csvdataset import CSVDataset
 from spotPython.data.pkldataset import PKLDataset
 from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
+from spotPython.utils.file import load_experiment as load_experiment_spot
 from tkinter import filedialog as fd
 
 spot_tuner = None
@@ -103,7 +104,7 @@ def run_experiment(save_only=False):
         tolerance_x=np.sqrt(np.spacing(1)),
         verbosity=1,
         log_level=50,
-        #n_total=n_total
+        n_total=n_total
     )
 
     # Get the selected core model and add it to the fun_control dictionary
@@ -185,12 +186,14 @@ def run_experiment(save_only=False):
     else:
         print("\nExperiment failed. No result saved.")
 
+
 def load_experiment():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
     filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
     if filename:
         print("Filename: ", filename)
+        spot_tuner, fun_control, design_control, surrogate_control, optimizer_control =  load_experiment_spot(filename)
         with open(filename, 'rb') as file:
             data = pickle.load(file)
             print("test:", data)
@@ -203,8 +206,11 @@ def load_experiment():
             target_type_entry.insert(0, str(vars(data['fun_control']['data_set'])['target_type']).replace('torch.', ''))
             data_set_combo.delete(0, tk.END)
             target_column_entry.delete(0, tk.END)
+            
+            data_set_name = fun_control['data_set'].__class__.__name__
+            print(f"\ndata_set_name: {data_set_name}\n")
 
-            if not isinstance(data['fun_control']['data_set'], Diabetes):
+            if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
                 target_column_entry.insert(0, str(vars(data['fun_control']['data_set'])['target_column']))
                 filename = vars(data['fun_control']['data_set'])['filename']
                 print("filename: ", filename)
@@ -212,26 +218,21 @@ def load_experiment():
                 data_set_combo.set(filename)
             else:
                 target_column_entry.insert(0, "target")
-                data_set_combo.insert(0, "Diabetes")
+                data_set_combo.insert(0, data_set_name)
             # static parameters, that are not hyperparameters (depending on the core model)
-            #n_total wird aktuell noch nciht übergeben. nur bei River
-            # TODO Thomas hat das mittlerweile eingebaut.
-            #n_total_entry.delete(0, tk.END)
-            #n_total_entry.insert(0, str(data['fun_control']['n_total']))
-            
+            n_total_entry.delete(0, tk.END)
+            n_total_entry.insert(0, str(data['fun_control']['n_total']))
+
             fun_evals_entry.delete(0, tk.END)
             fun_evals_entry.insert(0, str(data['fun_control']['fun_evals']))
 
-            # TODO mal angucken das nciht das Objekt als String angegeben wird sondern der Name
-            data_set_combo.delete(0, tk.END)
-            data_set_combo.insert(0, str(data['fun_control']['data_set']))
 
             lin_entry.delete(0, tk.END)
             lin_entry.insert(0, str(data['fun_control']['_L_in']))
 
             lout_entry.delete(0, tk.END)
             lout_entry.insert(0, str(data['fun_control']['_L_out']))
-            
+
             prefix_entry.delete(0, tk.END)
             prefix_entry.insert(0, str(data['fun_control']['PREFIX']))
 
@@ -242,9 +243,9 @@ def load_experiment():
             noise_entry.insert(0, str(data['fun_control']['noise']))
 
             test_size_entry.delete(0, tk.END)
-            test_size_entry.insert(0, str(data['fun_control']['test_size']))    
+            test_size_entry.insert(0, str(data['fun_control']['test_size']))
 
-              
+
 
 def call_parallel_plot():
     if spot_tuner is not None:
@@ -265,9 +266,11 @@ def call_importance_plot():
     if spot_tuner is not None:
         importance_plot(spot_tuner)
 
+
 def selection_changed(i):
     if factor_level_entry[i]["text"] == "":
         factor_level_entry[i]["text"] = "Select something"
+
 
 def show_selection(choices, i):
     factor_level_entry[i]["text"] = ""
@@ -288,6 +291,7 @@ def show_selection(choices, i):
         selectValue[i].set(0)  # Uncheck the checkbox if not all choices are selected
     selection_changed(i)
 
+
 def selectAll(choices, i):
     if(selectValue[i].get() == 1):
         for name, var in choices.items():
@@ -296,6 +300,7 @@ def selectAll(choices, i):
         for name, var in choices.items():
             var.set(0)
     show_selection(choices, i)
+
 
 def update_hyperparams(event):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
