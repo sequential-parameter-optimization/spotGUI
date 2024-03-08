@@ -226,7 +226,7 @@ def load_experiment():
             data_set_combo.set(filename)
         else:
             target_column_entry.insert(0, "target")
-            data_set_combo.insert(0, data_set_name)
+            data_set_combo.set(data_set_name)
         # static parameters, that are not hyperparameters (depending on the core model)
         n_total_entry.delete(0, tk.END)
         n_total_entry.insert(0, str(fun_control['n_total']))
@@ -255,6 +255,12 @@ def load_experiment():
 
         init_size_entry.delete(0, tk.END)
         init_size_entry.insert(0, str(design_control['init_size']))
+
+        ## Modeloptions
+        core_model_combo.delete(0, tk.END)
+        #hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
+        core_model_combo.set(fun_control['core_model'].__name__)
+
 
 
 
