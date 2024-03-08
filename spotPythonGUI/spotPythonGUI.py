@@ -192,58 +192,61 @@ def load_experiment():
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
     filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
     if filename:
-        print("Filename: ", filename)
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control =  load_experiment_spot(filename)
-        with open(filename, 'rb') as file:
-            data = pickle.load(file)
-            print("test:", data)
 
-            #TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
+        print("gui: ", spot_tuner)
+        print("gui2: ", dir(spot_tuner))
+        print("gui3: ", optimizer_control)
 
-            feature_type_entry.delete(0, tk.END)
-            feature_type_entry.insert(0, str(vars(data['fun_control']['data_set'])['feature_type']).replace('torch.', ''))
-            target_type_entry.delete(0, tk.END)
-            target_type_entry.insert(0, str(vars(data['fun_control']['data_set'])['target_type']).replace('torch.', ''))
-            data_set_combo.delete(0, tk.END)
-            target_column_entry.delete(0, tk.END)
-            
-            data_set_name = fun_control['data_set'].__class__.__name__
-            print(f"\ndata_set_name: {data_set_name}\n")
+        #TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
 
-            if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
-                target_column_entry.insert(0, str(vars(data['fun_control']['data_set'])['target_column']))
-                filename = vars(data['fun_control']['data_set'])['filename']
-                print("filename: ", filename)
-                # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
-                data_set_combo.set(filename)
-            else:
-                target_column_entry.insert(0, "target")
-                data_set_combo.insert(0, data_set_name)
-            # static parameters, that are not hyperparameters (depending on the core model)
-            n_total_entry.delete(0, tk.END)
-            n_total_entry.insert(0, str(data['fun_control']['n_total']))
+        feature_type_entry.delete(0, tk.END)
+        feature_type_entry.insert(0, str(vars(fun_control['data_set'])['feature_type']).replace('torch.', ''))
+        target_type_entry.delete(0, tk.END)
+        target_type_entry.insert(0, str(vars(fun_control['data_set'])['target_type']).replace('torch.', ''))
+        data_set_combo.delete(0, tk.END)
+        target_column_entry.delete(0, tk.END)
+        
+        data_set_name = fun_control['data_set'].__class__.__name__
+        print(f"\ndata_set_name: {data_set_name}\n")
 
-            fun_evals_entry.delete(0, tk.END)
-            fun_evals_entry.insert(0, str(data['fun_control']['fun_evals']))
+        if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
+            target_column_entry.insert(0, str(vars(fun_control['data_set'])['target_column']))
+            filename = vars(fun_control['data_set'])['filename']
+            print("filename: ", filename)
+            # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
+            data_set_combo.set(filename)
+        else:
+            target_column_entry.insert(0, "target")
+            data_set_combo.insert(0, data_set_name)
+        # static parameters, that are not hyperparameters (depending on the core model)
+        n_total_entry.delete(0, tk.END)
+        n_total_entry.insert(0, str(fun_control['n_total']))
+
+        fun_evals_entry.delete(0, tk.END)
+        fun_evals_entry.insert(0, str(fun_control['fun_evals']))
 
 
-            lin_entry.delete(0, tk.END)
-            lin_entry.insert(0, str(data['fun_control']['_L_in']))
+        lin_entry.delete(0, tk.END)
+        lin_entry.insert(0, str(fun_control['_L_in']))
 
-            lout_entry.delete(0, tk.END)
-            lout_entry.insert(0, str(data['fun_control']['_L_out']))
+        lout_entry.delete(0, tk.END)
+        lout_entry.insert(0, str(fun_control['_L_out']))
 
-            prefix_entry.delete(0, tk.END)
-            prefix_entry.insert(0, str(data['fun_control']['PREFIX']))
+        prefix_entry.delete(0, tk.END)
+        prefix_entry.insert(0, str(fun_control['PREFIX']))
 
-            max_time_entry.delete(0, tk.END)
-            max_time_entry.insert(0, str(data['fun_control']['max_time']))
+        max_time_entry.delete(0, tk.END)
+        max_time_entry.insert(0, str(fun_control['max_time']))
 
-            noise_entry.delete(0, tk.END)
-            noise_entry.insert(0, str(data['fun_control']['noise']))
+        noise_entry.delete(0, tk.END)
+        noise_entry.insert(0, str(fun_control['noise']))
 
-            test_size_entry.delete(0, tk.END)
-            test_size_entry.insert(0, str(data['fun_control']['test_size']))
+        test_size_entry.delete(0, tk.END)
+        test_size_entry.insert(0, str(fun_control['test_size']))
+
+        init_size_entry.delete(0, tk.END)
+        init_size_entry.insert(0, str(design_control['init_size']))
 
 
 
