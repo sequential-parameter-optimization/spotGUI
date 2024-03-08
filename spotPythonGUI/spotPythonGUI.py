@@ -29,7 +29,6 @@ from spotPython.data.csvdataset import CSVDataset
 from spotPython.data.pkldataset import PKLDataset
 from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
 from tkinter import filedialog as fd
-import os
 
 spot_tuner = None
 lhd = LightHyperDict()
@@ -41,6 +40,7 @@ lower_bound_entry = [None] * n_keys
 upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
+
 
 def run_experiment(save_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
@@ -193,7 +193,6 @@ def load_experiment():
         print("Filename: ", filename)
         with open(filename, 'rb') as file:
             data = pickle.load(file)
-            
             print("test:", data)
 
             #TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
@@ -211,12 +210,9 @@ def load_experiment():
                 print("filename: ", filename)
                 # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
                 data_set_combo.set(filename)
-            
             else:
                 target_column_entry.insert(0, "target")
                 data_set_combo.insert(0, "Diabetes")
-            
-            
             # static parameters, that are not hyperparameters (depending on the core model)
             #n_total wird aktuell noch nciht übergeben. nur bei River
             # TODO Thomas hat das mittlerweile eingebaut.
@@ -333,7 +329,6 @@ def update_hyperparams(event):
         for i in range(len(factor_level_entry)):
             if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
                 factor_level_entry[i].destroy()
-                
     coremodel = core_model_combo.get()
     # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
     if coremodel in lhd.hyper_dict:
@@ -554,7 +549,6 @@ notebook.add(analysis_tab, text="Analysis")
 
 notebook.pack()
 
-
 # Add the Logo image in both tabs
 logo_image = tk.PhotoImage(file="images/spotlogo.png")
 logo_label = tk.Label(run_tab, image=logo_image)
@@ -575,7 +569,6 @@ contour_plot_button.grid(row=4, column=1, columnspan=2, sticky="W")
 parallel_plot_button = ttk.Button(analysis_tab, text="Parallel plot (Browser)", command=call_parallel_plot)
 parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
 
-
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
 analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
@@ -584,7 +577,4 @@ analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 # river_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
 # Run the mainloop
-
-
-
 app.mainloop()
