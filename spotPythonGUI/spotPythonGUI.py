@@ -196,6 +196,7 @@ def run_experiment(save_only=False):
 
 
 def load_experiment():
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
     current_dir = os.path.dirname(os.path.abspath(__file__))
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
     filename = fd.askopenfilename(title="Select a Pickle File",
@@ -257,6 +258,19 @@ def load_experiment():
         init_size_entry.delete(0, tk.END)
         init_size_entry.insert(0, str(design_control['init_size']))
 
+        destroy_entries(label)
+        destroy_entries(default_entry)
+        destroy_entries(lower_bound_entry)
+        destroy_entries(upper_bound_entry)
+        destroy_entries(transform_entry)
+
+        if factor_level_entry is not None:
+            for i in range(len(factor_level_entry)):
+                if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
+                    factor_level_entry[i].destroy()
+
+        update_entries_from_dict(fun_control['core_model_hyper_dict'])
+
 
 def call_parallel_plot():
     if spot_tuner is not None:
@@ -284,6 +298,7 @@ def selection_changed(i):
 
 
 def show_selection(choices, i):
+    global selectValue
     factor_level_entry[i]["text"] = ""
     first_element = True
     all_selected = True  # Flag to check if all choices are selected
@@ -329,27 +344,8 @@ def destroy_entries(entries):
                 entry.destroy()
 
 
-
-def update_hyperparams(event):
+def update_entries_from_dict(dict):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
-
-    destroy_entries(label)
-    destroy_entries(default_entry)
-    destroy_entries(lower_bound_entry)
-    destroy_entries(upper_bound_entry)
-    destroy_entries(transform_entry)
-
-    if factor_level_entry is not None:
-        for i in range(len(factor_level_entry)):
-            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                factor_level_entry[i].destroy()
-
-    coremodel = core_model_combo.get()
-    # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
-    if coremodel in lhd.hyper_dict:
-        dict = lhd.hyper_dict[coremodel]
-    else:
-        dict = load_dict_from_file(coremodel, dirname="userModel")
     n_keys = len(dict)
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
     label = [None] * n_keys
@@ -419,6 +415,30 @@ def update_hyperparams(event):
                                        command=lambda i=i,
                                        choices=choices[i]: selectAll(choices, i))
             select[i].grid(row=i + 2, column=6, sticky=tk.W)
+
+
+
+def update_hyperparams(event):
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
+
+    destroy_entries(label)
+    destroy_entries(default_entry)
+    destroy_entries(lower_bound_entry)
+    destroy_entries(upper_bound_entry)
+    destroy_entries(transform_entry)
+
+    if factor_level_entry is not None:
+        for i in range(len(factor_level_entry)):
+            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
+                factor_level_entry[i].destroy()
+
+    coremodel = core_model_combo.get()
+    # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
+    if coremodel in lhd.hyper_dict:
+        dict = lhd.hyper_dict[coremodel]
+    else:
+        dict = load_dict_from_file(coremodel, dirname="userModel")
+    update_entries_from_dict(dict)
 
 
 # Create the main application window
