@@ -8,7 +8,6 @@ from spotRiver.data.selector import data_selector
 import os
 import numpy as np
 from tkinter import ttk, StringVar
-from tkinter import filedialog as fd
 import math
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
@@ -25,7 +24,8 @@ from spotGUI.tuner.spotRun import (
     importance_plot,
     progress_plot,
     compare_tuned_default,
-    destroy_entries
+    destroy_entries,
+    load_file_dialog
 )
 from spotPython.utils.eda import gen_design_table
 from spotPython.utils.file import load_dict_from_file
@@ -279,9 +279,7 @@ def run_experiment(save_only=False, show_data_only=False):
 
 def load_experiment():
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
-    filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
+    filename = load_file_dialog()
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
 
