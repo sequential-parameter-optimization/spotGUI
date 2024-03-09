@@ -27,23 +27,39 @@ def run_spot_python_experiment(
     optimizer_control,
     fun=HyperLight(log_level=50).fun,
     show_data_only=False,
+    tensorboard_start=True,
+    tensorboard_stop=True,
 ) -> spot.Spot:
     """Runs a spot experiment.
 
     Args:
-        save_only (bool): If True, the experiment will be saved and the spot run will not be executed.
-        show_data_only (bool): If True, the data will be shown and the spot run will not be executed.
-        fun_control (dict): A dictionary with the function control parameters.
-        design_control (dict): A dictionary with the design control parameters.
-        surrogate_control (dict): A dictionary with the surrogate control parameters.
-        optimizer_control (dict): A dictionary with the optimizer control parameters.
-        fun (function): The function to be optimized.
+        save_only (bool):
+            If True, the experiment will be saved and the spot run will not be executed.
+        show_data_only (bool):
+            If True, the data will be shown and the spot run will not be executed.
+        fun_control (dict):
+            A dictionary with the function control parameters.
+        design_control (dict):
+            A dictionary with the design control parameters.
+        surrogate_control (dict):
+            A dictionary with the surrogate control parameters.
+        optimizer_control (dict):
+            A dictionary with the optimizer control parameters.
+        fun (function):
+            The function to be optimized.
+        tensorboard_start (bool):
+            If True, the tensorboard process will be started before the spot run.
+            Default is True.
+        tensorboard_stop (bool):
+            If True, the tensorboard process will be stopped after the spot run.
+            Default is True.
 
     Returns:
         spot.Spot: The spot experiment.
 
     """
     SPOT_PKL_NAME = None
+    p_open = None
 
     print("\nfun_control in spotRun():")
     pprint.pprint(fun_control)
@@ -91,23 +107,26 @@ def run_spot_python_experiment(
         )
         generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
         plt.show()
-        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
 
     if save_only:
         if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
             fun_control["spot_writer"].close()
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
-        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
     else:
-        p_open = start_tensorboard()
+        if tensorboard_start:
+            p_open = start_tensorboard()
         # TODO: Implement X_Start handling
         # X_start = get_default_hyperparameters_as_array(fun_control)
         spot_tuner.run()
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         # tensorboard --logdir="runs/"
         print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
-        stop_tensorboard(p_open)
-        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+        if tensorboard_stop:
+            stop_tensorboard(p_open)
+            p_open = None
+        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
@@ -120,6 +139,7 @@ def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
         spot.Spot: The spot experiment.
 
     """
+    p_open = None
     (spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) = load_experiment(spot_pkl_name)
     print("\nLoaded fun_control in spotRun():")
     pprint.pprint(fun_control)
@@ -129,7 +149,7 @@ def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
     SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
     # tensorboard --logdir="runs/"
     stop_tensorboard(p_open)
-    return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control
+    return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
 
 
 def parallel_plot(spot_tuner):

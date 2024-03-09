@@ -1,3 +1,4 @@
+import pprint
 import sklearn.metrics
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 import river
@@ -39,7 +40,7 @@ from spotPython.utils.metrics import get_metric_sign
 from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
-core_model_values = [
+core_model_names = [
     "forest.AMFClassifier",
     "tree.ExtremelyFastDecisionTreeClassifier",
     "tree.HoeffdingTreeClassifier",
@@ -89,6 +90,8 @@ def run_experiment(save_only=False, show_data_only=False):
     target_column = target_column_entry.get()
     test_size = float(test_size_entry.get())
 
+    core_model_name = core_model_combo.get()
+
     # metrics
     metric_name = metric_combo.get()
     metric_sklearn = getattr(sklearn.metrics, metric_name)
@@ -108,28 +111,29 @@ def run_experiment(save_only=False, show_data_only=False):
     else:
         oml_grace_period = int(oml_grace_period)
 
-    data_set = data_set_combo.get()
+    data_set_name = data_set_combo.get()
     # if the user has not specified a data set, take the default data set:
     # this can be one of the following:
     river_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
-    if data_set in river_datasets:
+    if data_set_name in river_datasets:
         dataset, n_samples = data_selector(
-            data_set=data_set,
+            data_set=data_set_name,
         )
         # convert the river datasets to a pandas DataFrame, the target column
         # of the resulting DataFrame is target_column
-        df = convert_to_df(dataset, target_column=target_column, n_total=n_total)
+        dataset = convert_to_df(dataset, target_column=target_column, n_total=n_total)
     # data_set ends with ".csv" or data_set ends with ".pkl":
-    elif data_set.endswith(".csv"):
-        df = CSVDataset(filename=data_set, directory="./userData/").data
-        n_samples = df.shape[0]
+    elif data_set_name.endswith(".csv"):
+        dataset = CSVDataset(filename=data_set_name, directory="./userData/").data
+        n_samples = dataset.shape[0]
+
+    # TODO: implement this as a function in spotRun.py
     # Rename the columns of a DataFrame to x1, x2, ..., xn, y.
     # From now on we assume that the target column is called "y" and
     # is of type int (binary classification)
-    df = rename_df_to_xy(df=df, target_column="y")
+    df = rename_df_to_xy(df=dataset, target_column="y")
     df["y"] = df["y"].astype(int)
     target_column = "y"
-
     # split the data set into a training and a test set,
     # where the test set is a percentage of the data set given as test_size:
     X = df.drop(columns=[target_column])
@@ -155,12 +159,16 @@ def run_experiment(save_only=False, show_data_only=False):
         prep_model = None
 
     TENSORBOARD_CLEAN = bool(tb_clean.get())
+    tensorboard_start = bool(tb_start.get())
+    tensorboard_stop = bool(tb_stop.get())
 
     # Initialize the fun_control dictionary with the static parameters,
     # i.e., the parameters that are not hyperparameters (depending on the core model)
     fun_control = fun_control_init(
         PREFIX=prefix_entry.get(),
         TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
+        core_model_name=core_model_name,
+        data_set_name=data_set_name,
         fun_evals=fun_evals_val,
         fun_repeats=1,
         horizon=int(horizon_entry.get()),
@@ -181,9 +189,8 @@ def run_experiment(save_only=False, show_data_only=False):
         log_level=50,
     )
 
-    core_model = core_model_combo.get()
-    core_model_module = core_model.split(".")[0]
-    coremodel = core_model.split(".")[1]
+    core_model_module = core_model_name.split(".")[0]
+    coremodel = core_model_name.split(".")[1]
     core_model_instance = getattr(getattr(river, core_model_module), coremodel)
 
     add_core_model_to_fun_control(
@@ -204,7 +211,7 @@ def run_experiment(save_only=False, show_data_only=False):
 
     # TODO:
     #  Enable user specific core models:
-    # if core_model is not in core_model_values:
+    # if core_model is not in core_model_names:
     #     core_model = load_core_model_from_file(coremodel, dirname="userModel")
     #     dict = load_dict_from_file(coremodel, dirname="userModel")
     #     fun_control.update({"core_model": core_model})
@@ -258,6 +265,7 @@ def run_experiment(save_only=False, show_data_only=False):
         design_control,
         surrogate_control,
         optimizer_control,
+        p_open
     ) = run_spot_python_experiment(
         save_only=save_only,
         show_data_only=show_data_only,
@@ -266,6 +274,8 @@ def run_experiment(save_only=False, show_data_only=False):
         surrogate_control=surrogate_control,
         optimizer_control=optimizer_control,
         fun=HyperRiver(log_level=fun_control["log_level"]).fun_oml_horizon,
+        tensorboard_start=tensorboard_start,
+        tensorboard_stop=tensorboard_stop,
     )
     if SPOT_PKL_NAME is not None and save_only:
         print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
@@ -282,11 +292,13 @@ def load_experiment():
     filename = load_file_dialog()
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
+        print("\nfun_control in load_experiment():")
+        pprint.pprint(fun_control)
 
         # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
         data_set_combo.delete(0, tk.END)
         # target_column_entry.delete(0, tk.END)
-        data_set_name = fun_control["data_set"].__class__.__name__
+        data_set_name = fun_control["data_set_name"]
         print(f"\ndata_set_name: {data_set_name}\n")
 
         if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
@@ -331,11 +343,13 @@ def load_experiment():
         noise_entry.insert(0, str(fun_control["noise"]))
 
         metric_combo.delete(0, tk.END)
-        metric_name = fun_control["prep_model"].__class__.__name__
+        metric_name = fun_control["metric_sklearn"].__name__
         metric_combo.set(metric_name)
 
         metric_weights_entry.delete(0, tk.END)
-        metric_weights_entry.insert(0, str(fun_control["weights"]))
+        wghts = fun_control["weights"]
+        metric_weights_entry.insert(0, f"{wghts[0]}, {wghts[1]}, {wghts[2]}")
+        # metric_weights_entry.insert(0, str(fun_control["weights"]))
 
         horizon_entry.delete(0, tk.END)
         horizon_entry.insert(0, str(fun_control["horizon"]))
@@ -357,11 +371,8 @@ def load_experiment():
         update_entries_from_dict(fun_control["core_model_hyper_dict"])
         # Modeloptions
         core_model_combo.delete(0, tk.END)
-        # hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
-        print(f"Core model: {fun_control['core_model']}")
-        print(f"Core model.__class__: {fun_control['core_model'].__class__}")
-        print(f"Core model.__name__: {fun_control['core_model'].__name__}")
-        core_model_combo.set(fun_control["core_model"].__name__)
+        core_model_combo.set(fun_control["core_model_name"])
+
 
 def call_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
@@ -438,6 +449,9 @@ def update_entries_from_dict(dict):
             # add the lower bound values in column 2
             factor_level_entry[i] = tk.Entry(run_tab)
             # TODO: replace " " with ", " for the levels
+            # lvls = dict[key]["levels"]
+            # factor_level_entry[i].insert(0, ", ".join(lvls))
+            # generates several commas, if used several times
             factor_level_entry[i].insert(0, dict[key]["levels"])
             factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
 
@@ -543,46 +557,50 @@ init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "5")
 init_size_entry.grid(row=9, column=1)
 
-prefix_label = tk.Label(run_tab, text="PREFIX (str):")
-prefix_label.grid(row=10, column=0, sticky="W")
-prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "00")
-prefix_entry.grid(row=10, column=1)
-
 noise_label = tk.Label(run_tab, text="NOISE (bool):")
-noise_label.grid(row=11, column=0, sticky="W")
+noise_label.grid(row=10, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=11, column=1)
+noise_entry.grid(row=10, column=1)
 
 # columns 0+1: Evaluation
 experiment_label = tk.Label(run_tab, text="Evaluation options:")
-experiment_label.grid(row=12, column=0, sticky="W")
+experiment_label.grid(row=11, column=0, sticky="W")
 
 
 metric_label = tk.Label(run_tab, text="metric (sklearn):")
-metric_label.grid(row=13, column=0, sticky="W")
+metric_label.grid(row=12, column=0, sticky="W")
 metric_combo = ttk.Combobox(run_tab, values=metric_levels)
 metric_combo.set("accuracy_score")  # Default selection
-metric_combo.grid(row=13, column=1)
+metric_combo.grid(row=12, column=1)
 
 metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
-metric_weights_label.grid(row=14, column=0, sticky="W")
+metric_weights_label.grid(row=13, column=0, sticky="W")
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
-metric_weights_entry.grid(row=14, column=1)
+metric_weights_entry.grid(row=13, column=1)
 
 horizon_label = tk.Label(run_tab, text="horizon (int):")
-horizon_label.grid(row=15, column=0, sticky="W")
+horizon_label.grid(row=14, column=0, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "10")
-horizon_entry.grid(row=15, column=1)
+horizon_entry.grid(row=14, column=1)
 
 oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
-oml_grace_period_label.grid(row=16, column=0, sticky="W")
+oml_grace_period_label.grid(row=15, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "None")
-oml_grace_period_entry.grid(row=16, column=1)
+oml_grace_period_entry.grid(row=15, column=1)
+
+# Experiment name:
+experiment_label = tk.Label(run_tab, text="Experiment Name:")
+experiment_label.grid(row=16, column=0, sticky="W")
+
+prefix_label = tk.Label(run_tab, text="Name prefix (str):")
+prefix_label.grid(row=17, column=0, sticky="W")
+prefix_entry = tk.Entry(run_tab)
+prefix_entry.insert(0, "00")
+prefix_entry.grid(row=17, column=1)
 
 
 # colummns 2-6: Model
@@ -605,26 +623,45 @@ core_model_label = tk.Label(run_tab, text="Core model")
 core_model_label.grid(row=1, column=2, sticky="W")
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
-        core_model_values.append(os.path.splitext(filename)[0])
-core_model_combo = ttk.Combobox(run_tab, values=core_model_values)
-core_model_combo.set("Select Model")  # Default selection
+        core_model_names.append(os.path.splitext(filename)[0])
+core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
+# core_model_combo.set("Select Model")  # Default selection
+core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
 core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=1, column=3)
+update_hyperparams(None)
 
 
 # column 8: Save and run button
+tb_label = tk.Label(run_tab, text="TENSORBOARD Options:")
+tb_label.grid(row=2, column=8, sticky="W")
+tb_label = tk.Label(run_tab, text="http://localhost:6006")
+tb_label.grid(row=3, column=8, sticky="W")
+
 tb_clean = tk.BooleanVar()
 tb_clean.set(True)
 tf_clean_checkbutton = tk.Checkbutton(run_tab, text="TENSORBOARD_CLEAN", variable=tb_clean)
-tf_clean_checkbutton.grid(row=2, column=8, sticky="E")
+tf_clean_checkbutton.grid(row=4, column=8, sticky="E")
+
+tb_start = tk.BooleanVar()
+tb_start.set(True)
+tf_start_checkbutton = tk.Checkbutton(run_tab, text="Start TENSORBOARD", variable=tb_start)
+tf_start_checkbutton.grid(row=5, column=8, sticky="E")
+
+tb_stop = tk.BooleanVar()
+tb_stop.set(True)
+tf_stop_checkbutton = tk.Checkbutton(run_tab, text="Stop TENSORBOARD", variable=tb_stop)
+tf_stop_checkbutton.grid(row=6, column=8, sticky="E")
+
 data_button = ttk.Button(run_tab, text="Show Data", command=lambda: run_experiment(show_data_only=True))
-data_button.grid(row=7, column=8, columnspan=2, sticky="E")
-save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
-save_button.grid(row=8, column=8, columnspan=2, sticky="E")
-run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=9, column=8, columnspan=2, sticky="E")
+data_button.grid(row=8, column=8, columnspan=2, sticky="E")
 load_button = ttk.Button(run_tab, text="Load Experiment", command=load_experiment)
-load_button.grid(row=10, column=8, columnspan=2, sticky="E")
+load_button.grid(row=9, column=8, columnspan=2, sticky="E")
+save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
+save_button.grid(row=10, column=8, columnspan=2, sticky="E")
+run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
+run_button.grid(row=11, column=8, columnspan=2, sticky="E")
+
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 # regression_tab = ttk.Frame(notebook)
