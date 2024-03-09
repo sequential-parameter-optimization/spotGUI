@@ -26,7 +26,7 @@ from spotGUI.tuner.spotRun import (
     progress_plot,
     compare_tuned_default,
     destroy_entries,
-    load_file_dialog
+    load_file_dialog,
 )
 from spotPython.utils.eda import gen_design_table
 from spotPython.utils.file import load_dict_from_file
@@ -37,7 +37,6 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 from spotRiver.utils.data_conversion import rename_df_to_xy
 from spotPython.utils.metrics import get_metric_sign
-from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
 core_model_names = [
@@ -70,6 +69,41 @@ lower_bound_entry = [None] * n_keys
 upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
+
+
+def get_dataset_from_name(data_set_name, target_column, n_total=None):
+    """Converts a data set name to a pandas DataFrame.
+
+    Args:
+        data_set_name (str):
+            The name of the data set.
+        target_column (str):
+            The name of the resulting target column.
+            This is not the name of the target column in the original data set.
+        n_total (int):
+            The number of samples to be used from the data set.
+
+    Returns:
+        pd.DataFrame:
+            The data set as a pandas DataFrame.
+        n_samples (int):
+            The number of samples in the data set.
+    """
+    # if the user has not specified a data set, take the default data set:
+    # this can be one of the following:
+    river_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
+    if data_set_name in river_datasets:
+        dataset, n_samples = data_selector(
+            data_set=data_set_name,
+        )
+        # convert the river datasets to a pandas DataFrame, the target column
+        # of the resulting DataFrame is target_column
+        dataset = convert_to_df(dataset, target_column=target_column, n_total=n_total)
+    # data_set ends with ".csv" or data_set ends with ".pkl":
+    elif data_set_name.endswith(".csv"):
+        dataset = CSVDataset(filename=data_set_name, directory="./userData/").data
+        n_samples = dataset.shape[0]
+    return dataset, n_samples
 
 
 def run_experiment(save_only=False, show_data_only=False):
@@ -112,20 +146,9 @@ def run_experiment(save_only=False, show_data_only=False):
         oml_grace_period = int(oml_grace_period)
 
     data_set_name = data_set_combo.get()
-    # if the user has not specified a data set, take the default data set:
-    # this can be one of the following:
-    river_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
-    if data_set_name in river_datasets:
-        dataset, n_samples = data_selector(
-            data_set=data_set_name,
-        )
-        # convert the river datasets to a pandas DataFrame, the target column
-        # of the resulting DataFrame is target_column
-        dataset = convert_to_df(dataset, target_column=target_column, n_total=n_total)
-    # data_set ends with ".csv" or data_set ends with ".pkl":
-    elif data_set_name.endswith(".csv"):
-        dataset = CSVDataset(filename=data_set_name, directory="./userData/").data
-        n_samples = dataset.shape[0]
+    dataset, n_samples = get_dataset_from_name(
+        data_set_name=data_set_name, target_column=target_column, n_total=n_total
+    )
 
     # TODO: implement this as a function in spotRun.py
     # Rename the columns of a DataFrame to x1, x2, ..., xn, y.
@@ -265,7 +288,7 @@ def run_experiment(save_only=False, show_data_only=False):
         design_control,
         surrogate_control,
         optimizer_control,
-        p_open
+        p_open,
     ) = run_spot_python_experiment(
         save_only=save_only,
         show_data_only=show_data_only,
@@ -479,6 +502,7 @@ def update_hyperparams(event):
     else:
         dict = load_dict_from_file(coremodel, dirname="userModel")
     update_entries_from_dict(dict)
+
 
 # Create the main application window
 app = tk.Tk()

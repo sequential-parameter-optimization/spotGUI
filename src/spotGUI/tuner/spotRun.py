@@ -270,7 +270,6 @@ def load_file_dialog():
         str: The name of the selected file.
 
     """
-    # get the ddirectory from which the process was started
     current_dir = os.getcwd()
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
     filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
