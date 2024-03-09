@@ -41,6 +41,7 @@ lower_bound_entry = [None] * n_keys
 upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
+select = [None] * n_keys
 
 def str_to_bool(s):
     if s.lower() == 'true':
@@ -263,6 +264,7 @@ def load_experiment():
         destroy_entries(lower_bound_entry)
         destroy_entries(upper_bound_entry)
         destroy_entries(transform_entry)
+        destroy_entries(select)
 
         if factor_level_entry is not None:
             for i in range(len(factor_level_entry)):
@@ -323,6 +325,7 @@ def show_selection(choices, i):
 
 
 def selectAll(choices, i):
+    global selectValue
     if selectValue[i].get() == 1:
         for name, var in choices.items():
             var.set(1)
@@ -430,6 +433,7 @@ def update_hyperparams(event):
     destroy_entries(lower_bound_entry)
     destroy_entries(upper_bound_entry)
     destroy_entries(transform_entry)
+    destroy_entries(select)
 
     if factor_level_entry is not None:
         for i in range(len(factor_level_entry)):
