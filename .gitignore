@@ -53,3 +53,9 @@ spotRiverGUI/spot_00_phishing_experiment.pickle
 spotRiverGUI/spot_00_phishing_tree_experiment.pickle
 spotRiverGUI/spot_01_experiment.pickle
 spotRiverGUI/spot_02_experiment.pickle
+spotRiverGUI/spot_00_minmax_scaler_experiment.pickle
+spotRiverGUI/spot_00_none_experiment.pickle
+spotRiverGUI/spot_00_standard_experiment.pickle
+spotRiverGUI/spot_00_standard_scaler_experiment.pickle
+spotRiverGUI/spot_none_experiment.pickle
+spotRiverGUI/spot_standard_experiment.pickle

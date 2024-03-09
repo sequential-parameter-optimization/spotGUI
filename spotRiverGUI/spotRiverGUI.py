@@ -1,4 +1,5 @@
 import pprint
+import webbrowser
 import sklearn.metrics
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 import river
@@ -131,7 +132,7 @@ def run_experiment(save_only=False, show_data_only=False):
     metric_sklearn = getattr(sklearn.metrics, metric_name)
     weight_sgn = get_metric_sign(metric_name)
     metric_weights = metric_weights_entry.get()
-    print(f"metric_weights = {metric_weights}")
+
     # split the string into a list of strings
     mw = metric_weights.split(",")
     # if len(mw) != 3, set the weights to the default values [1000, 1, 1]
@@ -311,7 +312,7 @@ def run_experiment(save_only=False, show_data_only=False):
 
 
 def load_experiment():
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, spot_tuner, fun_control
     filename = load_file_dialog()
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
@@ -322,7 +323,6 @@ def load_experiment():
         data_set_combo.delete(0, tk.END)
         # target_column_entry.delete(0, tk.END)
         data_set_name = fun_control["data_set_name"]
-        print(f"\ndata_set_name: {data_set_name}\n")
 
         if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
             # target_column_entry.insert(0, str(vars(fun_control["data_set"])["target_column"]))
@@ -371,6 +371,8 @@ def load_experiment():
 
         metric_weights_entry.delete(0, tk.END)
         wghts = fun_control["weights"]
+        # take the absolute value of all weights
+        wghts = [abs(w) for w in wghts]
         metric_weights_entry.insert(0, f"{wghts[0]}, {wghts[1]}, {wghts[2]}")
         # metric_weights_entry.insert(0, str(fun_control["weights"]))
 
@@ -442,9 +444,13 @@ def update_entries_from_dict(dict):
             label[i] = tk.Label(run_tab, text=key)
             label[i].grid(row=i + 2, column=2, sticky="W")
             label[i].update()
+            # # Create an entry with the default value as the default text
+            # default_entry[i] = tk.Entry(run_tab)
+            # default_entry[i].insert(0, dict[key]["default"])
+            # default_entry[i].grid(row=i + 2, column=3, sticky="W")
+            # default_entry[i].update()
             # Create an entry with the default value as the default text
-            default_entry[i] = tk.Entry(run_tab)
-            default_entry[i].insert(0, dict[key]["default"])
+            default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
             default_entry[i].grid(row=i + 2, column=3, sticky="W")
             default_entry[i].update()
             # add the lower bound values in column 4
@@ -456,8 +462,7 @@ def update_entries_from_dict(dict):
             upper_bound_entry[i].insert(0, dict[key]["upper"])
             upper_bound_entry[i].grid(row=i + 2, column=5, sticky="W")
             # add the transformation values in column 6
-            transform_entry[i] = tk.Entry(run_tab)
-            transform_entry[i].insert(0, dict[key]["transform"])
+            transform_entry[i] = tk.Label(run_tab, text=dict[key]["transform"], padx=15)
             transform_entry[i].grid(row=i + 2, column=6, sticky="W")
 
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
@@ -466,8 +471,7 @@ def update_entries_from_dict(dict):
             label[i].grid(row=i + 2, column=2, sticky="W")
             label[i].update()
             # Create an entry with the default value as the default text
-            default_entry[i] = tk.Entry(run_tab)
-            default_entry[i].insert(0, dict[key]["default"])
+            default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
             default_entry[i].grid(row=i + 2, column=3, sticky="W")
             # add the lower bound values in column 2
             factor_level_entry[i] = tk.Entry(run_tab)
@@ -659,7 +663,9 @@ update_hyperparams(None)
 # column 8: Save and run button
 tb_label = tk.Label(run_tab, text="TENSORBOARD Options:")
 tb_label.grid(row=2, column=8, sticky="W")
-tb_label = tk.Label(run_tab, text="http://localhost:6006")
+tb_label = tk.Label(run_tab, text="http://localhost:6006", fg="blue", cursor="hand2")
+tb_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
+tb_label.grid(row=3, column=8, sticky="W")
 tb_label.grid(row=3, column=8, sticky="W")
 
 tb_clean = tk.BooleanVar()
