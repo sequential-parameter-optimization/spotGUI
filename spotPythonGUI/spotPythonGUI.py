@@ -206,6 +206,10 @@ def load_experiment():
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
 
+        print("gui: ", spot_tuner)
+        print("gui2: ", dir(spot_tuner))
+        print("gui3: ", optimizer_control)
+
         #TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
 
         feature_type_entry.delete(0, tk.END)
@@ -216,6 +220,7 @@ def load_experiment():
         target_column_entry.delete(0, tk.END)
 
         data_set_name = fun_control['data_set'].__class__.__name__
+        print(f"\ndata_set_name: {data_set_name}\n")
 
         if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
             target_column_entry.insert(0, str(vars(fun_control['data_set'])['target_column']))
@@ -271,29 +276,6 @@ def load_experiment():
         core_model_combo.delete(0, tk.END)
         #hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
         core_model_combo.set(fun_control['core_model'].__name__)
-
-        var_type = fun_control['var_type']
-        var_name = fun_control['var_name']
-        lower = fun_control['lower']
-        upper = fun_control['upper']
-        default = [hyperparam["default"] for hyperparam in fun_control['core_model_hyper_dict'].values()]
-        transform = [hyperparam["transform"] for hyperparam in fun_control['core_model_hyper_dict'].values()]
-        #levels = [hyperparam["transform"] for hyperparam in fun_control['core_model_hyper_dict'].values()]
-
-        zipped_lists = zip(var_type, var_name, lower, upper, default, transform)
-
-        dict = {}
-        for var_type, var_name, lower, upper, default, transform in zipped_lists:
-            dict[var_name] = {
-                "type": var_type,
-                "default": default,
-                "transform": transform,
-                "lower": lower,
-                "upper": upper
-            }
-        print("hyperDict: ",dict)
-
-        update_hyperparams(None, dict)
 
 
 def call_parallel_plot():
@@ -369,32 +351,8 @@ def destroy_entries(entries):
                 entry.destroy()
 
 
-
-def update_hyperparams(event,hyper_dict=None):
+def update_entries_from_dict(dict):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
-
-    destroy_entries(label)
-    destroy_entries(default_entry)
-    destroy_entries(lower_bound_entry)
-    destroy_entries(upper_bound_entry)
-    destroy_entries(transform_entry)
-
-    if factor_level_entry is not None:
-        for i in range(len(factor_level_entry)):
-            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                factor_level_entry[i].destroy()
-
-    coremodel = core_model_combo.get()
-    # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
-    
-    if hyper_dict is not None:
-        dict = hyper_dict
-        print("dict: ", dict)
-    else:
-        if coremodel in lhd.hyper_dict:
-            dict = lhd.hyper_dict[coremodel]
-        else:
-            dict = load_dict_from_file(coremodel, dirname="userModel")
     n_keys = len(dict)
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
     label = [None] * n_keys
