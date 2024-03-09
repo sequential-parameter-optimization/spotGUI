@@ -8,6 +8,7 @@ from spotRiver.data.selector import data_selector
 import os
 import numpy as np
 from tkinter import ttk, StringVar
+from tkinter import filedialog as fd
 import math
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
@@ -24,6 +25,7 @@ from spotGUI.tuner.spotRun import (
     importance_plot,
     progress_plot,
     compare_tuned_default,
+    destroy_entries
 )
 from spotPython.utils.eda import gen_design_table
 from spotPython.utils.file import load_dict_from_file
@@ -34,6 +36,8 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 from spotRiver.utils.data_conversion import rename_df_to_xy
 from spotPython.utils.metrics import get_metric_sign
+from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
+from spotPython.utils.file import load_experiment as load_experiment_spot
 
 core_model_values = [
     "forest.AMFClassifier",
@@ -273,6 +277,94 @@ def run_experiment(save_only=False, show_data_only=False):
         print("\nExperiment failed. No result saved.")
 
 
+def load_experiment():
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
+    filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
+    if filename:
+        spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
+
+        # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
+        data_set_combo.delete(0, tk.END)
+        # target_column_entry.delete(0, tk.END)
+        data_set_name = fun_control["data_set"].__class__.__name__
+        print(f"\ndata_set_name: {data_set_name}\n")
+
+        if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
+            # target_column_entry.insert(0, str(vars(fun_control["data_set"])["target_column"]))
+            filename = vars(fun_control["data_set"])["filename"]
+            print("filename: ", filename)
+            # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
+            data_set_combo.set(filename)
+        else:
+            # target_column_entry.insert(0, "target")
+            data_set_combo.set(data_set_name)
+
+        # static parameters, that are not hyperparameters (depending on the core model)
+
+        target_column_entry.delete(0, tk.END)
+        target_column_entry.insert(0, str(fun_control["target_column"]))
+
+        n_total_entry.delete(0, tk.END)
+        n_total_entry.insert(0, str(fun_control["n_total"]))
+
+        test_size_entry.delete(0, tk.END)
+        test_size_entry.insert(0, str(fun_control["test_size"]))
+
+        # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
+        prep_model_combo.delete(0, tk.END)
+        prep_model_name = fun_control["prep_model"].__class__.__name__
+        prep_model_combo.set(prep_model_name)
+
+        max_time_entry.delete(0, tk.END)
+        max_time_entry.insert(0, str(fun_control["max_time"]))
+
+        fun_evals_entry.delete(0, tk.END)
+        fun_evals_entry.insert(0, str(fun_control["fun_evals"]))
+
+        init_size_entry.delete(0, tk.END)
+        init_size_entry.insert(0, str(design_control["init_size"]))
+
+        prefix_entry.delete(0, tk.END)
+        prefix_entry.insert(0, str(fun_control["PREFIX"]))
+
+        noise_entry.delete(0, tk.END)
+        noise_entry.insert(0, str(fun_control["noise"]))
+
+        metric_combo.delete(0, tk.END)
+        metric_name = fun_control["prep_model"].__class__.__name__
+        metric_combo.set(metric_name)
+
+        metric_weights_entry.delete(0, tk.END)
+        metric_weights_entry.insert(0, str(fun_control["weights"]))
+
+        horizon_entry.delete(0, tk.END)
+        horizon_entry.insert(0, str(fun_control["horizon"]))
+
+        oml_grace_period_entry.delete(0, tk.END)
+        oml_grace_period_entry.insert(0, str(fun_control["oml_grace_period"]))
+
+        destroy_entries(label)
+        destroy_entries(default_entry)
+        destroy_entries(lower_bound_entry)
+        destroy_entries(upper_bound_entry)
+        destroy_entries(transform_entry)
+
+        if factor_level_entry is not None:
+            for i in range(len(factor_level_entry)):
+                if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
+                    factor_level_entry[i].destroy()
+
+        update_entries_from_dict(fun_control["core_model_hyper_dict"])
+        # Modeloptions
+        core_model_combo.delete(0, tk.END)
+        # hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
+        print(f"Core model: {fun_control['core_model']}")
+        print(f"Core model.__class__: {fun_control['core_model'].__class__}")
+        print(f"Core model.__name__: {fun_control['core_model'].__name__}")
+        core_model_combo.set(fun_control["core_model"].__name__)
+
 def call_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
         compare_tuned_default(spot_tuner, fun_control)
@@ -298,47 +390,8 @@ def call_progress_plot():
         progress_plot(spot_tuner)
 
 
-def update_hyperparams(event):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry
-
-    if label is not None:
-        for i in range(len(label)):
-            if label[i] is not None:
-                label[i].destroy()
-
-    if default_entry is not None:
-        for i in range(len(default_entry)):
-            if default_entry[i] is not None:
-                default_entry[i].destroy()
-
-    if lower_bound_entry is not None:
-        for i in range(len(lower_bound_entry)):
-            if lower_bound_entry[i] is not None:
-                lower_bound_entry[i].destroy()
-
-    if upper_bound_entry is not None:
-        for i in range(len(upper_bound_entry)):
-            if upper_bound_entry[i] is not None:
-                upper_bound_entry[i].destroy()
-
-    if transform_entry is not None:
-        for i in range(len(transform_entry)):
-            if transform_entry[i] is not None:
-                transform_entry[i].destroy()
-
-    if factor_level_entry is not None:
-        for i in range(len(factor_level_entry)):
-            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                factor_level_entry[i].destroy()
-
-    # coremodel = core_model_combo.get()
-    core_model = core_model_combo.get()
-    coremodel = core_model.split(".")[1]
-    # if model is a key in rhd.hyper_dict set dict = rhd.hyper_dict[model]
-    if coremodel in rhd.hyper_dict:
-        dict = rhd.hyper_dict[coremodel]
-    else:
-        dict = load_dict_from_file(coremodel, dirname="userModel")
+def update_entries_from_dict(dict):
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
     n_keys = len(dict)
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
     label = [None] * n_keys
@@ -390,6 +443,30 @@ def update_hyperparams(event):
             factor_level_entry[i].insert(0, dict[key]["levels"])
             factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
 
+
+def update_hyperparams(event):
+    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry
+
+    destroy_entries(label)
+    destroy_entries(default_entry)
+    destroy_entries(lower_bound_entry)
+    destroy_entries(upper_bound_entry)
+    destroy_entries(transform_entry)
+
+    if factor_level_entry is not None:
+        for i in range(len(factor_level_entry)):
+            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
+                factor_level_entry[i].destroy()
+
+    # coremodel = core_model_combo.get()
+    core_model = core_model_combo.get()
+    coremodel = core_model.split(".")[1]
+    # if model is a key in rhd.hyper_dict set dict = rhd.hyper_dict[model]
+    if coremodel in rhd.hyper_dict:
+        dict = rhd.hyper_dict[coremodel]
+    else:
+        dict = load_dict_from_file(coremodel, dirname="userModel")
+    update_entries_from_dict(dict)
 
 # Create the main application window
 app = tk.Tk()
@@ -548,6 +625,8 @@ save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_ex
 save_button.grid(row=8, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
 run_button.grid(row=9, column=8, columnspan=2, sticky="E")
+load_button = ttk.Button(run_tab, text="Load Experiment", command=load_experiment)
+load_button.grid(row=10, column=8, columnspan=2, sticky="E")
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 # regression_tab = ttk.Frame(notebook)

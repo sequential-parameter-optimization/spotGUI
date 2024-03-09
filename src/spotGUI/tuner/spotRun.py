@@ -219,3 +219,19 @@ def compare_tuned_default(spot_tuner, fun_control) -> None:
     )
     plt.figure(2)
     plt.show()
+
+
+def destroy_entries(entries):
+    """
+    Destroys all non-None entries in the provided list of entries.
+
+    Args:
+        entries: A list of entries to be destroyed.
+
+    Returns:
+        None
+    """
+    if entries is not None:
+        for entry in entries:
+            if entry is not None:
+                entry.destroy()

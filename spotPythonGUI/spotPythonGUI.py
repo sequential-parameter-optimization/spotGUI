@@ -1,5 +1,5 @@
 import os
-import pickle
+import pprint
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, StringVar
@@ -43,10 +43,11 @@ factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 select = [None] * n_keys
 
+
 def str_to_bool(s):
-    if s.lower() == 'true':
+    if s.lower() == "true":
         return True
-    elif s.lower() == 'false':
+    elif s.lower() == "false":
         return False
     else:
         raise ValueError("Cannot convert string to boolean value")
@@ -113,7 +114,7 @@ def run_experiment(save_only=False):
         tolerance_x=np.sqrt(np.spacing(1)),
         verbosity=1,
         log_level=50,
-        n_total=n_total
+        n_total=n_total,
     )
 
     # Get the selected core model and add it to the fun_control dictionary
@@ -147,7 +148,6 @@ def run_experiment(save_only=False):
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
             )
         if dict[key]["type"] == "factor":
-
             # load from combo box and add to empty list
             fle = []
             for name, var in choices[i].items():
@@ -200,31 +200,24 @@ def load_experiment():
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
     current_dir = os.path.dirname(os.path.abspath(__file__))
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
-    filename = fd.askopenfilename(title="Select a Pickle File",
-                                  initialdir=current_dir,
-                                  filetypes=filetypes)
+    filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
 
-        print("gui: ", spot_tuner)
-        print("gui2: ", dir(spot_tuner))
-        print("gui3: ", optimizer_control)
-
-        #TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
-
+        # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
         feature_type_entry.delete(0, tk.END)
-        feature_type_entry.insert(0, str(vars(fun_control['data_set'])['feature_type']).replace('torch.', ''))
+        feature_type_entry.insert(0, str(vars(fun_control["data_set"])["feature_type"]).replace("torch.", ""))
         target_type_entry.delete(0, tk.END)
-        target_type_entry.insert(0, str(vars(fun_control['data_set'])['target_type']).replace('torch.', ''))
+        target_type_entry.insert(0, str(vars(fun_control["data_set"])["target_type"]).replace("torch.", ""))
         data_set_combo.delete(0, tk.END)
         target_column_entry.delete(0, tk.END)
 
-        data_set_name = fun_control['data_set'].__class__.__name__
+        data_set_name = fun_control["data_set"].__class__.__name__
         print(f"\ndata_set_name: {data_set_name}\n")
 
         if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
-            target_column_entry.insert(0, str(vars(fun_control['data_set'])['target_column']))
-            filename = vars(fun_control['data_set'])['filename']
+            target_column_entry.insert(0, str(vars(fun_control["data_set"])["target_column"]))
+            filename = vars(fun_control["data_set"])["filename"]
             print("filename: ", filename)
             # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
             data_set_combo.set(filename)
@@ -233,31 +226,31 @@ def load_experiment():
             data_set_combo.set(data_set_name)
         # static parameters, that are not hyperparameters (depending on the core model)
         n_total_entry.delete(0, tk.END)
-        n_total_entry.insert(0, str(fun_control['n_total']))
+        n_total_entry.insert(0, str(fun_control["n_total"]))
 
         fun_evals_entry.delete(0, tk.END)
-        fun_evals_entry.insert(0, str(fun_control['fun_evals']))
+        fun_evals_entry.insert(0, str(fun_control["fun_evals"]))
 
         lin_entry.delete(0, tk.END)
-        lin_entry.insert(0, str(fun_control['_L_in']))
+        lin_entry.insert(0, str(fun_control["_L_in"]))
 
         lout_entry.delete(0, tk.END)
-        lout_entry.insert(0, str(fun_control['_L_out']))
+        lout_entry.insert(0, str(fun_control["_L_out"]))
 
         prefix_entry.delete(0, tk.END)
-        prefix_entry.insert(0, str(fun_control['PREFIX']))
+        prefix_entry.insert(0, str(fun_control["PREFIX"]))
 
         max_time_entry.delete(0, tk.END)
-        max_time_entry.insert(0, str(fun_control['max_time']))
+        max_time_entry.insert(0, str(fun_control["max_time"]))
 
         noise_entry.delete(0, tk.END)
-        noise_entry.insert(0, str(fun_control['noise']))
+        noise_entry.insert(0, str(fun_control["noise"]))
 
         test_size_entry.delete(0, tk.END)
-        test_size_entry.insert(0, str(fun_control['test_size']))
+        test_size_entry.insert(0, str(fun_control["test_size"]))
 
         init_size_entry.delete(0, tk.END)
-        init_size_entry.insert(0, str(design_control['init_size']))
+        init_size_entry.insert(0, str(design_control["init_size"]))
 
         destroy_entries(label)
         destroy_entries(default_entry)
@@ -271,11 +264,11 @@ def load_experiment():
                 if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
                     factor_level_entry[i].destroy()
 
-        update_entries_from_dict(fun_control['core_model_hyper_dict'])
-        ## Modeloptions
+        update_entries_from_dict(fun_control["core_model_hyper_dict"])
+        # Modeloptions
         core_model_combo.delete(0, tk.END)
-        #hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
-        core_model_combo.set(fun_control['core_model'].__name__)
+        # hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
+        core_model_combo.set(fun_control["core_model"].__name__)
 
 
 def call_parallel_plot():
@@ -399,30 +392,38 @@ def update_entries_from_dict(dict):
             default_entry[i].insert(0, dict[key]["default"])
             default_entry[i].grid(row=i + 2, column=3, sticky="W")
             # Factor_Levels
-            factor_level_entry[i]= tk.Menubutton(run_tab, text="Select something", indicatoron=True, borderwidth=1, relief="raised")
+            pprint.pprint(dict)
+            print(f"dict[key]['levels']: {dict[key]['levels']}")
+            levels_text = dict[key]['levels']
+            factor_level_entry[i] = tk.Menubutton(
+                run_tab, text=levels_text, indicatoron=True, borderwidth=1, relief="raised"
+            )
             menu[i] = tk.Menu(factor_level_entry[i], tearoff=False)
+            print(f"menu[i]: {menu[i]}")
             factor_level_entry[i].configure(menu=menu[i])
             factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
+            print(f"factor_level_entry[{i}]: {factor_level_entry[i]}")
 
             choices[i] = {}
             for choice in dict[key]["levels"]:
                 choices[i][choice] = tk.IntVar(value=0)
-                menu[i].add_checkbutton(label=choice,
-                                        variable=choices[i][choice],
-                                        onvalue=1,
-                                        offvalue=0,
-                                        command=lambda i=i,
-                                        choices=choices[i]: show_selection(choices, i))
+                menu[i].add_checkbutton(
+                    label=choice,
+                    variable=choices[i][choice],
+                    onvalue=1,
+                    offvalue=0,
+                    command=lambda i=i, choices=choices[i]: show_selection(choices, i),
+                )
 
-            select[i] = tk.Checkbutton(run_tab,
-                                       text="Select all",
-                                       variable=selectValue[i],
-                                       onvalue=1,
-                                       offvalue=0,
-                                       command=lambda i=i,
-                                       choices=choices[i]: selectAll(choices, i))
+            select[i] = tk.Checkbutton(
+                run_tab,
+                text="Select all",
+                variable=selectValue[i],
+                onvalue=1,
+                offvalue=0,
+                command=lambda i=i, choices=choices[i]: selectAll(choices, i),
+            )
             select[i].grid(row=i + 2, column=6, sticky=tk.W)
-
 
 
 def update_hyperparams(event):
