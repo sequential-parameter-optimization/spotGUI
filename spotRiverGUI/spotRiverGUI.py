@@ -126,6 +126,13 @@ def run_experiment(save_only=False, show_data_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
 
     n_total = n_total_entry.get()
+
+    noise = noise_entry.get()
+    if noise.lower() == "true":
+        noise = True
+    else:
+        noise = False
+
     if n_total == "None" or n_total == "All":
         n_total = None
     else:
@@ -214,7 +221,7 @@ def run_experiment(save_only=False, show_data_only=False):
         horizon=int(horizon_entry.get()),
         max_time=float(max_time_entry.get()),
         metric_sklearn=metric_sklearn,
-        noise=bool(noise_entry.get()),
+        noise=noise,
         n_samples=n_samples,
         ocba_delta=0,
         oml_grace_period=oml_grace_period,
@@ -655,7 +662,7 @@ init_size_entry.grid(row=11, column=1)
 noise_label = tk.Label(run_tab, text="NOISE (bool):")
 noise_label.grid(row=12, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "TRUE")
+noise_entry.insert(0, "True")
 noise_entry.grid(row=12, column=1)
 
 seed_label = tk.Label(run_tab, text="seed (int):")
