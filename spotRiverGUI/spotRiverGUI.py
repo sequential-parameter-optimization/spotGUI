@@ -60,6 +60,7 @@ metric_levels = [
     "roc_auc_score",
     "zero_one_loss",
 ]
+river_binary_classification_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
 spot_tuner = None
 rhd = RiverHyperDict()
 #
@@ -72,17 +73,25 @@ factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 
 
-def get_dataset_from_name(data_set_name, target_column, n_total=None):
+def get_river_dataset_from_name(
+    data_set_name,
+    n_total=None,
+    river_datasets=None,
+):
     """Converts a data set name to a pandas DataFrame.
 
     Args:
         data_set_name (str):
             The name of the data set.
-        target_column (str):
-            The name of the resulting target column.
-            This is not the name of the target column in the original data set.
+            If the data set name is not in river_datasets, the data set is assumed to be a CSV file.
         n_total (int):
             The number of samples to be used from the data set.
+            If n_total is None, the full data set is used.
+            Defaults to None.
+        river_datasets (list):
+            A list of the available river data sets.
+            If the data set name is not in river_datasets,
+            the data set is assumed to be a CSV file.
 
     Returns:
         pd.DataFrame:
@@ -90,20 +99,20 @@ def get_dataset_from_name(data_set_name, target_column, n_total=None):
         n_samples (int):
             The number of samples in the data set.
     """
-    # if the user has not specified a data set, take the default data set:
-    # this can be one of the following:
-    river_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
-    if data_set_name in river_datasets:
+    print(f"data_set_name: {data_set_name}")
+    print("river_datasets: ", river_datasets)
+    # data_set ends with ".csv" or data_set ends with ".pkl":
+    if data_set_name.endswith(".csv"):
+        print(f"data_set_name: {data_set_name}")
+        dataset = CSVDataset(filename=data_set_name, directory="./userData/").data
+        n_samples = dataset.shape[0]
+    elif data_set_name in river_datasets:
         dataset, n_samples = data_selector(
             data_set=data_set_name,
         )
         # convert the river datasets to a pandas DataFrame, the target column
         # of the resulting DataFrame is target_column
-        dataset = convert_to_df(dataset, target_column=target_column, n_total=n_total)
-    # data_set ends with ".csv" or data_set ends with ".pkl":
-    elif data_set_name.endswith(".csv"):
-        dataset = CSVDataset(filename=data_set_name, directory="./userData/").data
-        n_samples = dataset.shape[0]
+        dataset = convert_to_df(dataset, target_column="y", n_total=n_total)
     return dataset, n_samples
 
 
@@ -122,7 +131,7 @@ def run_experiment(save_only=False, show_data_only=False):
     else:
         fun_evals_val = int(fun_evals)
 
-    target_column = target_column_entry.get()
+    seed = int(seed_entry.get())
     test_size = float(test_size_entry.get())
 
     core_model_name = core_model_combo.get()
@@ -147,8 +156,9 @@ def run_experiment(save_only=False, show_data_only=False):
         oml_grace_period = int(oml_grace_period)
 
     data_set_name = data_set_combo.get()
-    dataset, n_samples = get_dataset_from_name(
-        data_set_name=data_set_name, target_column=target_column, n_total=n_total
+    dataset, n_samples = get_river_dataset_from_name(
+        data_set_name=data_set_name, n_total=n_total,
+        river_datasets=river_binary_classification_datasets
     )
 
     # TODO: implement this as a function in spotRun.py
@@ -166,7 +176,7 @@ def run_experiment(save_only=False, show_data_only=False):
     # test_size is the percentage of the data that should be held over for testing
     # random_state is a seed for the random number generator to make your train and test splits reproducible
     train_features, test_features, train_target, test_target = train_test_split(
-        X, Y, test_size=test_size, random_state=42
+        X, Y, test_size=test_size, random_state=seed
     )
     # combine the training features and the training target into a training DataFrame
     train = pd.concat([train_features, train_target], axis=1)
@@ -203,7 +213,8 @@ def run_experiment(save_only=False, show_data_only=False):
         ocba_delta=0,
         oml_grace_period=oml_grace_period,
         prep_model=prep_model,
-        target_column=target_column,
+        seed=seed,
+        target_column="y",
         test=test,
         test_size=test_size,
         train=train,
@@ -319,25 +330,17 @@ def load_experiment():
         print("\nfun_control in load_experiment():")
         pprint.pprint(fun_control)
 
-        # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
         data_set_combo.delete(0, tk.END)
-        # target_column_entry.delete(0, tk.END)
         data_set_name = fun_control["data_set_name"]
 
         if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
-            # target_column_entry.insert(0, str(vars(fun_control["data_set"])["target_column"]))
             filename = vars(fun_control["data_set"])["filename"]
             print("filename: ", filename)
-            # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
             data_set_combo.set(filename)
         else:
-            # target_column_entry.insert(0, "target")
             data_set_combo.set(data_set_name)
 
         # static parameters, that are not hyperparameters (depending on the core model)
-
-        target_column_entry.delete(0, tk.END)
-        target_column_entry.insert(0, str(fun_control["target_column"]))
 
         n_total_entry.delete(0, tk.END)
         n_total_entry.insert(0, str(fun_control["n_total"]))
@@ -345,7 +348,6 @@ def load_experiment():
         test_size_entry.delete(0, tk.END)
         test_size_entry.insert(0, str(fun_control["test_size"]))
 
-        # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
         prep_model_combo.delete(0, tk.END)
         prep_model_name = fun_control["prep_model"].__class__.__name__
         prep_model_combo.set(prep_model_name)
@@ -364,6 +366,9 @@ def load_experiment():
 
         noise_entry.delete(0, tk.END)
         noise_entry.insert(0, str(fun_control["noise"]))
+
+        seed_entry.delete(0, tk.END)
+        seed_entry.insert(0, str(fun_control["seed"]))
 
         metric_combo.delete(0, tk.END)
         metric_name = fun_control["metric_sklearn"].__name__
@@ -526,129 +531,11 @@ notebook.add(run_tab, text="Binary classification")
 
 # colummns 0+1: Data
 
-data_label = tk.Label(run_tab, text="Data options:")
-data_label.grid(row=0, column=0, sticky="W")
+core_model_label = tk.Label(run_tab, text="Core model:")
+core_model_label.grid(row=0, column=0, sticky="W")
 
-data_set_label = tk.Label(run_tab, text="Select data_set:")
-data_set_label.grid(row=1, column=0, sticky="W")
-data_set_values = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
-# get all *.csv files in the data directory "userData" and append them to the list of data_set_values
-data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
-data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
-data_set_combo.set("Phishing")  # Default selection
-data_set_combo.grid(row=1, column=1)
-
-target_column_label = tk.Label(run_tab, text="target_column (str):")
-target_column_label.grid(row=2, column=0, sticky="W")
-target_column_entry = tk.Entry(run_tab)
-target_column_entry.insert(0, "y")
-target_column_entry.grid(row=2, column=1, sticky="W")
-
-n_total_label = tk.Label(run_tab, text="n_total (int|All):")
-n_total_label.grid(row=3, column=0, sticky="W")
-n_total_entry = tk.Entry(run_tab)
-n_total_entry.insert(0, "All")
-n_total_entry.grid(row=3, column=1, sticky="W")
-
-test_size_label = tk.Label(run_tab, text="test_size (perc.):")
-test_size_label.grid(row=4, column=0, sticky="W")
-test_size_entry = tk.Entry(run_tab)
-test_size_entry.insert(0, "0.30")
-test_size_entry.grid(row=4, column=1, sticky="W")
-
-prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
-prep_model_label.grid(row=5, column=0, sticky="W")
-prep_model_values = ["MinMaxScaler", "StandardScaler", "None"]
-prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
-prep_model_combo.set("StandardScaler")  # Default selection
-prep_model_combo.grid(row=5, column=1)
-
-# columns 0+1: Experiment
-experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=6, column=0, sticky="W")
-
-max_time_label = tk.Label(run_tab, text="MAX_TIME (min):")
-max_time_label.grid(row=7, column=0, sticky="W")
-max_time_entry = tk.Entry(run_tab)
-max_time_entry.insert(0, "1")
-max_time_entry.grid(row=7, column=1)
-
-fun_evals_label = tk.Label(run_tab, text="FUN_EVALS (int|inf):")
-fun_evals_label.grid(row=8, column=0, sticky="W")
-fun_evals_entry = tk.Entry(run_tab)
-fun_evals_entry.insert(0, "30")
-fun_evals_entry.grid(row=8, column=1)
-
-init_size_label = tk.Label(run_tab, text="INIT_SIZE (int):")
-init_size_label.grid(row=9, column=0, sticky="W")
-init_size_entry = tk.Entry(run_tab)
-init_size_entry.insert(0, "5")
-init_size_entry.grid(row=9, column=1)
-
-noise_label = tk.Label(run_tab, text="NOISE (bool):")
-noise_label.grid(row=10, column=0, sticky="W")
-noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=10, column=1)
-
-# columns 0+1: Evaluation
-experiment_label = tk.Label(run_tab, text="Evaluation options:")
-experiment_label.grid(row=11, column=0, sticky="W")
-
-
-metric_label = tk.Label(run_tab, text="metric (sklearn):")
-metric_label.grid(row=12, column=0, sticky="W")
-metric_combo = ttk.Combobox(run_tab, values=metric_levels)
-metric_combo.set("accuracy_score")  # Default selection
-metric_combo.grid(row=12, column=1)
-
-metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
-metric_weights_label.grid(row=13, column=0, sticky="W")
-metric_weights_entry = tk.Entry(run_tab)
-metric_weights_entry.insert(0, "1000, 1, 1")
-metric_weights_entry.grid(row=13, column=1)
-
-horizon_label = tk.Label(run_tab, text="horizon (int):")
-horizon_label.grid(row=14, column=0, sticky="W")
-horizon_entry = tk.Entry(run_tab)
-horizon_entry.insert(0, "10")
-horizon_entry.grid(row=14, column=1)
-
-oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
-oml_grace_period_label.grid(row=15, column=0, sticky="W")
-oml_grace_period_entry = tk.Entry(run_tab)
-oml_grace_period_entry.insert(0, "None")
-oml_grace_period_entry.grid(row=15, column=1)
-
-# Experiment name:
-experiment_label = tk.Label(run_tab, text="Experiment Name:")
-experiment_label.grid(row=16, column=0, sticky="W")
-
-prefix_label = tk.Label(run_tab, text="Name prefix (str):")
-prefix_label.grid(row=17, column=0, sticky="W")
-prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "00")
-prefix_entry.grid(row=17, column=1)
-
-
-# colummns 2-6: Model
-model_label = tk.Label(run_tab, text="Model options:")
-model_label.grid(row=0, column=2, sticky="W")
-
-model_label = tk.Label(run_tab, text="Default values:")
-model_label.grid(row=0, column=3, sticky="W")
-
-model_label = tk.Label(run_tab, text="Lower bounds:")
-model_label.grid(row=0, column=4, sticky="W")
-
-model_label = tk.Label(run_tab, text="Upper bounds:")
-model_label.grid(row=0, column=5, sticky="W")
-
-model_label = tk.Label(run_tab, text="Transformation:")
-model_label.grid(row=0, column=6, sticky="W")
-
-core_model_label = tk.Label(run_tab, text="Core model")
-core_model_label.grid(row=1, column=2, sticky="W")
+core_model_label = tk.Label(run_tab, text="Select core model:")
+core_model_label.grid(row=1, column=0, sticky="W")
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_names.append(os.path.splitext(filename)[0])
@@ -656,8 +543,144 @@ core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
 # core_model_combo.set("Select Model")  # Default selection
 core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
 core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
-core_model_combo.grid(row=1, column=3)
+core_model_combo.grid(row=1, column=1)
 update_hyperparams(None)
+
+data_label = tk.Label(run_tab, text="Data options:")
+data_label.grid(row=2, column=0, sticky="W")
+
+data_set_label = tk.Label(run_tab, text="Select data_set:")
+data_set_label.grid(row=3, column=0, sticky="W")
+data_set_values = river_binary_classification_datasets
+# get all *.csv files in the data directory "userData" and append them to the list of data_set_values
+data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
+data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
+data_set_combo.set("Phishing")  # Default selection
+data_set_combo.grid(row=3, column=1)
+
+n_total_label = tk.Label(run_tab, text="n_total (int|All):")
+n_total_label.grid(row=4, column=0, sticky="W")
+n_total_entry = tk.Entry(run_tab)
+n_total_entry.insert(0, "All")
+n_total_entry.grid(row=4, column=1, sticky="W")
+
+test_size_label = tk.Label(run_tab, text="test_size (perc.):")
+test_size_label.grid(row=5, column=0, sticky="W")
+test_size_entry = tk.Entry(run_tab)
+test_size_entry.insert(0, "0.30")
+test_size_entry.grid(row=5, column=1, sticky="W")
+
+prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
+prep_model_label.grid(row=6, column=0, sticky="W")
+prep_model_values = ["MinMaxScaler", "StandardScaler", "None"]
+prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
+prep_model_combo.set("StandardScaler")
+prep_model_combo.grid(row=6, column=1)
+
+# columns 0+1: Experiment
+experiment_label = tk.Label(run_tab, text="Experiment options:")
+experiment_label.grid(row=7, column=0, sticky="W")
+
+max_time_label = tk.Label(run_tab, text="MAX_TIME (min):")
+max_time_label.grid(row=8, column=0, sticky="W")
+max_time_entry = tk.Entry(run_tab)
+max_time_entry.insert(0, "1")
+max_time_entry.grid(row=8, column=1)
+
+fun_evals_label = tk.Label(run_tab, text="FUN_EVALS (int|inf):")
+fun_evals_label.grid(row=9, column=0, sticky="W")
+fun_evals_entry = tk.Entry(run_tab)
+fun_evals_entry.insert(0, "30")
+fun_evals_entry.grid(row=9, column=1)
+
+init_size_label = tk.Label(run_tab, text="INIT_SIZE (int):")
+init_size_label.grid(row=10, column=0, sticky="W")
+init_size_entry = tk.Entry(run_tab)
+init_size_entry.insert(0, "5")
+init_size_entry.grid(row=10, column=1)
+
+noise_label = tk.Label(run_tab, text="NOISE (bool):")
+noise_label.grid(row=11, column=0, sticky="W")
+noise_entry = tk.Entry(run_tab)
+noise_entry.insert(0, "TRUE")
+noise_entry.grid(row=11, column=1)
+
+seed_label = tk.Label(run_tab, text="seed (int):")
+seed_label.grid(row=12, column=0, sticky="W")
+seed_entry = tk.Entry(run_tab)
+seed_entry.insert(0, "123")
+seed_entry.grid(row=12, column=1)
+
+# columns 0+1: Evaluation
+experiment_label = tk.Label(run_tab, text="Evaluation options:")
+experiment_label.grid(row=13, column=0, sticky="W")
+
+
+metric_label = tk.Label(run_tab, text="metric (sklearn):")
+metric_label.grid(row=14, column=0, sticky="W")
+metric_combo = ttk.Combobox(run_tab, values=metric_levels)
+metric_combo.set("accuracy_score")  # Default selection
+metric_combo.grid(row=14, column=1)
+
+metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
+metric_weights_label.grid(row=15, column=0, sticky="W")
+metric_weights_entry = tk.Entry(run_tab)
+metric_weights_entry.insert(0, "1000, 1, 1")
+metric_weights_entry.grid(row=15, column=1)
+
+horizon_label = tk.Label(run_tab, text="horizon (int):")
+horizon_label.grid(row=16, column=0, sticky="W")
+horizon_entry = tk.Entry(run_tab)
+horizon_entry.insert(0, "10")
+horizon_entry.grid(row=16, column=1)
+
+oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
+oml_grace_period_label.grid(row=17, column=0, sticky="W")
+oml_grace_period_entry = tk.Entry(run_tab)
+oml_grace_period_entry.insert(0, "None")
+oml_grace_period_entry.grid(row=17, column=1)
+
+# Experiment name:
+experiment_label = tk.Label(run_tab, text="Experiment Name:")
+experiment_label.grid(row=18, column=0, sticky="W")
+
+prefix_label = tk.Label(run_tab, text="Name prefix (str):")
+prefix_label.grid(row=19, column=0, sticky="W")
+prefix_entry = tk.Entry(run_tab)
+prefix_entry.insert(0, "00")
+prefix_entry.grid(row=19, column=1)
+
+
+# colummns 2-6: Model
+model_label = tk.Label(run_tab, text="Model options:")
+model_label.grid(row=0, column=2, sticky="W")
+
+hparam_label = tk.Label(run_tab, text="Hyperparameters:")
+hparam_label.grid(row=1, column=2, sticky="W")
+
+model_label = tk.Label(run_tab, text="Default values:")
+model_label.grid(row=1, column=3, sticky="W")
+
+model_label = tk.Label(run_tab, text="Lower bounds:")
+model_label.grid(row=1, column=4, sticky="W")
+
+model_label = tk.Label(run_tab, text="Upper bounds:")
+model_label.grid(row=1, column=5, sticky="W")
+
+model_label = tk.Label(run_tab, text="Transformation:")
+model_label.grid(row=1, column=6, sticky="W")
+
+# core_model_label = tk.Label(run_tab, text="Core model")
+# core_model_label.grid(row=1, column=2, sticky="W")
+# for filename in os.listdir("userModel"):
+#     if filename.endswith(".json"):
+#         core_model_names.append(os.path.splitext(filename)[0])
+# core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
+# # core_model_combo.set("Select Model")  # Default selection
+# core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
+# core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
+# core_model_combo.grid(row=1, column=3)
+# update_hyperparams(None)
 
 
 # column 8: Save and run button
