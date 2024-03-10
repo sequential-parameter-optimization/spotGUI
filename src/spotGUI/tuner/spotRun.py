@@ -95,7 +95,7 @@ def run_spot_python_experiment(
     pprint.pprint(fun_control)
 
     if tuner_report:
-        REP_NAME=get_report_file_name(fun_control)
+        REP_NAME = get_report_file_name(fun_control)
         # write the formatted fun_control to a file
         with open(REP_NAME, "w") as file:
             file.write(gen_design_table(fun_control))
@@ -202,28 +202,154 @@ def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
     return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
 
 
-def parallel_plot(spot_tuner):
+def parallel_plot(spot_tuner, fun_control):
     fig = spot_tuner.parallel_plot()
+    plt.title(fun_control["PREFIX"])
     fig.show()
 
 
-def contour_plot(spot_tuner):
-    spot_tuner.plot_important_hyperparameter_contour(show=False, max_imp=3, threshold=0)
+def contour_plot(spot_tuner, fun_control):
+    spot_tuner.plot_important_hyperparameter_contour(show=False, max_imp=3, threshold=0, title=fun_control["PREFIX"])
     pylab.show()
+    # plt.show()
 
 
-def importance_plot(spot_tuner):
+def importance_plot(spot_tuner, fun_control):
     plt.figure()
     spot_tuner.plot_importance(show=False)
+    plt.title(fun_control["PREFIX"])
     plt.show()
 
 
-def progress_plot(spot_tuner):
+def progress_plot(spot_tuner, fun_control):
     spot_tuner.plot_progress(show=False)
+    plt.title(fun_control["PREFIX"])
     plt.show()
 
 
-def compare_tuned_default(spot_tuner, fun_control) -> None:
+def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
+    X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
+    print(f"X = {X}")
+    model_spot = get_one_core_model_from_X(X, fun_control)
+    df_eval_spot, df_true_spot = eval_oml_horizon(
+        model=model_spot,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+    X_start = get_default_hyperparameters_as_array(fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control)
+    df_eval_default, df_true_default = eval_oml_horizon(
+        model=model_default,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+
+    # Create a figure with 1 row and 2 columns of subplots
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+
+    # First Plot
+    plot_confusion_matrix(
+        df=df_true_default,
+        title="Default",
+        y_true_name=fun_control["target_column"],
+        y_pred_name="Prediction",
+        show=False,
+        ax=axs[0],
+    )
+    # Second Plot
+    plot_confusion_matrix(
+        df=df_true_spot,
+        title="Spot",
+        y_true_name=fun_control["target_column"],
+        y_pred_name="Prediction",
+        show=False,
+        ax=axs[1],
+    )
+    # add a title to the figure
+    fig.suptitle(fun_control["PREFIX"])
+    if show:
+        plt.show()
+
+
+def plot_rocs(spot_tuner, fun_control, show=False) -> None:
+    X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
+    print(f"X = {X}")
+    model_spot = get_one_core_model_from_X(X, fun_control)
+    df_eval_spot, df_true_spot = eval_oml_horizon(
+        model=model_spot,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+    X_start = get_default_hyperparameters_as_array(fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control)
+    df_eval_default, df_true_default = eval_oml_horizon(
+        model=model_default,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+    plot_roc_from_dataframes(
+        [df_true_default, df_true_spot],
+        model_names=["default", "spot"],
+        target_column=fun_control["target_column"],
+        show=show,
+        title=fun_control["PREFIX"],
+    )
+
+
+def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
+    X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
+    print(f"X = {X}")
+    model_spot = get_one_core_model_from_X(X, fun_control)
+    df_eval_spot, df_true_spot = eval_oml_horizon(
+        model=model_spot,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+    X_start = get_default_hyperparameters_as_array(fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control)
+    df_eval_default, df_true_default = eval_oml_horizon(
+        model=model_default,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+
+    df_labels = ["default", "spot"]
+    plot_bml_oml_horizon_metrics(
+        df_eval=[df_eval_default, df_eval_spot],
+        log_y=False,
+        df_labels=df_labels,
+        metric=fun_control["metric_sklearn"],
+        filename=None,
+        show=show,
+        title=fun_control["PREFIX"],
+    )
+
+
+def all_compare_tuned_default(spot_tuner, fun_control) -> None:
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
     model_spot = get_one_core_model_from_X(X, fun_control)

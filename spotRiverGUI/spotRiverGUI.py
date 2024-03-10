@@ -27,6 +27,9 @@ from spotGUI.tuner.spotRun import (
     importance_plot,
     progress_plot,
     compare_tuned_default,
+    all_compare_tuned_default,
+    plot_confusion_matrices,
+    plot_rocs,
     destroy_entries,
     load_file_dialog,
     get_report_file_name,
@@ -409,27 +412,42 @@ def load_experiment():
 
 def call_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
-        compare_tuned_default(spot_tuner, fun_control)
+        compare_tuned_default(spot_tuner, fun_control, show=True)
+
+
+def call_all_compare_tuned_default():
+    if spot_tuner is not None and fun_control is not None:
+        all_compare_tuned_default(spot_tuner, fun_control, show=True)
+
+
+def call_plot_confusion_matrices():
+    if spot_tuner is not None and fun_control is not None:
+        plot_confusion_matrices(spot_tuner, fun_control, show=True)
+
+
+def call_plot_rocs():
+    if spot_tuner is not None and fun_control is not None:
+        plot_rocs(spot_tuner, fun_control, show=True)
 
 
 def call_parallel_plot():
     if spot_tuner is not None:
-        parallel_plot(spot_tuner)
+        parallel_plot(spot_tuner=spot_tuner, fun_control=fun_control)
 
 
 def call_contour_plot():
     if spot_tuner is not None:
-        contour_plot(spot_tuner)
+        contour_plot(spot_tuner=spot_tuner, fun_control=fun_control)
 
 
 def call_importance_plot():
     if spot_tuner is not None:
-        importance_plot(spot_tuner)
+        importance_plot(spot_tuner=spot_tuner, fun_control=fun_control)
 
 
 def call_progress_plot():
     if spot_tuner is not None:
-        progress_plot(spot_tuner)
+        progress_plot(spot_tuner=spot_tuner, fun_control=fun_control)
 
 
 def show_result():
@@ -817,14 +835,24 @@ compare_tuned_default_button = ttk.Button(
 )
 compare_tuned_default_button.grid(row=2, column=1, columnspan=2, sticky="W")
 
+plot_confusion_matrices_button = ttk.Button(
+    analysis_tab, text="Confusion matrices", command=call_plot_confusion_matrices
+)
+plot_confusion_matrices_button.grid(row=3, column=1, columnspan=2, sticky="W")
+
+plot_rocs_button = ttk.Button(
+    analysis_tab, text="ROC", command=call_plot_rocs
+)
+plot_rocs_button.grid(row=4, column=1, columnspan=2, sticky="W")
+
 importance_plot_button = ttk.Button(analysis_tab, text="Importance plot", command=call_importance_plot)
-importance_plot_button.grid(row=3, column=1, columnspan=2, sticky="W")
+importance_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
 
 contour_plot_button = ttk.Button(analysis_tab, text="Contour plot", command=call_contour_plot)
-contour_plot_button.grid(row=4, column=1, columnspan=2, sticky="W")
+contour_plot_button.grid(row=6, column=1, columnspan=2, sticky="W")
 
 parallel_plot_button = ttk.Button(analysis_tab, text="Parallel plot (Browser)", command=call_parallel_plot)
-parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
+parallel_plot_button.grid(row=7, column=1, columnspan=2, sticky="W")
 
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
 analysis_logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
