@@ -29,6 +29,7 @@ def run_spot_python_experiment(
     show_data_only=False,
     tensorboard_start=True,
     tensorboard_stop=True,
+    tuner_report=True,
 ) -> spot.Spot:
     """Runs a spot experiment.
 
@@ -63,6 +64,20 @@ def run_spot_python_experiment(
 
     print("\nfun_control in spotRun():")
     pprint.pprint(fun_control)
+
+    if tuner_report:
+        PREFIX = fun_control["PREFIX"]
+        REP_NAME = "spot_" + PREFIX + "_report.txt"
+        # write the formatted fun_control to a file
+        with open(REP_NAME, "w") as file:
+            file.write(gen_design_table(fun_control))
+            file.write("\n\n")
+            file.write(pprint.pformat(fun_control))
+            file.write("\n\n")
+        print("fun_control written to fun_control.txt")
+        # close the file
+        file.close()
+
     print(gen_design_table(fun_control))
 
     spot_tuner = spot.Spot(
@@ -122,6 +137,14 @@ def run_spot_python_experiment(
         spot_tuner.run()
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         # tensorboard --logdir="runs/"
+        if tuner_report:
+            PREFIX = fun_control["PREFIX"]
+            REP_NAME = "spot_" + PREFIX + "_report.txt"
+            # write the formatted fun_control to a file
+            with open(REP_NAME, "a") as file:
+                file.write(gen_design_table(fun_control=fun_control, spot=spot_tuner))
+        # close the file
+        file.close()
         print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
         if tensorboard_stop:
             stop_tensorboard(p_open)

@@ -43,3 +43,4 @@ spotPythonGUI/SPOT_0000_fun_control.json
 spotRiverGUI/plot.png
 spotRiverGUI/*.pickle
 spotPythonGUI/*.pickle
+spotRiverGUI/spot_00_report.txt
