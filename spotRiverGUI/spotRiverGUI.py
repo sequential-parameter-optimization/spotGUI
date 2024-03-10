@@ -28,6 +28,8 @@ from spotGUI.tuner.spotRun import (
     compare_tuned_default,
     destroy_entries,
     load_file_dialog,
+    get_report_file_name,
+    get_result,
 )
 from spotPython.utils.eda import gen_design_table
 from spotPython.utils.file import load_dict_from_file
@@ -429,6 +431,37 @@ def call_progress_plot():
         progress_plot(spot_tuner)
 
 
+def show_result():
+    if spot_tuner is not None and fun_control is not None:
+        res = get_result(spot_tuner=spot_tuner, fun_control=fun_control)
+        print(f"Result: {res}")
+        # add a text window to the result tab that shows the content of the REP_NAME file
+        result_text = tk.Text(result_tab)
+        result_text.grid(row=1, column=1, rowspan=1, columnspan=10, sticky="W")
+        # open the result file and write its content to the text window
+        # clean the text window
+        result_text.delete("1.0", tk.END)
+        result_text.insert(tk.END, res)
+        # resize the text window to fit the content
+        result_text.config(width=200, height=25)
+
+# def show_report():
+#     if fun_control is not None:
+#         REP_NAME = get_report_file_name(fun_control=fun_control)
+#         # add a text window to the report tab that shows the content of the REP_NAME file
+#         report_text = tk.Text(report_tab)
+#         report_text.grid(row=1, column=1, rowspan=1, columnspan=10, sticky="W")
+#         # open the report file and write its content to the text window
+#         with open(REP_NAME, "r") as file:
+#             # clean the text window
+#             report_text.delete("1.0", tk.END)
+#             report_text.insert(tk.END, file.read())
+#             # resize the text window to fit the content
+#             report_text.config(width=250, height=50)
+#         # close the file
+#         file.close()
+
+
 def update_entries_from_dict(dict):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
     n_keys = len(dict)
@@ -734,9 +767,13 @@ run_button.grid(row=11, column=8, columnspan=2, sticky="E")
 # regression_experiment_label.grid(row=0, column=4, sticky="W")
 
 
-# Create and pack the "Analysis" tab with a button to run the analysis
+# Create and pack the "Analysis" tab
 analysis_tab = ttk.Frame(notebook)
 notebook.add(analysis_tab, text="Analysis")
+
+result_tab = ttk.Frame(notebook)
+notebook.add(result_tab, text="Result")
+
 notebook.pack()
 
 # Add the Logo image in both tabs
@@ -770,6 +807,11 @@ analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 # regression_logo_label = tk.Label(regression_tab, image=logo_image)
 # regression_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
+result_logo_label = tk.Label(result_tab, image=logo_image)
+result_logo_label.grid(row=0, column=11, rowspan=1, columnspan=1)
+
+show_result_button = ttk.Button(result_tab, text="Show result", command=show_result)
+show_result_button.grid(row=0, column=0, columnspan=2, sticky="W")
 # Run the mainloop
 
 app.mainloop()

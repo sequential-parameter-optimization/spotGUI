@@ -19,6 +19,35 @@ from spotPython.hyperparameters.values import get_default_hyperparameters_as_arr
 from spotGUI.eda.pairplot import generate_pairplot
 
 
+def get_report_file_name(fun_control):
+    """Returns the name of the report file.
+
+    Args:
+        fun_control (dict):
+
+    Returns:
+        str: The name of the report file.
+    """
+    PREFIX = fun_control["PREFIX"]
+    REP_NAME = "spot_" + PREFIX + "_report.txt"
+    return REP_NAME
+
+
+def get_result(spot_tuner, fun_control):
+    """Gets the result of the spot experiment.
+
+    Args:
+        spot_tuner (spot.Spot): The spot experiment.
+        fun_control (dict): A dictionary with the function control parameters.
+
+    Returns:
+        str: result of the spot experiment from gen_design_table().
+
+    """
+    if spot_tuner is not None and fun_control is not None:
+        return gen_design_table(fun_control=fun_control, spot=spot_tuner)
+
+
 def run_spot_python_experiment(
     save_only,
     fun_control,
@@ -66,8 +95,7 @@ def run_spot_python_experiment(
     pprint.pprint(fun_control)
 
     if tuner_report:
-        PREFIX = fun_control["PREFIX"]
-        REP_NAME = "spot_" + PREFIX + "_report.txt"
+        REP_NAME=get_report_file_name(fun_control)
         # write the formatted fun_control to a file
         with open(REP_NAME, "w") as file:
             file.write(gen_design_table(fun_control))
@@ -138,8 +166,7 @@ def run_spot_python_experiment(
         SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
         # tensorboard --logdir="runs/"
         if tuner_report:
-            PREFIX = fun_control["PREFIX"]
-            REP_NAME = "spot_" + PREFIX + "_report.txt"
+            REP_NAME = get_report_file_name(fun_control)
             # write the formatted fun_control to a file
             with open(REP_NAME, "a") as file:
                 file.write(gen_design_table(fun_control=fun_control, spot=spot_tuner))
