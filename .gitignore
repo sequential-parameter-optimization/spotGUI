@@ -45,3 +45,5 @@ spotRiverGUI/*.pickle
 spotPythonGUI/*.pickle
 spotRiverGUI/spot_00_report.txt
 spotRiverGUI/spot_01_report.txt
+spotRiverGUI/spot_amfc_demo_02_report.txt
+spotRiverGUI/spot_amfc_demo_report.txt

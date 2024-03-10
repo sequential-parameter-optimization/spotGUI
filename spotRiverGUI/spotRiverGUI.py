@@ -10,6 +10,7 @@ from spotRiver.data.selector import data_selector
 import os
 import numpy as np
 from tkinter import ttk, StringVar
+from idlelib.tooltip import Hovertip
 import math
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotPython.hyperparameters.values import add_core_model_to_fun_control
@@ -584,6 +585,7 @@ data_label.grid(row=3, column=0, sticky="W")
 
 data_set_label = tk.Label(run_tab, text="Select data_set:")
 data_set_label.grid(row=4, column=0, sticky="W")
+data_set_tip = Hovertip(data_set_label, "The data set.\n User specified data sets must have the target value in the last column.\n They are assumed to be in the directory 'userData'.\n The data set can be a CSV file.")
 data_set_values = river_binary_classification_datasets
 # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
 data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
@@ -657,6 +659,7 @@ metric_combo.grid(row=15, column=1)
 
 metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
 metric_weights_label.grid(row=16, column=0, sticky="W")
+metric_weights_tip = Hovertip(metric_weights_label, "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.")
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
 metric_weights_entry.grid(row=16, column=1)
@@ -672,6 +675,7 @@ oml_grace_period_label.grid(row=18, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "None")
 oml_grace_period_entry.grid(row=18, column=1)
+oml_grace_period_tip = Hovertip(oml_grace_period_label, "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.")
 
 # Experiment name:
 experiment_label = tk.Label(run_tab, text="Experiment Name:")
@@ -724,6 +728,7 @@ tb_clean = tk.BooleanVar()
 tb_clean.set(True)
 tf_clean_checkbutton = tk.Checkbutton(run_tab, text="TENSORBOARD_CLEAN", variable=tb_clean)
 tf_clean_checkbutton.grid(row=2, column=8, sticky="W")
+tf_clean_tip = Hovertip(tf_clean_checkbutton, "If checked, tensorboard's run dir will be moved to runs_OLD\nand a new, empty runs dir will be used.\nDoes only work with Unix systems.")
 
 tb_start = tk.BooleanVar()
 tb_start.set(True)
@@ -737,20 +742,36 @@ tf_stop_checkbutton.grid(row=4, column=8, sticky="W")
 
 tb_text = tk.Label(run_tab, text="Open browser logging:")
 tb_text.grid(row=5, column=8, sticky="W")
-
 tb_link = tk.Label(run_tab, text="http://localhost:6006", fg="blue", cursor="hand2")
 tb_link.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
 tb_link.grid(row=5, column=9, sticky="W")
 
+spot_doc = tk.Label(run_tab, text="Open SPOT documentation:")
+spot_doc.grid(row=6, column=8, sticky="W")
+spot_link = tk.Label(run_tab, text="spotPython documentation", fg="blue", cursor="hand2")
+spot_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/"))
+spot_link.grid(row=6, column=9, sticky="W")
+
+spot_river_doc = tk.Label(run_tab, text="Open spotRiver documentation:")
+spot_river_doc.grid(row=7, column=8, sticky="W")
+spot_river_link = tk.Label(run_tab, text="spotRiver documentation", fg="blue", cursor="hand2")
+spot_river_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/"))
+spot_river_link.grid(row=7, column=9, sticky="W")
+
+river_doc = tk.Label(run_tab, text="Open River documentation:")
+river_doc.grid(row=8, column=8, sticky="W")
+river_doc_link = tk.Label(run_tab, text="River documentation", fg="blue", cursor="hand2")
+river_doc_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/"))
+river_doc_link.grid(row=8, column=9, sticky="W")
 
 data_button = ttk.Button(run_tab, text="Show Data", command=lambda: run_experiment(show_data_only=True))
-data_button.grid(row=8, column=8, columnspan=2, sticky="E")
+data_button.grid(row=10, column=8, columnspan=2, sticky="E")
 load_button = ttk.Button(run_tab, text="Load Experiment", command=load_experiment)
-load_button.grid(row=9, column=8, columnspan=2, sticky="E")
+load_button.grid(row=11, column=8, columnspan=2, sticky="E")
 save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
-save_button.grid(row=10, column=8, columnspan=2, sticky="E")
+save_button.grid(row=12, column=8, columnspan=2, sticky="E")
 run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=11, column=8, columnspan=2, sticky="E")
+run_button.grid(row=13, column=8, columnspan=2, sticky="E")
 
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
