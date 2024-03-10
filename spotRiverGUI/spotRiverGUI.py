@@ -480,7 +480,7 @@ def update_entries_from_dict(dict):
         ):
             # Create a label with the key as text
             label[i] = tk.Label(run_tab, text=key)
-            label[i].grid(row=i + 2, column=2, sticky="W")
+            label[i].grid(row=i + 3, column=2, sticky="W")
             label[i].update()
             # # Create an entry with the default value as the default text
             # default_entry[i] = tk.Entry(run_tab)
@@ -489,28 +489,28 @@ def update_entries_from_dict(dict):
             # default_entry[i].update()
             # Create an entry with the default value as the default text
             default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
-            default_entry[i].grid(row=i + 2, column=3, sticky="W")
+            default_entry[i].grid(row=i + 3, column=3, sticky="W")
             default_entry[i].update()
             # add the lower bound values in column 4
             lower_bound_entry[i] = tk.Entry(run_tab)
             lower_bound_entry[i].insert(0, dict[key]["lower"])
-            lower_bound_entry[i].grid(row=i + 2, column=4, sticky="W")
+            lower_bound_entry[i].grid(row=i + 3, column=4, sticky="W")
             # add the upper bound values in column 5
             upper_bound_entry[i] = tk.Entry(run_tab)
             upper_bound_entry[i].insert(0, dict[key]["upper"])
-            upper_bound_entry[i].grid(row=i + 2, column=5, sticky="W")
+            upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
             # add the transformation values in column 6
             transform_entry[i] = tk.Label(run_tab, text=dict[key]["transform"], padx=15)
-            transform_entry[i].grid(row=i + 2, column=6, sticky="W")
+            transform_entry[i].grid(row=i + 3, column=6, sticky="W")
 
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             # Create a label with the key as text
             label[i] = tk.Label(run_tab, text=key)
-            label[i].grid(row=i + 2, column=2, sticky="W")
+            label[i].grid(row=i + 3, column=2, sticky="W")
             label[i].update()
             # Create an entry with the default value as the default text
             default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
-            default_entry[i].grid(row=i + 2, column=3, sticky="W")
+            default_entry[i].grid(row=i + 3, column=3, sticky="W")
             # add the lower bound values in column 2
             factor_level_entry[i] = tk.Entry(run_tab)
             # TODO: replace " " with ", " for the levels
@@ -518,7 +518,7 @@ def update_entries_from_dict(dict):
             # factor_level_entry[i].insert(0, ", ".join(lvls))
             # generates several commas, if used several times
             factor_level_entry[i].insert(0, dict[key]["levels"])
-            factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
+            factor_level_entry[i].grid(row=i + 3, column=4, columnspan=2, sticky=tk.W + tk.E)
 
 
 def update_hyperparams(event):
@@ -565,10 +565,10 @@ notebook.add(run_tab, text="Binary classification")
 # colummns 0+1: Data
 
 core_model_label = tk.Label(run_tab, text="Core model:")
-core_model_label.grid(row=0, column=0, sticky="W")
+core_model_label.grid(row=1, column=0, sticky="W")
 
 core_model_label = tk.Label(run_tab, text="Select core model:")
-core_model_label.grid(row=1, column=0, sticky="W")
+core_model_label.grid(row=2, column=0, sticky="W")
 for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_names.append(os.path.splitext(filename)[0])
@@ -576,132 +576,132 @@ core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
 # core_model_combo.set("Select Model")  # Default selection
 core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
 core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
-core_model_combo.grid(row=1, column=1)
+core_model_combo.grid(row=2, column=1)
 update_hyperparams(None)
 
 data_label = tk.Label(run_tab, text="Data options:")
-data_label.grid(row=2, column=0, sticky="W")
+data_label.grid(row=3, column=0, sticky="W")
 
 data_set_label = tk.Label(run_tab, text="Select data_set:")
-data_set_label.grid(row=3, column=0, sticky="W")
+data_set_label.grid(row=4, column=0, sticky="W")
 data_set_values = river_binary_classification_datasets
 # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
 data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
 data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
 data_set_combo.set("Phishing")  # Default selection
-data_set_combo.grid(row=3, column=1)
+data_set_combo.grid(row=4, column=1)
 
 n_total_label = tk.Label(run_tab, text="n_total (int|All):")
-n_total_label.grid(row=4, column=0, sticky="W")
+n_total_label.grid(row=5, column=0, sticky="W")
 n_total_entry = tk.Entry(run_tab)
 n_total_entry.insert(0, "All")
-n_total_entry.grid(row=4, column=1, sticky="W")
+n_total_entry.grid(row=5, column=1, sticky="W")
 
 test_size_label = tk.Label(run_tab, text="test_size (perc.):")
-test_size_label.grid(row=5, column=0, sticky="W")
+test_size_label.grid(row=6, column=0, sticky="W")
 test_size_entry = tk.Entry(run_tab)
 test_size_entry.insert(0, "0.30")
-test_size_entry.grid(row=5, column=1, sticky="W")
+test_size_entry.grid(row=6, column=1, sticky="W")
 
 prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
-prep_model_label.grid(row=6, column=0, sticky="W")
+prep_model_label.grid(row=7, column=0, sticky="W")
 prep_model_values = ["MinMaxScaler", "StandardScaler", "None"]
 prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
 prep_model_combo.set("StandardScaler")
-prep_model_combo.grid(row=6, column=1)
+prep_model_combo.grid(row=7, column=1)
 
 # columns 0+1: Experiment
 experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=7, column=0, sticky="W")
+experiment_label.grid(row=8, column=0, sticky="W")
 
 max_time_label = tk.Label(run_tab, text="MAX_TIME (min):")
-max_time_label.grid(row=8, column=0, sticky="W")
+max_time_label.grid(row=9, column=0, sticky="W")
 max_time_entry = tk.Entry(run_tab)
 max_time_entry.insert(0, "1")
-max_time_entry.grid(row=8, column=1)
+max_time_entry.grid(row=9, column=1)
 
 fun_evals_label = tk.Label(run_tab, text="FUN_EVALS (int|inf):")
-fun_evals_label.grid(row=9, column=0, sticky="W")
+fun_evals_label.grid(row=10, column=0, sticky="W")
 fun_evals_entry = tk.Entry(run_tab)
 fun_evals_entry.insert(0, "30")
-fun_evals_entry.grid(row=9, column=1)
+fun_evals_entry.grid(row=10, column=1)
 
 init_size_label = tk.Label(run_tab, text="INIT_SIZE (int):")
-init_size_label.grid(row=10, column=0, sticky="W")
+init_size_label.grid(row=11, column=0, sticky="W")
 init_size_entry = tk.Entry(run_tab)
 init_size_entry.insert(0, "5")
-init_size_entry.grid(row=10, column=1)
+init_size_entry.grid(row=11, column=1)
 
 noise_label = tk.Label(run_tab, text="NOISE (bool):")
-noise_label.grid(row=11, column=0, sticky="W")
+noise_label.grid(row=12, column=0, sticky="W")
 noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "TRUE")
-noise_entry.grid(row=11, column=1)
+noise_entry.grid(row=12, column=1)
 
 seed_label = tk.Label(run_tab, text="seed (int):")
-seed_label.grid(row=12, column=0, sticky="W")
+seed_label.grid(row=13, column=0, sticky="W")
 seed_entry = tk.Entry(run_tab)
 seed_entry.insert(0, "123")
-seed_entry.grid(row=12, column=1)
+seed_entry.grid(row=13, column=1)
 
 # columns 0+1: Evaluation
 experiment_label = tk.Label(run_tab, text="Evaluation options:")
-experiment_label.grid(row=13, column=0, sticky="W")
+experiment_label.grid(row=14, column=0, sticky="W")
 
 
 metric_label = tk.Label(run_tab, text="metric (sklearn):")
-metric_label.grid(row=14, column=0, sticky="W")
+metric_label.grid(row=15, column=0, sticky="W")
 metric_combo = ttk.Combobox(run_tab, values=metric_levels)
 metric_combo.set("accuracy_score")  # Default selection
-metric_combo.grid(row=14, column=1)
+metric_combo.grid(row=15, column=1)
 
 metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
-metric_weights_label.grid(row=15, column=0, sticky="W")
+metric_weights_label.grid(row=16, column=0, sticky="W")
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
-metric_weights_entry.grid(row=15, column=1)
+metric_weights_entry.grid(row=16, column=1)
 
 horizon_label = tk.Label(run_tab, text="horizon (int):")
-horizon_label.grid(row=16, column=0, sticky="W")
+horizon_label.grid(row=17, column=0, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "10")
-horizon_entry.grid(row=16, column=1)
+horizon_entry.grid(row=17, column=1)
 
 oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
-oml_grace_period_label.grid(row=17, column=0, sticky="W")
+oml_grace_period_label.grid(row=18, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "None")
-oml_grace_period_entry.grid(row=17, column=1)
+oml_grace_period_entry.grid(row=18, column=1)
 
 # Experiment name:
 experiment_label = tk.Label(run_tab, text="Experiment Name:")
-experiment_label.grid(row=18, column=0, sticky="W")
+experiment_label.grid(row=19, column=0, sticky="W")
 
 prefix_label = tk.Label(run_tab, text="Name prefix (str):")
-prefix_label.grid(row=19, column=0, sticky="W")
+prefix_label.grid(row=20, column=0, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "00")
-prefix_entry.grid(row=19, column=1)
+prefix_entry.grid(row=20, column=1)
 
 
 # colummns 2-6: Model
 model_label = tk.Label(run_tab, text="Model options:")
-model_label.grid(row=0, column=2, sticky="W")
+model_label.grid(row=1, column=2, sticky="W")
 
 hparam_label = tk.Label(run_tab, text="Hyperparameters:")
-hparam_label.grid(row=1, column=2, sticky="W")
+hparam_label.grid(row=2, column=2, sticky="W")
 
 model_label = tk.Label(run_tab, text="Default values:")
-model_label.grid(row=1, column=3, sticky="W")
+model_label.grid(row=2, column=3, sticky="W")
 
 model_label = tk.Label(run_tab, text="Lower bounds:")
-model_label.grid(row=1, column=4, sticky="W")
+model_label.grid(row=2, column=4, sticky="W")
 
 model_label = tk.Label(run_tab, text="Upper bounds:")
-model_label.grid(row=1, column=5, sticky="W")
+model_label.grid(row=2, column=5, sticky="W")
 
 model_label = tk.Label(run_tab, text="Transformation:")
-model_label.grid(row=1, column=6, sticky="W")
+model_label.grid(row=2, column=6, sticky="W")
 
 # core_model_label = tk.Label(run_tab, text="Core model")
 # core_model_label.grid(row=1, column=2, sticky="W")
@@ -717,27 +717,31 @@ model_label.grid(row=1, column=6, sticky="W")
 
 
 # column 8: Save and run button
-tb_label = tk.Label(run_tab, text="TENSORBOARD Options:")
-tb_label.grid(row=2, column=8, sticky="W")
-tb_label = tk.Label(run_tab, text="http://localhost:6006", fg="blue", cursor="hand2")
-tb_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
-tb_label.grid(row=3, column=8, sticky="W")
-tb_label.grid(row=3, column=8, sticky="W")
+tb_label = tk.Label(run_tab, text="Tensorboard options:")
+tb_label.grid(row=1, column=8, sticky="W")
 
 tb_clean = tk.BooleanVar()
 tb_clean.set(True)
 tf_clean_checkbutton = tk.Checkbutton(run_tab, text="TENSORBOARD_CLEAN", variable=tb_clean)
-tf_clean_checkbutton.grid(row=4, column=8, sticky="E")
+tf_clean_checkbutton.grid(row=2, column=8, sticky="W")
 
 tb_start = tk.BooleanVar()
 tb_start.set(True)
 tf_start_checkbutton = tk.Checkbutton(run_tab, text="Start TENSORBOARD", variable=tb_start)
-tf_start_checkbutton.grid(row=5, column=8, sticky="E")
+tf_start_checkbutton.grid(row=3, column=8, sticky="W")
 
 tb_stop = tk.BooleanVar()
 tb_stop.set(True)
 tf_stop_checkbutton = tk.Checkbutton(run_tab, text="Stop TENSORBOARD", variable=tb_stop)
-tf_stop_checkbutton.grid(row=6, column=8, sticky="E")
+tf_stop_checkbutton.grid(row=4, column=8, sticky="W")
+
+tb_text = tk.Label(run_tab, text="Open browser logging:")
+tb_text.grid(row=5, column=8, sticky="W")
+
+tb_link = tk.Label(run_tab, text="http://localhost:6006", fg="blue", cursor="hand2")
+tb_link.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
+tb_link.grid(row=5, column=9, sticky="W")
+
 
 data_button = ttk.Button(run_tab, text="Show Data", command=lambda: run_experiment(show_data_only=True))
 data_button.grid(row=8, column=8, columnspan=2, sticky="E")
@@ -779,10 +783,10 @@ notebook.pack()
 # Add the Logo image in both tabs
 logo_image = tk.PhotoImage(file="images/spotlogo.png")
 logo_label = tk.Label(run_tab, image=logo_image)
-logo_label.grid(row=0, column=8, rowspan=1, columnspan=1)
+logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
 
 analysis_label = tk.Label(analysis_tab, text="Analysis options:")
-analysis_label.grid(row=0, column=1, sticky="W")
+analysis_label.grid(row=1, column=0, sticky="W")
 
 progress_plot_button = ttk.Button(analysis_tab, text="Progress plot", command=call_progress_plot)
 progress_plot_button.grid(row=1, column=1, columnspan=2, sticky="W")
@@ -802,16 +806,16 @@ parallel_plot_button = ttk.Button(analysis_tab, text="Parallel plot (Browser)", 
 parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
 
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
-analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
+analysis_logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
 
 # regression_logo_label = tk.Label(regression_tab, image=logo_image)
 # regression_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
 result_logo_label = tk.Label(result_tab, image=logo_image)
-result_logo_label.grid(row=0, column=11, rowspan=1, columnspan=1)
+result_logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
 
 show_result_button = ttk.Button(result_tab, text="Show result", command=show_result)
-show_result_button.grid(row=0, column=0, columnspan=2, sticky="W")
+show_result_button.grid(row=1, column=0, columnspan=2, sticky="W")
 # Run the mainloop
 
 app.mainloop()

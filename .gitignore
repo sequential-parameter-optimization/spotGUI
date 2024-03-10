@@ -44,3 +44,4 @@ spotRiverGUI/plot.png
 spotRiverGUI/*.pickle
 spotPythonGUI/*.pickle
 spotRiverGUI/spot_00_report.txt
+spotRiverGUI/spot_01_report.txt
