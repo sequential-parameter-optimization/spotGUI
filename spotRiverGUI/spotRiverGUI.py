@@ -258,17 +258,15 @@ def run_experiment(save_only=False, show_data_only=False):
     # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
 
     # TODO:
-    #  Enable user specific core models:
-    # if core_model is not in core_model_names:
-    #     core_model = load_core_model_from_file(coremodel, dirname="userModel")
-    #     dict = load_dict_from_file(coremodel, dirname="userModel")
-    #     fun_control.update({"core_model": core_model})
-    #     fun_control.update({"core_model_hyper_dict": dict})
-    #     var_type = get_var_type(fun_control)
-    #     var_name = get_var_name(fun_control)
-    #     lower = get_bound_values(fun_control, "lower", as_list=False)
-    #     upper = get_bound_values(fun_control, "upper", as_list=False)
-    #     fun_control.update({"var_type": var_type, "var_name": var_name, "lower": lower, "upper": upper})
+    #  Enable user specific core models. An example is given below:
+    # from spotPython.hyperparameters.values import add_core_model_to_fun_control
+    # import sys
+    # sys.path.insert(0, './userModel')
+    # import river.tree
+    # import river_hyper_dict
+    # add_core_model_to_fun_control(fun_control=fun_control,
+    #                             core_model=river.tree.HoeffdingTreeRegressor,
+    #                             hyper_dict=river_hyper_dict.RiverHyperDict)
 
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int":
@@ -276,8 +274,9 @@ def run_experiment(save_only=False, show_data_only=False):
                 fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
             )
         if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
-            fun_control["core_model_hyper_dict"][key].update({"lower": int(lower_bound_entry[i].get())})
-            fun_control["core_model_hyper_dict"][key].update({"upper": int(upper_bound_entry[i].get())})
+            # fun_control["core_model_hyper_dict"][key].update({"lower": int(lower_bound_entry[i].get())})
+            # fun_control["core_model_hyper_dict"][key].update({"upper": int(upper_bound_entry[i].get())})
+            set_control_hyperparameter_value(fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())])
         if dict[key]["type"] == "float":
             set_control_hyperparameter_value(
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
