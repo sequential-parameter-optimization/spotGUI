@@ -149,6 +149,14 @@ def run_experiment(save_only=False, show_data_only=False):
 
     core_model_name = core_model_combo.get()
 
+    # lambda (Kriging nugget)
+    lambda_min_max = lambda_min_max_entry.get()
+    # split the string into a list of strings
+    lbd = lambda_min_max.split(",")
+    # if len(lbd) != 2, set the lambda values to the default values [-3, 2]
+    if len(lbd) != 2:
+        lbd = ["1e-6", "1e2"]
+
     # metrics
     metric_name = metric_combo.get()
     metric_sklearn = getattr(sklearn.metrics, metric_name)
@@ -293,13 +301,24 @@ def run_experiment(save_only=False, show_data_only=False):
         repeats=1,
     )
 
+    kriging_noise = True
+    lbd_min = float(lbd[0])
+    lbd_max = float(lbd[1])
+    if lbd_min < 0:
+        lbd_min = 1e-6
+    if lbd_max < 0:
+        lbd_max = 1e2
+    if lbd_min == 0.0 and lbd_max == 0.0:
+        kriging_noise = False
     surrogate_control = surrogate_control_init(
-        noise=True,
+        noise=kriging_noise,
         n_theta=2,
-        min_Lambda=1e-6,
-        max_Lambda=10,
+        min_Lambda=lbd_min,
+        max_Lambda=lbd_max,
         log_level=50,
     )
+    print("surrogate_control in run_experiment():")
+    pprint.pprint(surrogate_control)
 
     optimizer_control = optimizer_control_init()
 
@@ -392,6 +411,11 @@ def load_experiment():
         wghts = [abs(w) for w in wghts]
         metric_weights_entry.insert(0, f"{wghts[0]}, {wghts[1]}, {wghts[2]}")
         # metric_weights_entry.insert(0, str(fun_control["weights"]))
+
+        lambda_min_max_entry.delete(0, tk.END)
+        min_lbd = surrogate_control["min_Lambda"]
+        max_lbd = surrogate_control["max_Lambda"]
+        lambda_min_max_entry.insert(0, f"{min_lbd}, {max_lbd}")
 
         horizon_entry.delete(0, tk.END)
         horizon_entry.insert(0, str(fun_control["horizon"]))
@@ -664,52 +688,60 @@ noise_entry = tk.Entry(run_tab)
 noise_entry.insert(0, "True")
 noise_entry.grid(row=12, column=1)
 
+lambda_min_max_label = tk.Label(run_tab, text="Lambda (nugget): min, max:")
+lambda_min_max_label.grid(row=13, column=0, sticky="W")
+lambda_min_max_tip = Hovertip(lambda_min_max_label, "The min max values for Kriging.\nIf set to 0, 0, no noise will be used in the surrogate.\Default is -3, 2.")
+lambda_min_max_entry = tk.Entry(run_tab)
+lambda_min_max_entry.insert(0, "1e-3, 1e2")
+lambda_min_max_entry.grid(row=13, column=1)
+
 seed_label = tk.Label(run_tab, text="seed (int):")
-seed_label.grid(row=13, column=0, sticky="W")
+seed_label.grid(row=14, column=0, sticky="W")
 seed_entry = tk.Entry(run_tab)
 seed_entry.insert(0, "123")
-seed_entry.grid(row=13, column=1)
+seed_entry.grid(row=14, column=1)
 
 # columns 0+1: Evaluation
 experiment_label = tk.Label(run_tab, text="Evaluation options:")
-experiment_label.grid(row=14, column=0, sticky="W")
+experiment_label.grid(row=15, column=0, sticky="W")
 
 
 metric_label = tk.Label(run_tab, text="metric (sklearn):")
-metric_label.grid(row=15, column=0, sticky="W")
+metric_label.grid(row=16, column=0, sticky="W")
 metric_combo = ttk.Combobox(run_tab, values=metric_levels)
 metric_combo.set("accuracy_score")  # Default selection
-metric_combo.grid(row=15, column=1)
+metric_combo.grid(row=16, column=1)
 
 metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
-metric_weights_label.grid(row=16, column=0, sticky="W")
+metric_weights_label.grid(row=17, column=0, sticky="W")
 metric_weights_tip = Hovertip(metric_weights_label, "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.")
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
-metric_weights_entry.grid(row=16, column=1)
+metric_weights_entry.grid(row=17, column=1)
+
 
 horizon_label = tk.Label(run_tab, text="horizon (int):")
-horizon_label.grid(row=17, column=0, sticky="W")
+horizon_label.grid(row=18, column=0, sticky="W")
 horizon_entry = tk.Entry(run_tab)
 horizon_entry.insert(0, "10")
-horizon_entry.grid(row=17, column=1)
+horizon_entry.grid(row=18, column=1)
 
 oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
-oml_grace_period_label.grid(row=18, column=0, sticky="W")
+oml_grace_period_label.grid(row=19, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "None")
-oml_grace_period_entry.grid(row=18, column=1)
+oml_grace_period_entry.grid(row=19, column=1)
 oml_grace_period_tip = Hovertip(oml_grace_period_label, "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.")
 
 # Experiment name:
 experiment_label = tk.Label(run_tab, text="Experiment Name:")
-experiment_label.grid(row=19, column=0, sticky="W")
+experiment_label.grid(row=20, column=0, sticky="W")
 
 prefix_label = tk.Label(run_tab, text="Name prefix (str):")
-prefix_label.grid(row=20, column=0, sticky="W")
+prefix_label.grid(row=21, column=0, sticky="W")
 prefix_entry = tk.Entry(run_tab)
 prefix_entry.insert(0, "00")
-prefix_entry.grid(row=20, column=1)
+prefix_entry.grid(row=21, column=1)
 
 
 # colummns 2-6: Model

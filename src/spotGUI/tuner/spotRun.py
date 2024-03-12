@@ -102,7 +102,13 @@ def run_spot_python_experiment(
             file.write("\n\n")
             file.write(pprint.pformat(fun_control))
             file.write("\n\n")
-        print("fun_control written to fun_control.txt")
+            file.write(pprint.pformat(surrogate_control))
+            file.write("\n\n")
+            file.write(pprint.pformat(design_control))
+            file.write("\n\n")
+            file.write(pprint.pformat(optimizer_control))
+            file.write("\n\n")
+        print("Control dicts written to SPOT report txt file.")
         # close the file
         file.close()
 
