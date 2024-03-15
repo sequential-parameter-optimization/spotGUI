@@ -1,6 +1,7 @@
 import pprint
 import webbrowser
 import sklearn.metrics
+import river.preprocessing
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 import river
 from river import forest, tree, linear_model
@@ -36,13 +37,13 @@ from spotGUI.tuner.spotRun import (
     get_result,
 )
 from spotPython.utils.eda import gen_design_table
+from spotPython.utils.convert import map_to_True_False
 from spotPython.utils.file import load_dict_from_file
 from spotRiver.fun.hyperriver import HyperRiver
-from spotRiver.utils.data_conversion import convert_to_df
+from spotRiver.data.selector import get_river_dataset_from_name
 from spotRiver.data.csvdataset import CSVDataset
-from sklearn.model_selection import train_test_split
 import pandas as pd
-from spotRiver.utils.data_conversion import rename_df_to_xy
+from spotRiver.utils.data_conversion import rename_df_to_xy, split_df
 from spotPython.utils.metrics import get_metric_sign
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
@@ -66,6 +67,11 @@ metric_levels = [
     "roc_auc_score",
     "zero_one_loss",
 ]
+prep_model_values = ["AdaptiveStandardScaler",
+                     "MaxAbsScaler",
+                     "MinMaxScaler",
+                     "StandardScaler",
+                     "None"]
 river_binary_classification_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
 spot_tuner = None
 rhd = RiverHyperDict()
@@ -79,60 +85,11 @@ factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 
 
-def get_river_dataset_from_name(
-    data_set_name,
-    n_total=None,
-    river_datasets=None,
-):
-    """Converts a data set name to a pandas DataFrame.
-
-    Args:
-        data_set_name (str):
-            The name of the data set.
-            If the data set name is not in river_datasets, the data set is assumed to be a CSV file.
-        n_total (int):
-            The number of samples to be used from the data set.
-            If n_total is None, the full data set is used.
-            Defaults to None.
-        river_datasets (list):
-            A list of the available river data sets.
-            If the data set name is not in river_datasets,
-            the data set is assumed to be a CSV file.
-
-    Returns:
-        pd.DataFrame:
-            The data set as a pandas DataFrame.
-        n_samples (int):
-            The number of samples in the data set.
-    """
-    print(f"data_set_name: {data_set_name}")
-    print("river_datasets: ", river_datasets)
-    # data_set ends with ".csv" or data_set ends with ".pkl":
-    if data_set_name.endswith(".csv"):
-        print(f"data_set_name: {data_set_name}")
-        dataset = CSVDataset(filename=data_set_name, directory="./userData/").data
-        n_samples = dataset.shape[0]
-    elif data_set_name in river_datasets:
-        dataset, n_samples = data_selector(
-            data_set=data_set_name,
-        )
-        # convert the river datasets to a pandas DataFrame, the target column
-        # of the resulting DataFrame is target_column
-        dataset = convert_to_df(dataset, target_column="y", n_total=n_total)
-    return dataset, n_samples
-
-
 def run_experiment(save_only=False, show_data_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
 
+    noise = map_to_True_False(noise_entry.get())
     n_total = n_total_entry.get()
-
-    noise = noise_entry.get()
-    if noise.lower() == "true":
-        noise = True
-    else:
-        noise = False
-
     if n_total == "None" or n_total == "All":
         n_total = None
     else:
@@ -146,16 +103,22 @@ def run_experiment(save_only=False, show_data_only=False):
 
     seed = int(seed_entry.get())
     test_size = float(test_size_entry.get())
-
     core_model_name = core_model_combo.get()
 
     # lambda (Kriging nugget)
     lambda_min_max = lambda_min_max_entry.get()
     # split the string into a list of strings
     lbd = lambda_min_max.split(",")
-    # if len(lbd) != 2, set the lambda values to the default values [-3, 2]
+    # if len(lbd) != 2, set the lambda values to the default values
     if len(lbd) != 2:
         lbd = ["1e-6", "1e2"]
+
+    # Get the selected prep and core model and add it to the fun_control dictionary
+    prepmodel_name = prep_model_combo.get()
+    if prepmodel_name == "None":
+        prepmodel = None
+    else:
+        prepmodel = getattr(river.preprocessing, prepmodel_name)
 
     # metrics
     metric_name = metric_combo.get()
@@ -181,38 +144,8 @@ def run_experiment(save_only=False, show_data_only=False):
         data_set_name=data_set_name, n_total=n_total,
         river_datasets=river_binary_classification_datasets
     )
-
-    # TODO: implement this as a function in spotRun.py
-    # Rename the columns of a DataFrame to x1, x2, ..., xn, y.
-    # From now on we assume that the target column is called "y" and
-    # is of type int (binary classification)
-    df = rename_df_to_xy(df=dataset, target_column="y")
-    df["y"] = df["y"].astype(int)
-    target_column = "y"
-    # split the data set into a training and a test set,
-    # where the test set is a percentage of the data set given as test_size:
-    X = df.drop(columns=[target_column])
-    Y = df[target_column]
-    # Split the data into training and test sets
-    # test_size is the percentage of the data that should be held over for testing
-    # random_state is a seed for the random number generator to make your train and test splits reproducible
-    train_features, test_features, train_target, test_target = train_test_split(
-        X, Y, test_size=test_size, random_state=seed
-    )
-    # combine the training features and the training target into a training DataFrame
-    train = pd.concat([train_features, train_target], axis=1)
-    test = pd.concat([test_features, test_target], axis=1)
-    n_samples = train.shape[0] + test.shape[0]
-
-    # Get the selected prep and core model and add it to the fun_control dictionary
-    prepmodel = prep_model_combo.get()
-    if prepmodel == "StandardScaler":
-        prep_model = preprocessing.StandardScaler()
-    elif prepmodel == "MinMaxScaler":
-        prep_model = preprocessing.MinMaxScaler()
-    else:
-        prep_model = None
-
+    train, test, n_samples = split_df(dataset=dataset, test_size=test_size, target_type="int", seed=seed)
+    
     TENSORBOARD_CLEAN = bool(tb_clean.get())
     tensorboard_start = bool(tb_start.get())
     tensorboard_stop = bool(tb_stop.get())
@@ -233,7 +166,7 @@ def run_experiment(save_only=False, show_data_only=False):
         n_samples=n_samples,
         ocba_delta=0,
         oml_grace_period=oml_grace_period,
-        prep_model=prep_model,
+        prep_model=prepmodel,
         seed=seed,
         target_column="y",
         test=test,
@@ -380,7 +313,8 @@ def load_experiment():
         test_size_entry.insert(0, str(fun_control["test_size"]))
 
         prep_model_combo.delete(0, tk.END)
-        prep_model_name = fun_control["prep_model"].__class__.__name__
+        # prep_model_name = fun_control["prep_model"].__class__.__name__
+        prep_model_name = fun_control["prep_model"].__name__
         prep_model_combo.set(prep_model_name)
 
         max_time_entry.delete(0, tk.END)
@@ -655,7 +589,6 @@ test_size_entry.grid(row=6, column=1, sticky="W")
 
 prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
 prep_model_label.grid(row=7, column=0, sticky="W")
-prep_model_values = ["MinMaxScaler", "StandardScaler", "None"]
 prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
 prep_model_combo.set("StandardScaler")
 prep_model_combo.grid(row=7, column=1)
