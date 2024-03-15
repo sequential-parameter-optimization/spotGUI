@@ -79,6 +79,78 @@ factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 
 
+def call_compare_tuned_default():
+    if spot_tuner is not None and fun_control is not None:
+        compare_tuned_default(spot_tuner, fun_control, show=True)
+
+
+def call_all_compare_tuned_default():
+    if spot_tuner is not None and fun_control is not None:
+        all_compare_tuned_default(spot_tuner, fun_control, show=True)
+
+
+def call_plot_confusion_matrices():
+    if spot_tuner is not None and fun_control is not None:
+        plot_confusion_matrices(spot_tuner, fun_control, show=True)
+
+
+def call_plot_rocs():
+    if spot_tuner is not None and fun_control is not None:
+        plot_rocs(spot_tuner, fun_control, show=True)
+
+
+def call_parallel_plot():
+    if spot_tuner is not None:
+        parallel_plot(spot_tuner=spot_tuner, fun_control=fun_control)
+
+
+def call_contour_plot():
+    if spot_tuner is not None:
+        contour_plot(spot_tuner=spot_tuner, fun_control=fun_control)
+
+
+def call_importance_plot():
+    if spot_tuner is not None:
+        importance_plot(spot_tuner=spot_tuner, fun_control=fun_control)
+
+
+def call_progress_plot():
+    if spot_tuner is not None:
+        progress_plot(spot_tuner=spot_tuner, fun_control=fun_control)
+
+
+def show_result():
+    if spot_tuner is not None and fun_control is not None:
+        res = get_result(spot_tuner=spot_tuner, fun_control=fun_control)
+        print(f"Result: {res}")
+        # add a text window to the result tab that shows the content of the REP_NAME file
+        result_text = tk.Text(result_tab)
+        result_text.grid(row=1, column=1, rowspan=1, columnspan=10, sticky="W")
+        # open the result file and write its content to the text window
+        # clean the text window
+        result_text.delete("1.0", tk.END)
+        result_text.insert(tk.END, res)
+        # resize the text window to fit the content
+        result_text.config(width=200, height=25)
+
+
+# def show_report():
+#     if fun_control is not None:
+#         REP_NAME = get_report_file_name(fun_control=fun_control)
+#         # add a text window to the report tab that shows the content of the REP_NAME file
+#         report_text = tk.Text(report_tab)
+#         report_text.grid(row=1, column=1, rowspan=1, columnspan=10, sticky="W")
+#         # open the report file and write its content to the text window
+#         with open(REP_NAME, "r") as file:
+#             # clean the text window
+#             report_text.delete("1.0", tk.END)
+#             report_text.insert(tk.END, file.read())
+#             # resize the text window to fit the content
+#             report_text.config(width=250, height=50)
+#         # close the file
+#         file.close()
+
+
 def run_experiment(save_only=False, show_data_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, noise_entry, lambda_min_max_entry, data_set_combo, tb_clean, tb_start, tb_stop, init_size_entry
 
@@ -221,7 +293,7 @@ def run_experiment(save_only=False, show_data_only=False):
         print("\nExperiment failed. No result saved.")
 
 
-def load_experiment():
+def load_experiment(tab_name):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, spot_tuner, fun_control, data_set_combo
     filename = load_file_dialog()
     if filename:
@@ -303,85 +375,13 @@ def load_experiment():
                 if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
                     factor_level_entry[i].destroy()
 
-        update_entries_from_dict(fun_control["core_model_hyper_dict"])
+        update_entries_from_dict(fun_control["core_model_hyper_dict"], tab_name=tab_name)
 
         core_model_combo.delete(0, tk.END)
         core_model_combo.set(fun_control["core_model_name"])
 
 
-def call_compare_tuned_default():
-    if spot_tuner is not None and fun_control is not None:
-        compare_tuned_default(spot_tuner, fun_control, show=True)
-
-
-def call_all_compare_tuned_default():
-    if spot_tuner is not None and fun_control is not None:
-        all_compare_tuned_default(spot_tuner, fun_control, show=True)
-
-
-def call_plot_confusion_matrices():
-    if spot_tuner is not None and fun_control is not None:
-        plot_confusion_matrices(spot_tuner, fun_control, show=True)
-
-
-def call_plot_rocs():
-    if spot_tuner is not None and fun_control is not None:
-        plot_rocs(spot_tuner, fun_control, show=True)
-
-
-def call_parallel_plot():
-    if spot_tuner is not None:
-        parallel_plot(spot_tuner=spot_tuner, fun_control=fun_control)
-
-
-def call_contour_plot():
-    if spot_tuner is not None:
-        contour_plot(spot_tuner=spot_tuner, fun_control=fun_control)
-
-
-def call_importance_plot():
-    if spot_tuner is not None:
-        importance_plot(spot_tuner=spot_tuner, fun_control=fun_control)
-
-
-def call_progress_plot():
-    if spot_tuner is not None:
-        progress_plot(spot_tuner=spot_tuner, fun_control=fun_control)
-
-
-def show_result():
-    if spot_tuner is not None and fun_control is not None:
-        res = get_result(spot_tuner=spot_tuner, fun_control=fun_control)
-        print(f"Result: {res}")
-        # add a text window to the result tab that shows the content of the REP_NAME file
-        result_text = tk.Text(result_tab)
-        result_text.grid(row=1, column=1, rowspan=1, columnspan=10, sticky="W")
-        # open the result file and write its content to the text window
-        # clean the text window
-        result_text.delete("1.0", tk.END)
-        result_text.insert(tk.END, res)
-        # resize the text window to fit the content
-        result_text.config(width=200, height=25)
-
-
-# def show_report():
-#     if fun_control is not None:
-#         REP_NAME = get_report_file_name(fun_control=fun_control)
-#         # add a text window to the report tab that shows the content of the REP_NAME file
-#         report_text = tk.Text(report_tab)
-#         report_text.grid(row=1, column=1, rowspan=1, columnspan=10, sticky="W")
-#         # open the report file and write its content to the text window
-#         with open(REP_NAME, "r") as file:
-#             # clean the text window
-#             report_text.delete("1.0", tk.END)
-#             report_text.insert(tk.END, file.read())
-#             # resize the text window to fit the content
-#             report_text.config(width=250, height=50)
-#         # close the file
-#         file.close()
-
-
-def update_entries_from_dict(dict):
+def update_entries_from_dict(dict, tab_name):
     global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
     n_keys = len(dict)
     # Create a list of labels and entries with the same length as the number of keys in the dictionary
@@ -398,34 +398,34 @@ def update_entries_from_dict(dict):
             or dict[key]["core_model_parameter_type"] == "bool"
         ):
             # Create a label with the key as text
-            label[i] = tk.Label(run_tab, text=key)
+            label[i] = tk.Label(tab_name, text=key)
             label[i].grid(row=i + 3, column=2, sticky="W")
             label[i].update()
-            default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
+            default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
             default_entry[i].grid(row=i + 3, column=3, sticky="W")
             default_entry[i].update()
             # add the lower bound values in column 4
-            lower_bound_entry[i] = tk.Entry(run_tab)
+            lower_bound_entry[i] = tk.Entry(tab_name)
             lower_bound_entry[i].insert(0, dict[key]["lower"])
             lower_bound_entry[i].grid(row=i + 3, column=4, sticky="W")
             # add the upper bound values in column 5
-            upper_bound_entry[i] = tk.Entry(run_tab)
+            upper_bound_entry[i] = tk.Entry(tab_name)
             upper_bound_entry[i].insert(0, dict[key]["upper"])
             upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
             # add the transformation values in column 6
-            transform_entry[i] = tk.Label(run_tab, text=dict[key]["transform"], padx=15)
+            transform_entry[i] = tk.Label(tab_name, text=dict[key]["transform"], padx=15)
             transform_entry[i].grid(row=i + 3, column=6, sticky="W")
 
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             # Create a label with the key as text
-            label[i] = tk.Label(run_tab, text=key)
+            label[i] = tk.Label(tab_name, text=key)
             label[i].grid(row=i + 3, column=2, sticky="W")
             label[i].update()
             # Create an entry with the default value as the default text
-            default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
+            default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
             default_entry[i].grid(row=i + 3, column=3, sticky="W")
             # add the lower bound values in column 2
-            factor_level_entry[i] = tk.Entry(run_tab)
+            factor_level_entry[i] = tk.Entry(tab_name)
             # TODO: replace " " with ", " for the levels
             # lvls = dict[key]["levels"]
             # factor_level_entry[i].insert(0, ", ".join(lvls))
@@ -449,7 +449,7 @@ def create_first_column(tab_name):
     core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
     core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
     core_model_combo.grid(row=2, column=1)
-    update_hyperparams(None)
+    update_hyperparams(None, tab_name=tab_name)
 
     data_label = tk.Label(tab_name, text="Data options:")
     data_label.grid(row=3, column=0, sticky="W")
@@ -575,7 +575,90 @@ def create_first_column(tab_name):
     prefix_entry.grid(row=21, column=1)
 
 
-def update_hyperparams(event):
+def create_second_column(tab_name):
+    # colummns 2-6: Model
+    model_label = tk.Label(tab_name, text="Model options:")
+    model_label.grid(row=1, column=2, sticky="W")
+
+    hparam_label = tk.Label(tab_name, text="Hyperparameters:")
+    hparam_label.grid(row=2, column=2, sticky="W")
+
+    model_label = tk.Label(tab_name, text="Default values:")
+    model_label.grid(row=2, column=3, sticky="W")
+
+    model_label = tk.Label(tab_name, text="Lower bounds:")
+    model_label.grid(row=2, column=4, sticky="W")
+
+    model_label = tk.Label(tab_name, text="Upper bounds:")
+    model_label.grid(row=2, column=5, sticky="W")
+
+    model_label = tk.Label(tab_name, text="Transformation:")
+    model_label.grid(row=2, column=6, sticky="W")
+
+
+def create_third_column(tab_name):
+    # column 8: Save and run button
+    tb_label = tk.Label(tab_name, text="Tensorboard options:")
+    tb_label.grid(row=1, column=8, sticky="W")
+
+    tb_clean = tk.BooleanVar()
+    tb_clean.set(True)
+    tf_clean_checkbutton = tk.Checkbutton(tab_name, text="TENSORBOARD_CLEAN", variable=tb_clean)
+    tf_clean_checkbutton.grid(row=2, column=8, sticky="W")
+    tf_clean_tip = Hovertip(
+        tf_clean_checkbutton,
+        "If checked, tensorboard's run dir will be moved to runs_OLD\nand a new, empty runs dir will be used.\nDoes only work with Unix systems.",
+    )
+
+    tb_start = tk.BooleanVar()
+    tb_start.set(True)
+    tf_start_checkbutton = tk.Checkbutton(tab_name, text="Start TENSORBOARD", variable=tb_start)
+    tf_start_checkbutton.grid(row=3, column=8, sticky="W")
+
+    tb_stop = tk.BooleanVar()
+    tb_stop.set(True)
+    tf_stop_checkbutton = tk.Checkbutton(tab_name, text="Stop TENSORBOARD", variable=tb_stop)
+    tf_stop_checkbutton.grid(row=4, column=8, sticky="W")
+
+    tb_text = tk.Label(tab_name, text="Open browser logging:")
+    tb_text.grid(row=5, column=8, sticky="W")
+    tb_link = tk.Label(tab_name, text="http://localhost:6006", fg="blue", cursor="hand2")
+    tb_link.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
+    tb_link.grid(row=5, column=9, sticky="W")
+
+    spot_doc = tk.Label(tab_name, text="Open SPOT documentation:")
+    spot_doc.grid(row=6, column=8, sticky="W")
+    spot_link = tk.Label(tab_name, text="spotPython documentation", fg="blue", cursor="hand2")
+    spot_link.bind(
+        "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/")
+    )
+    spot_link.grid(row=6, column=9, sticky="W")
+
+    spot_river_doc = tk.Label(tab_name, text="Open spotRiver documentation:")
+    spot_river_doc.grid(row=7, column=8, sticky="W")
+    spot_river_link = tk.Label(tab_name, text="spotRiver documentation", fg="blue", cursor="hand2")
+    spot_river_link.bind(
+        "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/")
+    )
+    spot_river_link.grid(row=7, column=9, sticky="W")
+
+    river_doc = tk.Label(tab_name, text="Open River documentation:")
+    river_doc.grid(row=8, column=8, sticky="W")
+    river_doc_link = tk.Label(tab_name, text="River documentation", fg="blue", cursor="hand2")
+    river_doc_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/"))
+    river_doc_link.grid(row=8, column=9, sticky="W")
+
+    data_button = ttk.Button(tab_name, text="Show Data", command=lambda: run_experiment(show_data_only=True))
+    data_button.grid(row=10, column=8, columnspan=2, sticky="E")
+    load_button = ttk.Button(tab_name, text="Load Experiment", command=lambda: load_experiment(tab_name=tab_name))
+    load_button.grid(row=11, column=8, columnspan=2, sticky="E")
+    save_button = ttk.Button(tab_name, text="Save Experiment", command=lambda: run_experiment(save_only=True))
+    save_button.grid(row=12, column=8, columnspan=2, sticky="E")
+    run_button = ttk.Button(tab_name, text="Run Experiment", command=run_experiment)
+    run_button.grid(row=13, column=8, columnspan=2, sticky="E")
+
+
+def update_hyperparams(event, tab_name=None):
     global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry, core_model_combo
 
     destroy_entries(label)
@@ -596,7 +679,7 @@ def update_hyperparams(event):
         dict = rhd.hyper_dict[coremodel]
     else:
         dict = load_dict_from_file(coremodel, dirname="userModel")
-    update_entries_from_dict(dict)
+    update_entries_from_dict(dict, tab_name=tab_name)
 
 
 # Create the main application window
@@ -614,97 +697,16 @@ notebook = ttk.Notebook(app)
 # Create and pack entry fields for the "Run" tab
 run_tab = ttk.Frame(notebook)
 notebook.add(run_tab, text="Binary classification")
-
 create_first_column(run_tab)
-
-# colummns 2-6: Model
-model_label = tk.Label(run_tab, text="Model options:")
-model_label.grid(row=1, column=2, sticky="W")
-
-hparam_label = tk.Label(run_tab, text="Hyperparameters:")
-hparam_label.grid(row=2, column=2, sticky="W")
-
-model_label = tk.Label(run_tab, text="Default values:")
-model_label.grid(row=2, column=3, sticky="W")
-
-model_label = tk.Label(run_tab, text="Lower bounds:")
-model_label.grid(row=2, column=4, sticky="W")
-
-model_label = tk.Label(run_tab, text="Upper bounds:")
-model_label.grid(row=2, column=5, sticky="W")
-
-model_label = tk.Label(run_tab, text="Transformation:")
-model_label.grid(row=2, column=6, sticky="W")
-
-# column 8: Save and run button
-tb_label = tk.Label(run_tab, text="Tensorboard options:")
-tb_label.grid(row=1, column=8, sticky="W")
-
-tb_clean = tk.BooleanVar()
-tb_clean.set(True)
-tf_clean_checkbutton = tk.Checkbutton(run_tab, text="TENSORBOARD_CLEAN", variable=tb_clean)
-tf_clean_checkbutton.grid(row=2, column=8, sticky="W")
-tf_clean_tip = Hovertip(
-    tf_clean_checkbutton,
-    "If checked, tensorboard's run dir will be moved to runs_OLD\nand a new, empty runs dir will be used.\nDoes only work with Unix systems.",
-)
-
-tb_start = tk.BooleanVar()
-tb_start.set(True)
-tf_start_checkbutton = tk.Checkbutton(run_tab, text="Start TENSORBOARD", variable=tb_start)
-tf_start_checkbutton.grid(row=3, column=8, sticky="W")
-
-tb_stop = tk.BooleanVar()
-tb_stop.set(True)
-tf_stop_checkbutton = tk.Checkbutton(run_tab, text="Stop TENSORBOARD", variable=tb_stop)
-tf_stop_checkbutton.grid(row=4, column=8, sticky="W")
-
-tb_text = tk.Label(run_tab, text="Open browser logging:")
-tb_text.grid(row=5, column=8, sticky="W")
-tb_link = tk.Label(run_tab, text="http://localhost:6006", fg="blue", cursor="hand2")
-tb_link.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
-tb_link.grid(row=5, column=9, sticky="W")
-
-spot_doc = tk.Label(run_tab, text="Open SPOT documentation:")
-spot_doc.grid(row=6, column=8, sticky="W")
-spot_link = tk.Label(run_tab, text="spotPython documentation", fg="blue", cursor="hand2")
-spot_link.bind(
-    "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/")
-)
-spot_link.grid(row=6, column=9, sticky="W")
-
-spot_river_doc = tk.Label(run_tab, text="Open spotRiver documentation:")
-spot_river_doc.grid(row=7, column=8, sticky="W")
-spot_river_link = tk.Label(run_tab, text="spotRiver documentation", fg="blue", cursor="hand2")
-spot_river_link.bind(
-    "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/")
-)
-spot_river_link.grid(row=7, column=9, sticky="W")
-
-river_doc = tk.Label(run_tab, text="Open River documentation:")
-river_doc.grid(row=8, column=8, sticky="W")
-river_doc_link = tk.Label(run_tab, text="River documentation", fg="blue", cursor="hand2")
-river_doc_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/"))
-river_doc_link.grid(row=8, column=9, sticky="W")
-
-data_button = ttk.Button(run_tab, text="Show Data", command=lambda: run_experiment(show_data_only=True))
-data_button.grid(row=10, column=8, columnspan=2, sticky="E")
-load_button = ttk.Button(run_tab, text="Load Experiment", command=load_experiment)
-load_button.grid(row=11, column=8, columnspan=2, sticky="E")
-save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
-save_button.grid(row=12, column=8, columnspan=2, sticky="E")
-run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=13, column=8, columnspan=2, sticky="E")
-
+create_second_column(run_tab)
+create_third_column(run_tab)
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 regression_tab = ttk.Frame(notebook)
 notebook.add(regression_tab, text="Regression")
-
-# colummns 0+1: Data
-
 create_first_column(regression_tab)
-
+# create_second_column(regression_tab)
+# create_third_column(regression_tab)
 
 # Create and pack the "Analysis" tab
 analysis_tab = ttk.Frame(notebook)
