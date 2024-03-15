@@ -46,6 +46,7 @@ from spotPython.utils.file import load_experiment as load_experiment_spot
 
 core_model_names = [
     "forest.AMFClassifier",
+    "forest.ARFClassifier",
     "tree.ExtremelyFastDecisionTreeClassifier",
     "tree.HoeffdingTreeClassifier",
     "tree.HoeffdingAdaptiveTreeClassifier",
@@ -79,7 +80,7 @@ transform_entry = [None] * n_keys
 
 
 def run_experiment(save_only=False, show_data_only=False):
-    global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+    global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, noise_entry, lambda_min_max_entry, data_set_combo, tb_clean, tb_start, tb_stop, init_size_entry
 
     noise = map_to_True_False(noise_entry.get())
     n_total = get_n_total(n_total_entry.get())
@@ -221,7 +222,7 @@ def run_experiment(save_only=False, show_data_only=False):
 
 
 def load_experiment():
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, spot_tuner, fun_control
+    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, spot_tuner, fun_control, data_set_combo
     filename = load_file_dialog()
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
@@ -433,8 +434,149 @@ def update_entries_from_dict(dict):
             factor_level_entry[i].grid(row=i + 3, column=4, columnspan=2, sticky=tk.W + tk.E)
 
 
+def create_first_column(tab_name):
+    global core_model_combo, noise_entry, n_total_entry, test_size_entry, prep_model_combo, fun_evals_entry, max_time_entry, horizon_entry, oml_grace_period_entry, metric_combo, metric_weights_entry, seed_entry, prefix_entry,lambda_min_max_entry, data_set_combo, init_size_entry
+    # colummns 0+1: Data
+    core_model_label = tk.Label(tab_name, text="Core model:")
+    core_model_label.grid(row=1, column=0, sticky="W")
+
+    core_model_label = tk.Label(tab_name, text="Select core model:")
+    core_model_label.grid(row=2, column=0, sticky="W")
+    for filename in os.listdir("userModel"):
+        if filename.endswith(".json"):
+            core_model_names.append(os.path.splitext(filename)[0])
+    core_model_combo = ttk.Combobox(tab_name, values=core_model_names)
+    core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
+    core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
+    core_model_combo.grid(row=2, column=1)
+    update_hyperparams(None)
+
+    data_label = tk.Label(tab_name, text="Data options:")
+    data_label.grid(row=3, column=0, sticky="W")
+
+    data_set_label = tk.Label(tab_name, text="Select data_set:")
+    data_set_label.grid(row=4, column=0, sticky="W")
+    data_set_tip = Hovertip(
+        data_set_label,
+        "The data set.\n User specified data sets must have the target value in the last column.\n They are assumed to be in the directory 'userData'.\n The data set can be a CSV file.",
+    )
+    data_set_values = river_binary_classification_datasets
+    # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
+    data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
+    data_set_combo = ttk.Combobox(tab_name, values=data_set_values)
+    data_set_combo.set("Phishing")  # Default selection
+    data_set_combo.grid(row=4, column=1)
+
+    n_total_label = tk.Label(tab_name, text="n_total (int|All):")
+    n_total_label.grid(row=5, column=0, sticky="W")
+    n_total_entry = tk.Entry(tab_name)
+    n_total_entry.insert(0, "All")
+    n_total_entry.grid(row=5, column=1, sticky="W")
+
+    test_size_label = tk.Label(tab_name, text="test_size (perc.):")
+    test_size_label.grid(row=6, column=0, sticky="W")
+    test_size_entry = tk.Entry(tab_name)
+    test_size_entry.insert(0, "0.30")
+    test_size_entry.grid(row=6, column=1, sticky="W")
+
+    prep_model_label = tk.Label(tab_name, text="Select preprocessing model")
+    prep_model_label.grid(row=7, column=0, sticky="W")
+    prep_model_combo = ttk.Combobox(tab_name, values=prep_model_values)
+    prep_model_combo.set("StandardScaler")
+    prep_model_combo.grid(row=7, column=1)
+
+    # columns 0+1: Experiment
+    experiment_label = tk.Label(tab_name, text="Experiment options:")
+    experiment_label.grid(row=8, column=0, sticky="W")
+
+    max_time_label = tk.Label(tab_name, text="MAX_TIME (min):")
+    max_time_label.grid(row=9, column=0, sticky="W")
+    max_time_entry = tk.Entry(tab_name)
+    max_time_entry.insert(0, "1")
+    max_time_entry.grid(row=9, column=1)
+
+    fun_evals_label = tk.Label(tab_name, text="FUN_EVALS (int|inf):")
+    fun_evals_label.grid(row=10, column=0, sticky="W")
+    fun_evals_entry = tk.Entry(tab_name)
+    fun_evals_entry.insert(0, "30")
+    fun_evals_entry.grid(row=10, column=1)
+
+    init_size_label = tk.Label(tab_name, text="INIT_SIZE (int):")
+    init_size_label.grid(row=11, column=0, sticky="W")
+    init_size_entry = tk.Entry(tab_name)
+    init_size_entry.insert(0, "5")
+    init_size_entry.grid(row=11, column=1)
+
+    noise_label = tk.Label(tab_name, text="NOISE (bool):")
+    noise_label.grid(row=12, column=0, sticky="W")
+    noise_entry = tk.Entry(tab_name)
+    noise_entry.insert(0, "True")
+    noise_entry.grid(row=12, column=1)
+
+    lambda_min_max_label = tk.Label(tab_name, text="Lambda (nugget): min, max:")
+    lambda_min_max_label.grid(row=13, column=0, sticky="W")
+    lambda_min_max_tip = Hovertip(
+        lambda_min_max_label,
+        "The min max values for Kriging.\nIf set to 0, 0, no noise will be used in the surrogate.\nDefault is -3, 2.",
+    )
+    lambda_min_max_entry = tk.Entry(tab_name)
+    lambda_min_max_entry.insert(0, "1e-3, 1e2")
+    lambda_min_max_entry.grid(row=13, column=1)
+
+    seed_label = tk.Label(tab_name, text="seed (int):")
+    seed_label.grid(row=14, column=0, sticky="W")
+    seed_entry = tk.Entry(tab_name)
+    seed_entry.insert(0, "123")
+    seed_entry.grid(row=14, column=1)
+
+    # columns 0+1: Evaluation
+    experiment_label = tk.Label(tab_name, text="Evaluation options:")
+    experiment_label.grid(row=15, column=0, sticky="W")
+    metric_label = tk.Label(tab_name, text="metric (sklearn):")
+    metric_label.grid(row=16, column=0, sticky="W")
+    metric_combo = ttk.Combobox(tab_name, values=metric_levels)
+    metric_combo.set("accuracy_score")  # Default selection
+    metric_combo.grid(row=16, column=1)
+
+    metric_weights_label = tk.Label(tab_name, text="weights: y,time,mem (>0.0):")
+    metric_weights_label.grid(row=17, column=0, sticky="W")
+    metric_weights_tip = Hovertip(
+        metric_weights_label,
+        "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.",
+    )
+    metric_weights_entry = tk.Entry(tab_name)
+    metric_weights_entry.insert(0, "1000, 1, 1")
+    metric_weights_entry.grid(row=17, column=1)
+
+    horizon_label = tk.Label(tab_name, text="horizon (int):")
+    horizon_label.grid(row=18, column=0, sticky="W")
+    horizon_entry = tk.Entry(tab_name)
+    horizon_entry.insert(0, "10")
+    horizon_entry.grid(row=18, column=1)
+
+    oml_grace_period_label = tk.Label(tab_name, text="oml_grace_period (int|None):")
+    oml_grace_period_label.grid(row=19, column=0, sticky="W")
+    oml_grace_period_entry = tk.Entry(tab_name)
+    oml_grace_period_entry.insert(0, "None")
+    oml_grace_period_entry.grid(row=19, column=1)
+    oml_grace_period_tip = Hovertip(
+        oml_grace_period_label,
+        "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.",
+    )
+
+    # Experiment name:
+    experiment_label = tk.Label(tab_name, text="Experiment Name:")
+    experiment_label.grid(row=20, column=0, sticky="W")
+
+    prefix_label = tk.Label(tab_name, text="Name prefix (str):")
+    prefix_label.grid(row=21, column=0, sticky="W")
+    prefix_entry = tk.Entry(tab_name)
+    prefix_entry.insert(0, "00")
+    prefix_entry.grid(row=21, column=1)
+
+
 def update_hyperparams(event):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry
+    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry, core_model_combo
 
     destroy_entries(label)
     destroy_entries(default_entry)
@@ -473,147 +615,7 @@ notebook = ttk.Notebook(app)
 run_tab = ttk.Frame(notebook)
 notebook.add(run_tab, text="Binary classification")
 
-# colummns 0+1: Data
-
-core_model_label = tk.Label(run_tab, text="Core model:")
-core_model_label.grid(row=1, column=0, sticky="W")
-
-core_model_label = tk.Label(run_tab, text="Select core model:")
-core_model_label.grid(row=2, column=0, sticky="W")
-for filename in os.listdir("userModel"):
-    if filename.endswith(".json"):
-        core_model_names.append(os.path.splitext(filename)[0])
-core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
-core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
-core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
-core_model_combo.grid(row=2, column=1)
-update_hyperparams(None)
-
-data_label = tk.Label(run_tab, text="Data options:")
-data_label.grid(row=3, column=0, sticky="W")
-
-data_set_label = tk.Label(run_tab, text="Select data_set:")
-data_set_label.grid(row=4, column=0, sticky="W")
-data_set_tip = Hovertip(
-    data_set_label,
-    "The data set.\n User specified data sets must have the target value in the last column.\n They are assumed to be in the directory 'userData'.\n The data set can be a CSV file.",
-)
-data_set_values = river_binary_classification_datasets
-# get all *.csv files in the data directory "userData" and append them to the list of data_set_values
-data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
-data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
-data_set_combo.set("Phishing")  # Default selection
-data_set_combo.grid(row=4, column=1)
-
-n_total_label = tk.Label(run_tab, text="n_total (int|All):")
-n_total_label.grid(row=5, column=0, sticky="W")
-n_total_entry = tk.Entry(run_tab)
-n_total_entry.insert(0, "All")
-n_total_entry.grid(row=5, column=1, sticky="W")
-
-test_size_label = tk.Label(run_tab, text="test_size (perc.):")
-test_size_label.grid(row=6, column=0, sticky="W")
-test_size_entry = tk.Entry(run_tab)
-test_size_entry.insert(0, "0.30")
-test_size_entry.grid(row=6, column=1, sticky="W")
-
-prep_model_label = tk.Label(run_tab, text="Select preprocessing model")
-prep_model_label.grid(row=7, column=0, sticky="W")
-prep_model_combo = ttk.Combobox(run_tab, values=prep_model_values)
-prep_model_combo.set("StandardScaler")
-prep_model_combo.grid(row=7, column=1)
-
-# columns 0+1: Experiment
-experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=8, column=0, sticky="W")
-
-max_time_label = tk.Label(run_tab, text="MAX_TIME (min):")
-max_time_label.grid(row=9, column=0, sticky="W")
-max_time_entry = tk.Entry(run_tab)
-max_time_entry.insert(0, "1")
-max_time_entry.grid(row=9, column=1)
-
-fun_evals_label = tk.Label(run_tab, text="FUN_EVALS (int|inf):")
-fun_evals_label.grid(row=10, column=0, sticky="W")
-fun_evals_entry = tk.Entry(run_tab)
-fun_evals_entry.insert(0, "30")
-fun_evals_entry.grid(row=10, column=1)
-
-init_size_label = tk.Label(run_tab, text="INIT_SIZE (int):")
-init_size_label.grid(row=11, column=0, sticky="W")
-init_size_entry = tk.Entry(run_tab)
-init_size_entry.insert(0, "5")
-init_size_entry.grid(row=11, column=1)
-
-noise_label = tk.Label(run_tab, text="NOISE (bool):")
-noise_label.grid(row=12, column=0, sticky="W")
-noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "True")
-noise_entry.grid(row=12, column=1)
-
-lambda_min_max_label = tk.Label(run_tab, text="Lambda (nugget): min, max:")
-lambda_min_max_label.grid(row=13, column=0, sticky="W")
-lambda_min_max_tip = Hovertip(
-    lambda_min_max_label,
-    "The min max values for Kriging.\nIf set to 0, 0, no noise will be used in the surrogate.\nDefault is -3, 2.",
-)
-lambda_min_max_entry = tk.Entry(run_tab)
-lambda_min_max_entry.insert(0, "1e-3, 1e2")
-lambda_min_max_entry.grid(row=13, column=1)
-
-seed_label = tk.Label(run_tab, text="seed (int):")
-seed_label.grid(row=14, column=0, sticky="W")
-seed_entry = tk.Entry(run_tab)
-seed_entry.insert(0, "123")
-seed_entry.grid(row=14, column=1)
-
-# columns 0+1: Evaluation
-experiment_label = tk.Label(run_tab, text="Evaluation options:")
-experiment_label.grid(row=15, column=0, sticky="W")
-
-
-metric_label = tk.Label(run_tab, text="metric (sklearn):")
-metric_label.grid(row=16, column=0, sticky="W")
-metric_combo = ttk.Combobox(run_tab, values=metric_levels)
-metric_combo.set("accuracy_score")  # Default selection
-metric_combo.grid(row=16, column=1)
-
-metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
-metric_weights_label.grid(row=17, column=0, sticky="W")
-metric_weights_tip = Hovertip(
-    metric_weights_label,
-    "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.",
-)
-metric_weights_entry = tk.Entry(run_tab)
-metric_weights_entry.insert(0, "1000, 1, 1")
-metric_weights_entry.grid(row=17, column=1)
-
-horizon_label = tk.Label(run_tab, text="horizon (int):")
-horizon_label.grid(row=18, column=0, sticky="W")
-horizon_entry = tk.Entry(run_tab)
-horizon_entry.insert(0, "10")
-horizon_entry.grid(row=18, column=1)
-
-oml_grace_period_label = tk.Label(run_tab, text="oml_grace_period (int|None):")
-oml_grace_period_label.grid(row=19, column=0, sticky="W")
-oml_grace_period_entry = tk.Entry(run_tab)
-oml_grace_period_entry.insert(0, "None")
-oml_grace_period_entry.grid(row=19, column=1)
-oml_grace_period_tip = Hovertip(
-    oml_grace_period_label,
-    "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.",
-)
-
-# Experiment name:
-experiment_label = tk.Label(run_tab, text="Experiment Name:")
-experiment_label.grid(row=20, column=0, sticky="W")
-
-prefix_label = tk.Label(run_tab, text="Name prefix (str):")
-prefix_label.grid(row=21, column=0, sticky="W")
-prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "00")
-prefix_entry.grid(row=21, column=1)
-
+create_first_column(run_tab)
 
 # colummns 2-6: Model
 model_label = tk.Label(run_tab, text="Model options:")
@@ -696,21 +698,12 @@ run_button.grid(row=13, column=8, columnspan=2, sticky="E")
 
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
-# regression_tab = ttk.Frame(notebook)
-# notebook.add(regression_tab, text="Regression")
+regression_tab = ttk.Frame(notebook)
+notebook.add(regression_tab, text="Regression")
 
-# # colummns 0+1: Data
+# colummns 0+1: Data
 
-# regression_data_label = tk.Label(regression_tab, text="Data options:")
-# regression_data_label.grid(row=0, column=0, sticky="W")
-
-# # colummns 2+3: Model
-# regression_model_label = tk.Label(regression_tab, text="Model options:")
-# regression_model_label.grid(row=0, column=2, sticky="W")
-
-# # columns 4+5: Experiment
-# regression_experiment_label = tk.Label(regression_tab, text="Experiment options:")
-# regression_experiment_label.grid(row=0, column=4, sticky="W")
+create_first_column(regression_tab)
 
 
 # Create and pack the "Analysis" tab
@@ -758,8 +751,8 @@ parallel_plot_button.grid(row=7, column=1, columnspan=2, sticky="W")
 analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
 analysis_logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
 
-# regression_logo_label = tk.Label(regression_tab, image=logo_image)
-# regression_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
+regression_logo_label = tk.Label(regression_tab, image=logo_image)
+regression_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
 
 result_logo_label = tk.Label(result_tab, image=logo_image)
 result_logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
