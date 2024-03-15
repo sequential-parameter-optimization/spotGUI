@@ -78,6 +78,15 @@ upper_bound_entry = [None] * n_keys
 factor_level_entry = [None] * n_keys
 transform_entry = [None] * n_keys
 
+label_dict = {'label': [None] * n_keys,
+            'default_entry': [None] * n_keys,
+            'lower_bound_entry': [None] * n_keys,
+            'upper_bound_entry': [None] * n_keys,
+            'factor_level_entry': [None] * n_keys,
+            'transform_entry': [None] * n_keys}
+hyper_dict = {"run_tab": dict(label_dict),
+              "regression_tab": dict(label_dict)}
+
 
 def call_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
@@ -382,15 +391,16 @@ def load_experiment(tab_name):
 
 
 def update_entries_from_dict(dict, tab_name):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
-    n_keys = len(dict)
-    # Create a list of labels and entries with the same length as the number of keys in the dictionary
-    label = [None] * n_keys
-    default_entry = [None] * n_keys
-    lower_bound_entry = [None] * n_keys
-    upper_bound_entry = [None] * n_keys
-    factor_level_entry = [None] * n_keys
-    transform_entry = [None] * n_keys
+    global hyper_dict
+    # global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
+    # n_keys = len(dict)
+    # # Create a list of labels and entries with the same length as the number of keys in the dictionary
+    # label = [None] * n_keys
+    # default_entry = [None] * n_keys
+    # lower_bound_entry = [None] * n_keys
+    # upper_bound_entry = [None] * n_keys
+    # factor_level_entry = [None] * n_keys
+    # transform_entry = [None] * n_keys
     for i, (key, value) in enumerate(dict.items()):
         if (
             dict[key]["type"] == "int"
@@ -398,40 +408,61 @@ def update_entries_from_dict(dict, tab_name):
             or dict[key]["core_model_parameter_type"] == "bool"
         ):
             # Create a label with the key as text
-            label[i] = tk.Label(tab_name, text=key)
-            label[i].grid(row=i + 3, column=2, sticky="W")
-            label[i].update()
-            default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
-            default_entry[i].grid(row=i + 3, column=3, sticky="W")
-            default_entry[i].update()
-            # add the lower bound values in column 4
-            lower_bound_entry[i] = tk.Entry(tab_name)
-            lower_bound_entry[i].insert(0, dict[key]["lower"])
-            lower_bound_entry[i].grid(row=i + 3, column=4, sticky="W")
+            hyper_dict[tab_name]["label"][i] = tk.Label(tab_name, text=key)
+            hyper_dict[tab_name]["label"][i].grid(row=i + 3, column=2, sticky="W")
+            hyper_dict[tab_name]["label"][i].update()
+            # label[i] = tk.Label(tab_name, text=key)
+            # label[i].grid(row=i + 3, column=2, sticky="W")
+            # label[i].update()
+            hyper_dict[tab_name]["default_entry"][i] = tk.Label(tab_name, text=dict[key]["default"])
+            hyper_dict[tab_name]["default_entry"][i].grid(row=i + 3, column=3, sticky="W")
+            hyper_dict[tab_name]["default_entry"][i].update()
+            # default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
+            # default_entry[i].grid(row=i + 3, column=3, sticky="W")
+            # default_entry[i].update()
+            hyper_dict[tab_name]["lower_bound_entry"][i] = tk.Entry(tab_name)
+            hyper_dict[tab_name]["lower_bound_entry"][i].insert(0, dict[key]["lower"])
+            hyper_dict[tab_name]["lower_bound_entry"][i].grid(row=i + 3, column=4, sticky="W")
+            # lower_bound_entry[i] = tk.Entry(tab_name)
+            # lower_bound_entry[i].insert(0, dict[key]["lower"])
+            # lower_bound_entry[i].grid(row=i + 3, column=4, sticky="W")
             # add the upper bound values in column 5
-            upper_bound_entry[i] = tk.Entry(tab_name)
-            upper_bound_entry[i].insert(0, dict[key]["upper"])
-            upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
+            hyper_dict[tab_name]["upper_bound_entry"][i] = tk.Entry(tab_name)
+            hyper_dict[tab_name]["upper_bound_entry"][i].insert(0, dict[key]["upper"])
+            hyper_dict[tab_name]["upper_bound_entry"][i].grid(row=i + 3, column=5, sticky="W")
+            # upper_bound_entry[i] = tk.Entry(tab_name)
+            # upper_bound_entry[i].insert(0, dict[key]["upper"])
+            # upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
             # add the transformation values in column 6
-            transform_entry[i] = tk.Label(tab_name, text=dict[key]["transform"], padx=15)
-            transform_entry[i].grid(row=i + 3, column=6, sticky="W")
+            hyper_dict[tab_name]["transform_entry"][i] = tk.Label(tab_name, text=dict[key]["transform"], padx=15)
+            hyper_dict[tab_name]["transform_entry"][i].grid(row=i + 3, column=6, sticky="W")
+            # transform_entry[i] = tk.Label(tab_name, text=dict[key]["transform"], padx=15)
+            # transform_entry[i].grid(row=i + 3, column=6, sticky="W")
 
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             # Create a label with the key as text
-            label[i] = tk.Label(tab_name, text=key)
-            label[i].grid(row=i + 3, column=2, sticky="W")
-            label[i].update()
+            hyper_dict[tab_name]["label"][i] = tk.Label(tab_name, text=key)
+            hyper_dict[tab_name]["label"][i].grid(row=i + 3, column=2, sticky="W")
+            hyper_dict[tab_name]["label"][i].update()
+            # label[i] = tk.Label(tab_name, text=key)
+            # label[i].grid(row=i + 3, column=2, sticky="W")
+            # label[i].update()
             # Create an entry with the default value as the default text
-            default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
-            default_entry[i].grid(row=i + 3, column=3, sticky="W")
+            hyper_dict[tab_name]["default_entry"][i] = tk.Label(tab_name, text=dict[key]["default"])
+            hyper_dict[tab_name]["default_entry"][i].grid(row=i + 3, column=3, sticky="W")
+            # default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
+            # default_entry[i].grid(row=i + 3, column=3, sticky="W")
             # add the lower bound values in column 2
-            factor_level_entry[i] = tk.Entry(tab_name)
+            hyper_dict[tab_name]["factor_level_entry"][i] = tk.Entry(tab_name)
+            # factor_level_entry[i] = tk.Entry(tab_name)
             # TODO: replace " " with ", " for the levels
             # lvls = dict[key]["levels"]
             # factor_level_entry[i].insert(0, ", ".join(lvls))
             # generates several commas, if used several times
-            factor_level_entry[i].insert(0, dict[key]["levels"])
-            factor_level_entry[i].grid(row=i + 3, column=4, columnspan=2, sticky=tk.W + tk.E)
+            hyper_dict[tab_name]["factor_level_entry"][i].insert(0, dict[key]["levels"])
+            hyper_dict[tab_name]["factor_level_entry"][i].grid(row=i + 3, column=4, columnspan=2, sticky="W")
+            # factor_level_entry[i].insert(0, dict[key]["levels"])
+            # factor_level_entry[i].grid(row=i + 3, column=4, columnspan=2, sticky=tk.W + tk.E)
 
 
 def create_first_column(tab_name):
