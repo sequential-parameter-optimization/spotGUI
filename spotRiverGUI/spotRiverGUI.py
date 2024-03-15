@@ -1,26 +1,17 @@
 import pprint
 import webbrowser
-import sklearn.metrics
 import river.preprocessing
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 import river
 from river import forest, tree, linear_model
 from river import preprocessing
 import tkinter as tk
-from spotRiver.data.selector import data_selector
 import os
 import numpy as np
 from tkinter import ttk, StringVar
 from idlelib.tooltip import Hovertip
-import math
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
-from spotPython.hyperparameters.values import add_core_model_to_fun_control
-from spotPython.hyperparameters.values import (
-    set_control_hyperparameter_value,
-    get_var_type,
-    get_var_name,
-    get_bound_values,
-)
+from spotPython.hyperparameters.values import add_core_model_to_fun_control, set_control_hyperparameter_value
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
     contour_plot,
@@ -35,16 +26,22 @@ from spotGUI.tuner.spotRun import (
     load_file_dialog,
     get_report_file_name,
     get_result,
+    get_core_model_from_name,
+    get_n_total,
+    get_fun_evals,
+    get_lambda_min_max,
+    get_oml_grace_period,
+    get_prep_model,
+    get_metric_sklearn,
+    get_weights,
+    get_kriging_noise,
 )
 from spotPython.utils.eda import gen_design_table
 from spotPython.utils.convert import map_to_True_False
 from spotPython.utils.file import load_dict_from_file
 from spotRiver.fun.hyperriver import HyperRiver
 from spotRiver.data.selector import get_river_dataset_from_name
-from spotRiver.data.csvdataset import CSVDataset
-import pandas as pd
-from spotRiver.utils.data_conversion import rename_df_to_xy, split_df
-from spotPython.utils.metrics import get_metric_sign
+from spotRiver.utils.data_conversion import split_df
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
 core_model_names = [
@@ -67,11 +64,7 @@ metric_levels = [
     "roc_auc_score",
     "zero_one_loss",
 ]
-prep_model_values = ["AdaptiveStandardScaler",
-                     "MaxAbsScaler",
-                     "MinMaxScaler",
-                     "StandardScaler",
-                     "None"]
+prep_model_values = ["AdaptiveStandardScaler", "MaxAbsScaler", "MinMaxScaler", "StandardScaler", "None"]
 river_binary_classification_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
 spot_tuner = None
 rhd = RiverHyperDict()
@@ -89,63 +82,22 @@ def run_experiment(save_only=False, show_data_only=False):
     global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
 
     noise = map_to_True_False(noise_entry.get())
-    n_total = n_total_entry.get()
-    if n_total == "None" or n_total == "All":
-        n_total = None
-    else:
-        n_total = int(n_total)
-
-    fun_evals = fun_evals_entry.get()
-    if fun_evals == "None" or fun_evals == "inf":
-        fun_evals_val = math.inf
-    else:
-        fun_evals_val = int(fun_evals)
-
+    n_total = get_n_total(n_total_entry.get())
+    fun_evals_val = get_fun_evals(fun_evals_entry.get())
     seed = int(seed_entry.get())
     test_size = float(test_size_entry.get())
     core_model_name = core_model_combo.get()
-
-    # lambda (Kriging nugget)
-    lambda_min_max = lambda_min_max_entry.get()
-    # split the string into a list of strings
-    lbd = lambda_min_max.split(",")
-    # if len(lbd) != 2, set the lambda values to the default values
-    if len(lbd) != 2:
-        lbd = ["1e-6", "1e2"]
-
-    # Get the selected prep and core model and add it to the fun_control dictionary
-    prepmodel_name = prep_model_combo.get()
-    if prepmodel_name == "None":
-        prepmodel = None
-    else:
-        prepmodel = getattr(river.preprocessing, prepmodel_name)
-
-    # metrics
-    metric_name = metric_combo.get()
-    metric_sklearn = getattr(sklearn.metrics, metric_name)
-    weight_sgn = get_metric_sign(metric_name)
-    metric_weights = metric_weights_entry.get()
-
-    # split the string into a list of strings
-    mw = metric_weights.split(",")
-    # if len(mw) != 3, set the weights to the default values [1000, 1, 1]
-    if len(mw) != 3:
-        mw = ["1000", "1", "1"]
-    weights = np.array([weight_sgn * float(mw[0]), float(mw[1]), float(mw[2])])
-    # River specific parameters
-    oml_grace_period = oml_grace_period_entry.get()
-    if oml_grace_period == "None":
-        oml_grace_period = None
-    else:
-        oml_grace_period = int(oml_grace_period)
-
+    lbd_min, lbd_max = get_lambda_min_max(lambda_min_max_entry.get())
+    prepmodel = get_prep_model(prep_model_combo.get())
+    metric_sklearn = get_metric_sklearn(metric_combo.get())
+    weights = get_weights(metric_combo.get(), metric_weights_entry.get())
+    oml_grace_period = get_oml_grace_period(oml_grace_period_entry.get())
     data_set_name = data_set_combo.get()
     dataset, n_samples = get_river_dataset_from_name(
-        data_set_name=data_set_name, n_total=n_total,
-        river_datasets=river_binary_classification_datasets
+        data_set_name=data_set_name, n_total=n_total, river_datasets=river_binary_classification_datasets
     )
     train, test, n_samples = split_df(dataset=dataset, test_size=test_size, target_type="int", seed=seed)
-    
+
     TENSORBOARD_CLEAN = bool(tb_clean.get())
     tensorboard_start = bool(tb_start.get())
     tensorboard_stop = bool(tb_stop.get())
@@ -178,18 +130,6 @@ def run_experiment(save_only=False, show_data_only=False):
         log_level=50,
     )
 
-    core_model_module = core_model_name.split(".")[0]
-    coremodel = core_model_name.split(".")[1]
-    core_model_instance = getattr(getattr(river, core_model_module), coremodel)
-
-    add_core_model_to_fun_control(
-        core_model=core_model_instance,
-        fun_control=fun_control,
-        hyper_dict=RiverHyperDict,
-        filename=None,
-    )
-    dict = rhd.hyper_dict[coremodel]
-
     # TODO:
     # Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
     # > For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
@@ -209,15 +149,23 @@ def run_experiment(save_only=False, show_data_only=False):
     #                             core_model=river.tree.HoeffdingTreeRegressor,
     #                             hyper_dict=river_hyper_dict.RiverHyperDict)
 
+    coremodel, core_model_instance = get_core_model_from_name(core_model_name)
+    add_core_model_to_fun_control(
+        core_model=core_model_instance,
+        fun_control=fun_control,
+        hyper_dict=RiverHyperDict,
+        filename=None,
+    )
+    dict = rhd.hyper_dict[coremodel]
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int":
             set_control_hyperparameter_value(
                 fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
             )
         if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
-            # fun_control["core_model_hyper_dict"][key].update({"lower": int(lower_bound_entry[i].get())})
-            # fun_control["core_model_hyper_dict"][key].update({"upper": int(upper_bound_entry[i].get())})
-            set_control_hyperparameter_value(fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())])
+            set_control_hyperparameter_value(
+                fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
+            )
         if dict[key]["type"] == "float":
             set_control_hyperparameter_value(
                 fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
@@ -228,23 +176,12 @@ def run_experiment(save_only=False, show_data_only=False):
             fle = fle.split()
             set_control_hyperparameter_value(fun_control, key, fle)
             fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
-
     design_control = design_control_init(
         init_size=int(init_size_entry.get()),
         repeats=1,
     )
-
-    kriging_noise = True
-    lbd_min = float(lbd[0])
-    lbd_max = float(lbd[1])
-    if lbd_min < 0:
-        lbd_min = 1e-6
-    if lbd_max < 0:
-        lbd_max = 1e2
-    if lbd_min == 0.0 and lbd_max == 0.0:
-        kriging_noise = False
     surrogate_control = surrogate_control_init(
-        noise=kriging_noise,
+        noise=get_kriging_noise(lbd_min, lbd_max),
         n_theta=2,
         min_Lambda=lbd_min,
         max_Lambda=lbd_max,
@@ -252,11 +189,8 @@ def run_experiment(save_only=False, show_data_only=False):
     )
     print("surrogate_control in run_experiment():")
     pprint.pprint(surrogate_control)
-
     optimizer_control = optimizer_control_init()
-
     print(gen_design_table(fun_control))
-
     (
         SPOT_PKL_NAME,
         spot_tuner,
@@ -369,7 +303,7 @@ def load_experiment():
                     factor_level_entry[i].destroy()
 
         update_entries_from_dict(fun_control["core_model_hyper_dict"])
-        # Modeloptions
+
         core_model_combo.delete(0, tk.END)
         core_model_combo.set(fun_control["core_model_name"])
 
@@ -428,6 +362,7 @@ def show_result():
         # resize the text window to fit the content
         result_text.config(width=200, height=25)
 
+
 # def show_report():
 #     if fun_control is not None:
 #         REP_NAME = get_report_file_name(fun_control=fun_control)
@@ -465,12 +400,6 @@ def update_entries_from_dict(dict):
             label[i] = tk.Label(run_tab, text=key)
             label[i].grid(row=i + 3, column=2, sticky="W")
             label[i].update()
-            # # Create an entry with the default value as the default text
-            # default_entry[i] = tk.Entry(run_tab)
-            # default_entry[i].insert(0, dict[key]["default"])
-            # default_entry[i].grid(row=i + 2, column=3, sticky="W")
-            # default_entry[i].update()
-            # Create an entry with the default value as the default text
             default_entry[i] = tk.Label(run_tab, text=dict[key]["default"])
             default_entry[i].grid(row=i + 3, column=3, sticky="W")
             default_entry[i].update()
@@ -518,9 +447,8 @@ def update_hyperparams(event):
             if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
                 factor_level_entry[i].destroy()
 
-    # coremodel = core_model_combo.get()
-    core_model = core_model_combo.get()
-    coremodel = core_model.split(".")[1]
+    core_model_name = core_model_combo.get()
+    coremodel = core_model_name.split(".")[1]
     # if model is a key in rhd.hyper_dict set dict = rhd.hyper_dict[model]
     if coremodel in rhd.hyper_dict:
         dict = rhd.hyper_dict[coremodel]
@@ -556,7 +484,6 @@ for filename in os.listdir("userModel"):
     if filename.endswith(".json"):
         core_model_names.append(os.path.splitext(filename)[0])
 core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
-# core_model_combo.set("Select Model")  # Default selection
 core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
 core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
 core_model_combo.grid(row=2, column=1)
@@ -567,7 +494,10 @@ data_label.grid(row=3, column=0, sticky="W")
 
 data_set_label = tk.Label(run_tab, text="Select data_set:")
 data_set_label.grid(row=4, column=0, sticky="W")
-data_set_tip = Hovertip(data_set_label, "The data set.\n User specified data sets must have the target value in the last column.\n They are assumed to be in the directory 'userData'.\n The data set can be a CSV file.")
+data_set_tip = Hovertip(
+    data_set_label,
+    "The data set.\n User specified data sets must have the target value in the last column.\n They are assumed to be in the directory 'userData'.\n The data set can be a CSV file.",
+)
 data_set_values = river_binary_classification_datasets
 # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
 data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
@@ -623,7 +553,10 @@ noise_entry.grid(row=12, column=1)
 
 lambda_min_max_label = tk.Label(run_tab, text="Lambda (nugget): min, max:")
 lambda_min_max_label.grid(row=13, column=0, sticky="W")
-lambda_min_max_tip = Hovertip(lambda_min_max_label, "The min max values for Kriging.\nIf set to 0, 0, no noise will be used in the surrogate.\Default is -3, 2.")
+lambda_min_max_tip = Hovertip(
+    lambda_min_max_label,
+    "The min max values for Kriging.\nIf set to 0, 0, no noise will be used in the surrogate.\nDefault is -3, 2.",
+)
 lambda_min_max_entry = tk.Entry(run_tab)
 lambda_min_max_entry.insert(0, "1e-3, 1e2")
 lambda_min_max_entry.grid(row=13, column=1)
@@ -647,11 +580,13 @@ metric_combo.grid(row=16, column=1)
 
 metric_weights_label = tk.Label(run_tab, text="weights: y,time,mem (>0.0):")
 metric_weights_label.grid(row=17, column=0, sticky="W")
-metric_weights_tip = Hovertip(metric_weights_label, "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.")
+metric_weights_tip = Hovertip(
+    metric_weights_label,
+    "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.",
+)
 metric_weights_entry = tk.Entry(run_tab)
 metric_weights_entry.insert(0, "1000, 1, 1")
 metric_weights_entry.grid(row=17, column=1)
-
 
 horizon_label = tk.Label(run_tab, text="horizon (int):")
 horizon_label.grid(row=18, column=0, sticky="W")
@@ -664,7 +599,10 @@ oml_grace_period_label.grid(row=19, column=0, sticky="W")
 oml_grace_period_entry = tk.Entry(run_tab)
 oml_grace_period_entry.insert(0, "None")
 oml_grace_period_entry.grid(row=19, column=1)
-oml_grace_period_tip = Hovertip(oml_grace_period_label, "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.")
+oml_grace_period_tip = Hovertip(
+    oml_grace_period_label,
+    "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.",
+)
 
 # Experiment name:
 experiment_label = tk.Label(run_tab, text="Experiment Name:")
@@ -696,19 +634,6 @@ model_label.grid(row=2, column=5, sticky="W")
 model_label = tk.Label(run_tab, text="Transformation:")
 model_label.grid(row=2, column=6, sticky="W")
 
-# core_model_label = tk.Label(run_tab, text="Core model")
-# core_model_label.grid(row=1, column=2, sticky="W")
-# for filename in os.listdir("userModel"):
-#     if filename.endswith(".json"):
-#         core_model_names.append(os.path.splitext(filename)[0])
-# core_model_combo = ttk.Combobox(run_tab, values=core_model_names)
-# # core_model_combo.set("Select Model")  # Default selection
-# core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
-# core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
-# core_model_combo.grid(row=1, column=3)
-# update_hyperparams(None)
-
-
 # column 8: Save and run button
 tb_label = tk.Label(run_tab, text="Tensorboard options:")
 tb_label.grid(row=1, column=8, sticky="W")
@@ -717,7 +642,10 @@ tb_clean = tk.BooleanVar()
 tb_clean.set(True)
 tf_clean_checkbutton = tk.Checkbutton(run_tab, text="TENSORBOARD_CLEAN", variable=tb_clean)
 tf_clean_checkbutton.grid(row=2, column=8, sticky="W")
-tf_clean_tip = Hovertip(tf_clean_checkbutton, "If checked, tensorboard's run dir will be moved to runs_OLD\nand a new, empty runs dir will be used.\nDoes only work with Unix systems.")
+tf_clean_tip = Hovertip(
+    tf_clean_checkbutton,
+    "If checked, tensorboard's run dir will be moved to runs_OLD\nand a new, empty runs dir will be used.\nDoes only work with Unix systems.",
+)
 
 tb_start = tk.BooleanVar()
 tb_start.set(True)
@@ -738,13 +666,17 @@ tb_link.grid(row=5, column=9, sticky="W")
 spot_doc = tk.Label(run_tab, text="Open SPOT documentation:")
 spot_doc.grid(row=6, column=8, sticky="W")
 spot_link = tk.Label(run_tab, text="spotPython documentation", fg="blue", cursor="hand2")
-spot_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/"))
+spot_link.bind(
+    "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/")
+)
 spot_link.grid(row=6, column=9, sticky="W")
 
 spot_river_doc = tk.Label(run_tab, text="Open spotRiver documentation:")
 spot_river_doc.grid(row=7, column=8, sticky="W")
 spot_river_link = tk.Label(run_tab, text="spotRiver documentation", fg="blue", cursor="hand2")
-spot_river_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/"))
+spot_river_link.bind(
+    "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/")
+)
 spot_river_link.grid(row=7, column=9, sticky="W")
 
 river_doc = tk.Label(run_tab, text="Open River documentation:")
@@ -811,9 +743,7 @@ plot_confusion_matrices_button = ttk.Button(
 )
 plot_confusion_matrices_button.grid(row=3, column=1, columnspan=2, sticky="W")
 
-plot_rocs_button = ttk.Button(
-    analysis_tab, text="ROC", command=call_plot_rocs
-)
+plot_rocs_button = ttk.Button(analysis_tab, text="ROC", command=call_plot_rocs)
 plot_rocs_button.grid(row=4, column=1, columnspan=2, sticky="W")
 
 importance_plot_button = ttk.Button(analysis_tab, text="Importance plot", command=call_importance_plot)
