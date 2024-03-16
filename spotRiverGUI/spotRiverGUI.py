@@ -52,6 +52,7 @@ classification_core_model_names = [
     "tree.ExtremelyFastDecisionTreeClassifier",
     "tree.HoeffdingTreeClassifier",
     "tree.HoeffdingAdaptiveTreeClassifier",
+    "tree.SGTClassifier",
 ]
 classification_metric_levels = [
     "accuracy_score",
@@ -77,7 +78,8 @@ regression_core_model_names = ["linear_model.LinearRegression",
                                "tree.HoeffdingTreeRegressor",
                                "forest.AMFRegressor",
                                "forest.ARFRegressor",
-                               "tree.HoeffdingAdaptiveTreeRegressor"]
+                               "tree.HoeffdingAdaptiveTreeRegressor",
+                               "tree.SGTRegressor",]
 
 regression_metric_levels = ["mean_absolute_error",
                             "explained_variance_score",
