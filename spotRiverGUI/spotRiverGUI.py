@@ -71,21 +71,22 @@ spot_tuner = None
 rhd = RiverHyperDict()
 #
 n_keys = 25
-label = [None] * n_keys
-default_entry = [None] * n_keys
-lower_bound_entry = [None] * n_keys
-upper_bound_entry = [None] * n_keys
-factor_level_entry = [None] * n_keys
-transform_entry = [None] * n_keys
+# label = [None] * n_keys
+# default_entry = [None] * n_keys
+# lower_bound_entry = [None] * n_keys
+# upper_bound_entry = [None] * n_keys
+# factor_level_entry = [None] * n_keys
+# transform_entry = [None] * n_keys
 
-label_dict = {'label': [None] * n_keys,
-            'default_entry': [None] * n_keys,
-            'lower_bound_entry': [None] * n_keys,
-            'upper_bound_entry': [None] * n_keys,
-            'factor_level_entry': [None] * n_keys,
-            'transform_entry': [None] * n_keys}
-hyper_dict = {"run_tab": dict(label_dict),
-              "regression_tab": dict(label_dict)}
+label_dict = {
+    "label": [None] * n_keys,
+    "default_entry": [None] * n_keys,
+    "lower_bound_entry": [None] * n_keys,
+    "upper_bound_entry": [None] * n_keys,
+    "factor_level_entry": [None] * n_keys,
+    "transform_entry": [None] * n_keys,
+}
+hyper_dict = {"run_tab": dict(label_dict), "regression_tab": dict(label_dict)}
 
 
 def call_compare_tuned_default():
@@ -160,8 +161,8 @@ def show_result():
 #         file.close()
 
 
-def run_experiment(save_only=False, show_data_only=False):
-    global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, noise_entry, lambda_min_max_entry, data_set_combo, tb_clean, tb_start, tb_stop, init_size_entry
+def run_experiment(tab_task, save_only=False, show_data_only=False):
+    global spot_tuner, fun_control, hyper_dict, noise_entry, lambda_min_max_entry, data_set_combo, tb_clean, tb_start, tb_stop, init_size_entry
 
     noise = map_to_True_False(noise_entry.get())
     n_total = get_n_total(n_total_entry.get())
@@ -242,18 +243,34 @@ def run_experiment(save_only=False, show_data_only=False):
     for i, (key, value) in enumerate(dict.items()):
         if dict[key]["type"] == "int":
             set_control_hyperparameter_value(
-                fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
+                fun_control,
+                key,
+                [
+                    int(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
+                    int(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
+                ]
+                # fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
             )
         if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
             set_control_hyperparameter_value(
-                fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
+                fun_control,
+                key,
+                [
+                    int(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
+                    int(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
+                ],
             )
         if dict[key]["type"] == "float":
             set_control_hyperparameter_value(
-                fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
+                fun_control,
+                key,
+                [
+                    float(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
+                    float(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
+                ],
             )
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
-            fle = factor_level_entry[i].get()
+            fle = hyper_dict[tab_task.name]["factor_level_entry"][i].get()
             # convert the string to a list of strings
             fle = fle.split()
             set_control_hyperparameter_value(fun_control, key, fle)
@@ -302,8 +319,8 @@ def run_experiment(save_only=False, show_data_only=False):
         print("\nExperiment failed. No result saved.")
 
 
-def load_experiment(tab_name):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, spot_tuner, fun_control, data_set_combo
+def load_experiment(tab_task):
+    global spot_tuner, fun_control, data_set_combo
     filename = load_file_dialog()
     if filename:
         spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
@@ -373,24 +390,26 @@ def load_experiment(tab_name):
         oml_grace_period_entry.delete(0, tk.END)
         oml_grace_period_entry.insert(0, str(fun_control["oml_grace_period"]))
 
-        destroy_entries(label)
-        destroy_entries(default_entry)
-        destroy_entries(lower_bound_entry)
-        destroy_entries(upper_bound_entry)
-        destroy_entries(transform_entry)
+        destroy_entries(hyper_dict[tab_task.name]["label"])
+        destroy_entries(hyper_dict[tab_task.name]["default_entry"])
+        destroy_entries(hyper_dict[tab_task.name]["lower_bound_entry"])
+        destroy_entries(hyper_dict[tab_task.name]["upper_bound_entry"])
+        destroy_entries(hyper_dict[tab_task.name]["transform_entry"])
 
-        if factor_level_entry is not None:
-            for i in range(len(factor_level_entry)):
-                if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                    factor_level_entry[i].destroy()
+        if hyper_dict[tab_task.name]["factor_level_entry"] is not None:
+            for i in range(len(hyper_dict[tab_task.name]["factor_level_entry"])):
+                if hyper_dict[tab_task.name]["factor_level_entry"][i] is not None and not isinstance(
+                    hyper_dict[tab_task.name]["factor_level_entry"][i], StringVar
+                ):
+                    hyper_dict[tab_task.name]["factor_level_entry"][i].destroy()
 
-        update_entries_from_dict(fun_control["core_model_hyper_dict"], tab_name=tab_name)
+        update_entries_from_dict(fun_control["core_model_hyper_dict"], tab_task=tab_task)
 
         core_model_combo.delete(0, tk.END)
         core_model_combo.set(fun_control["core_model_name"])
 
 
-def update_entries_from_dict(dict, tab_name):
+def update_entries_from_dict(dict, tab_task):
     global hyper_dict
     # global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
     # n_keys = len(dict)
@@ -408,84 +427,87 @@ def update_entries_from_dict(dict, tab_name):
             or dict[key]["core_model_parameter_type"] == "bool"
         ):
             # Create a label with the key as text
-            hyper_dict[tab_name]["label"][i] = tk.Label(tab_name, text=key)
-            hyper_dict[tab_name]["label"][i].grid(row=i + 3, column=2, sticky="W")
-            hyper_dict[tab_name]["label"][i].update()
-            # label[i] = tk.Label(tab_name, text=key)
+            hyper_dict[tab_task.name]["label"][i] = tk.Label(tab_task, text=key)
+            hyper_dict[tab_task.name]["label"][i].grid(row=i + 3, column=2, sticky="W")
+            hyper_dict[tab_task.name]["label"][i].update()
+            # label[i] = tk.Label(tab_task, text=key)
             # label[i].grid(row=i + 3, column=2, sticky="W")
             # label[i].update()
-            hyper_dict[tab_name]["default_entry"][i] = tk.Label(tab_name, text=dict[key]["default"])
-            hyper_dict[tab_name]["default_entry"][i].grid(row=i + 3, column=3, sticky="W")
-            hyper_dict[tab_name]["default_entry"][i].update()
-            # default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
+            hyper_dict[tab_task.name]["default_entry"][i] = tk.Label(tab_task, text=dict[key]["default"])
+            hyper_dict[tab_task.name]["default_entry"][i].grid(row=i + 3, column=3, sticky="W")
+            hyper_dict[tab_task.name]["default_entry"][i].update()
+            # default_entry[i] = tk.Label(tab_task, text=dict[key]["default"])
             # default_entry[i].grid(row=i + 3, column=3, sticky="W")
             # default_entry[i].update()
-            hyper_dict[tab_name]["lower_bound_entry"][i] = tk.Entry(tab_name)
-            hyper_dict[tab_name]["lower_bound_entry"][i].insert(0, dict[key]["lower"])
-            hyper_dict[tab_name]["lower_bound_entry"][i].grid(row=i + 3, column=4, sticky="W")
-            # lower_bound_entry[i] = tk.Entry(tab_name)
+            hyper_dict[tab_task.name]["lower_bound_entry"][i] = tk.Entry(tab_task)
+            hyper_dict[tab_task.name]["lower_bound_entry"][i].insert(0, dict[key]["lower"])
+            hyper_dict[tab_task.name]["lower_bound_entry"][i].grid(row=i + 3, column=4, sticky="W")
+            # lower_bound_entry[i] = tk.Entry(tab_task)
             # lower_bound_entry[i].insert(0, dict[key]["lower"])
             # lower_bound_entry[i].grid(row=i + 3, column=4, sticky="W")
             # add the upper bound values in column 5
-            hyper_dict[tab_name]["upper_bound_entry"][i] = tk.Entry(tab_name)
-            hyper_dict[tab_name]["upper_bound_entry"][i].insert(0, dict[key]["upper"])
-            hyper_dict[tab_name]["upper_bound_entry"][i].grid(row=i + 3, column=5, sticky="W")
-            # upper_bound_entry[i] = tk.Entry(tab_name)
+            hyper_dict[tab_task.name]["upper_bound_entry"][i] = tk.Entry(tab_task)
+            hyper_dict[tab_task.name]["upper_bound_entry"][i].insert(0, dict[key]["upper"])
+            hyper_dict[tab_task.name]["upper_bound_entry"][i].grid(row=i + 3, column=5, sticky="W")
+            # upper_bound_entry[i] = tk.Entry(tab_task)
             # upper_bound_entry[i].insert(0, dict[key]["upper"])
             # upper_bound_entry[i].grid(row=i + 3, column=5, sticky="W")
             # add the transformation values in column 6
-            hyper_dict[tab_name]["transform_entry"][i] = tk.Label(tab_name, text=dict[key]["transform"], padx=15)
-            hyper_dict[tab_name]["transform_entry"][i].grid(row=i + 3, column=6, sticky="W")
-            # transform_entry[i] = tk.Label(tab_name, text=dict[key]["transform"], padx=15)
+            hyper_dict[tab_task.name]["transform_entry"][i] = tk.Label(tab_task, text=dict[key]["transform"], padx=15)
+            hyper_dict[tab_task.name]["transform_entry"][i].grid(row=i + 3, column=6, sticky="W")
+            # transform_entry[i] = tk.Label(tab_task, text=dict[key]["transform"], padx=15)
             # transform_entry[i].grid(row=i + 3, column=6, sticky="W")
 
         if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
             # Create a label with the key as text
-            hyper_dict[tab_name]["label"][i] = tk.Label(tab_name, text=key)
-            hyper_dict[tab_name]["label"][i].grid(row=i + 3, column=2, sticky="W")
-            hyper_dict[tab_name]["label"][i].update()
-            # label[i] = tk.Label(tab_name, text=key)
+            hyper_dict[tab_task.name]["label"][i] = tk.Label(tab_task, text=key)
+            hyper_dict[tab_task.name]["label"][i].grid(row=i + 3, column=2, sticky="W")
+            hyper_dict[tab_task.name]["label"][i].update()
+            # label[i] = tk.Label(tab_task, text=key)
             # label[i].grid(row=i + 3, column=2, sticky="W")
             # label[i].update()
             # Create an entry with the default value as the default text
-            hyper_dict[tab_name]["default_entry"][i] = tk.Label(tab_name, text=dict[key]["default"])
-            hyper_dict[tab_name]["default_entry"][i].grid(row=i + 3, column=3, sticky="W")
-            # default_entry[i] = tk.Label(tab_name, text=dict[key]["default"])
+            hyper_dict[tab_task.name]["default_entry"][i] = tk.Label(tab_task, text=dict[key]["default"])
+            hyper_dict[tab_task.name]["default_entry"][i].grid(row=i + 3, column=3, sticky="W")
+            # default_entry[i] = tk.Label(tab_task, text=dict[key]["default"])
             # default_entry[i].grid(row=i + 3, column=3, sticky="W")
             # add the lower bound values in column 2
-            hyper_dict[tab_name]["factor_level_entry"][i] = tk.Entry(tab_name)
-            # factor_level_entry[i] = tk.Entry(tab_name)
+            hyper_dict[tab_task.name]["factor_level_entry"][i] = tk.Entry(tab_task)
+            # factor_level_entry[i] = tk.Entry(tab_task)
             # TODO: replace " " with ", " for the levels
             # lvls = dict[key]["levels"]
             # factor_level_entry[i].insert(0, ", ".join(lvls))
             # generates several commas, if used several times
-            hyper_dict[tab_name]["factor_level_entry"][i].insert(0, dict[key]["levels"])
-            hyper_dict[tab_name]["factor_level_entry"][i].grid(row=i + 3, column=4, columnspan=2, sticky="W")
+            hyper_dict[tab_task.name]["factor_level_entry"][i].insert(0, dict[key]["levels"])
+            hyper_dict[tab_task.name]["factor_level_entry"][i].grid(row=i + 3, column=4, columnspan=2, sticky="W")
             # factor_level_entry[i].insert(0, dict[key]["levels"])
             # factor_level_entry[i].grid(row=i + 3, column=4, columnspan=2, sticky=tk.W + tk.E)
 
 
-def create_first_column(tab_name):
-    global core_model_combo, noise_entry, n_total_entry, test_size_entry, prep_model_combo, fun_evals_entry, max_time_entry, horizon_entry, oml_grace_period_entry, metric_combo, metric_weights_entry, seed_entry, prefix_entry,lambda_min_max_entry, data_set_combo, init_size_entry
+def create_first_column(tab_task):
+    global core_model_combo, noise_entry, n_total_entry, test_size_entry, prep_model_combo, fun_evals_entry, max_time_entry, horizon_entry, oml_grace_period_entry, metric_combo, metric_weights_entry, seed_entry, prefix_entry, lambda_min_max_entry, data_set_combo, init_size_entry
+
+    print(f"tab_task in create_first_column(): {tab_task.name}")
+
     # colummns 0+1: Data
-    core_model_label = tk.Label(tab_name, text="Core model:")
+    core_model_label = tk.Label(tab_task, text="Core model:")
     core_model_label.grid(row=1, column=0, sticky="W")
 
-    core_model_label = tk.Label(tab_name, text="Select core model:")
+    core_model_label = tk.Label(tab_task, text="Select core model:")
     core_model_label.grid(row=2, column=0, sticky="W")
     for filename in os.listdir("userModel"):
         if filename.endswith(".json"):
             core_model_names.append(os.path.splitext(filename)[0])
-    core_model_combo = ttk.Combobox(tab_name, values=core_model_names)
+    core_model_combo = ttk.Combobox(tab_task, values=core_model_names)
     core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
-    core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
+    core_model_combo.bind("<<ComboboxSelected>>", lambda e: update_hyperparams(event=None, tab_task=tab_task))
     core_model_combo.grid(row=2, column=1)
-    update_hyperparams(None, tab_name=tab_name)
+    update_hyperparams(event=None, tab_task=tab_task)
 
-    data_label = tk.Label(tab_name, text="Data options:")
+    data_label = tk.Label(tab_task, text="Data options:")
     data_label.grid(row=3, column=0, sticky="W")
 
-    data_set_label = tk.Label(tab_name, text="Select data_set:")
+    data_set_label = tk.Label(tab_task, text="Select data_set:")
     data_set_label.grid(row=4, column=0, sticky="W")
     data_set_tip = Hovertip(
         data_set_label,
@@ -494,100 +516,100 @@ def create_first_column(tab_name):
     data_set_values = river_binary_classification_datasets
     # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
     data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
-    data_set_combo = ttk.Combobox(tab_name, values=data_set_values)
+    data_set_combo = ttk.Combobox(tab_task, values=data_set_values)
     data_set_combo.set("Phishing")  # Default selection
     data_set_combo.grid(row=4, column=1)
 
-    n_total_label = tk.Label(tab_name, text="n_total (int|All):")
+    n_total_label = tk.Label(tab_task, text="n_total (int|All):")
     n_total_label.grid(row=5, column=0, sticky="W")
-    n_total_entry = tk.Entry(tab_name)
+    n_total_entry = tk.Entry(tab_task)
     n_total_entry.insert(0, "All")
     n_total_entry.grid(row=5, column=1, sticky="W")
 
-    test_size_label = tk.Label(tab_name, text="test_size (perc.):")
+    test_size_label = tk.Label(tab_task, text="test_size (perc.):")
     test_size_label.grid(row=6, column=0, sticky="W")
-    test_size_entry = tk.Entry(tab_name)
+    test_size_entry = tk.Entry(tab_task)
     test_size_entry.insert(0, "0.30")
     test_size_entry.grid(row=6, column=1, sticky="W")
 
-    prep_model_label = tk.Label(tab_name, text="Select preprocessing model")
+    prep_model_label = tk.Label(tab_task, text="Select preprocessing model")
     prep_model_label.grid(row=7, column=0, sticky="W")
-    prep_model_combo = ttk.Combobox(tab_name, values=prep_model_values)
+    prep_model_combo = ttk.Combobox(tab_task, values=prep_model_values)
     prep_model_combo.set("StandardScaler")
     prep_model_combo.grid(row=7, column=1)
 
     # columns 0+1: Experiment
-    experiment_label = tk.Label(tab_name, text="Experiment options:")
+    experiment_label = tk.Label(tab_task, text="Experiment options:")
     experiment_label.grid(row=8, column=0, sticky="W")
 
-    max_time_label = tk.Label(tab_name, text="MAX_TIME (min):")
+    max_time_label = tk.Label(tab_task, text="MAX_TIME (min):")
     max_time_label.grid(row=9, column=0, sticky="W")
-    max_time_entry = tk.Entry(tab_name)
+    max_time_entry = tk.Entry(tab_task)
     max_time_entry.insert(0, "1")
     max_time_entry.grid(row=9, column=1)
 
-    fun_evals_label = tk.Label(tab_name, text="FUN_EVALS (int|inf):")
+    fun_evals_label = tk.Label(tab_task, text="FUN_EVALS (int|inf):")
     fun_evals_label.grid(row=10, column=0, sticky="W")
-    fun_evals_entry = tk.Entry(tab_name)
+    fun_evals_entry = tk.Entry(tab_task)
     fun_evals_entry.insert(0, "30")
     fun_evals_entry.grid(row=10, column=1)
 
-    init_size_label = tk.Label(tab_name, text="INIT_SIZE (int):")
+    init_size_label = tk.Label(tab_task, text="INIT_SIZE (int):")
     init_size_label.grid(row=11, column=0, sticky="W")
-    init_size_entry = tk.Entry(tab_name)
+    init_size_entry = tk.Entry(tab_task)
     init_size_entry.insert(0, "5")
     init_size_entry.grid(row=11, column=1)
 
-    noise_label = tk.Label(tab_name, text="NOISE (bool):")
+    noise_label = tk.Label(tab_task, text="NOISE (bool):")
     noise_label.grid(row=12, column=0, sticky="W")
-    noise_entry = tk.Entry(tab_name)
+    noise_entry = tk.Entry(tab_task)
     noise_entry.insert(0, "True")
     noise_entry.grid(row=12, column=1)
 
-    lambda_min_max_label = tk.Label(tab_name, text="Lambda (nugget): min, max:")
+    lambda_min_max_label = tk.Label(tab_task, text="Lambda (nugget): min, max:")
     lambda_min_max_label.grid(row=13, column=0, sticky="W")
     lambda_min_max_tip = Hovertip(
         lambda_min_max_label,
         "The min max values for Kriging.\nIf set to 0, 0, no noise will be used in the surrogate.\nDefault is -3, 2.",
     )
-    lambda_min_max_entry = tk.Entry(tab_name)
+    lambda_min_max_entry = tk.Entry(tab_task)
     lambda_min_max_entry.insert(0, "1e-3, 1e2")
     lambda_min_max_entry.grid(row=13, column=1)
 
-    seed_label = tk.Label(tab_name, text="seed (int):")
+    seed_label = tk.Label(tab_task, text="seed (int):")
     seed_label.grid(row=14, column=0, sticky="W")
-    seed_entry = tk.Entry(tab_name)
+    seed_entry = tk.Entry(tab_task)
     seed_entry.insert(0, "123")
     seed_entry.grid(row=14, column=1)
 
     # columns 0+1: Evaluation
-    experiment_label = tk.Label(tab_name, text="Evaluation options:")
+    experiment_label = tk.Label(tab_task, text="Evaluation options:")
     experiment_label.grid(row=15, column=0, sticky="W")
-    metric_label = tk.Label(tab_name, text="metric (sklearn):")
+    metric_label = tk.Label(tab_task, text="metric (sklearn):")
     metric_label.grid(row=16, column=0, sticky="W")
-    metric_combo = ttk.Combobox(tab_name, values=metric_levels)
+    metric_combo = ttk.Combobox(tab_task, values=metric_levels)
     metric_combo.set("accuracy_score")  # Default selection
     metric_combo.grid(row=16, column=1)
 
-    metric_weights_label = tk.Label(tab_name, text="weights: y,time,mem (>0.0):")
+    metric_weights_label = tk.Label(tab_task, text="weights: y,time,mem (>0.0):")
     metric_weights_label.grid(row=17, column=0, sticky="W")
     metric_weights_tip = Hovertip(
         metric_weights_label,
         "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.",
     )
-    metric_weights_entry = tk.Entry(tab_name)
+    metric_weights_entry = tk.Entry(tab_task)
     metric_weights_entry.insert(0, "1000, 1, 1")
     metric_weights_entry.grid(row=17, column=1)
 
-    horizon_label = tk.Label(tab_name, text="horizon (int):")
+    horizon_label = tk.Label(tab_task, text="horizon (int):")
     horizon_label.grid(row=18, column=0, sticky="W")
-    horizon_entry = tk.Entry(tab_name)
+    horizon_entry = tk.Entry(tab_task)
     horizon_entry.insert(0, "10")
     horizon_entry.grid(row=18, column=1)
 
-    oml_grace_period_label = tk.Label(tab_name, text="oml_grace_period (int|None):")
+    oml_grace_period_label = tk.Label(tab_task, text="oml_grace_period (int|None):")
     oml_grace_period_label.grid(row=19, column=0, sticky="W")
-    oml_grace_period_entry = tk.Entry(tab_name)
+    oml_grace_period_entry = tk.Entry(tab_task)
     oml_grace_period_entry.insert(0, "None")
     oml_grace_period_entry.grid(row=19, column=1)
     oml_grace_period_tip = Hovertip(
@@ -596,45 +618,46 @@ def create_first_column(tab_name):
     )
 
     # Experiment name:
-    experiment_label = tk.Label(tab_name, text="Experiment Name:")
+    experiment_label = tk.Label(tab_task, text="Experiment Name:")
     experiment_label.grid(row=20, column=0, sticky="W")
 
-    prefix_label = tk.Label(tab_name, text="Name prefix (str):")
+    prefix_label = tk.Label(tab_task, text="Name prefix (str):")
     prefix_label.grid(row=21, column=0, sticky="W")
-    prefix_entry = tk.Entry(tab_name)
+    prefix_entry = tk.Entry(tab_task)
     prefix_entry.insert(0, "00")
     prefix_entry.grid(row=21, column=1)
 
 
-def create_second_column(tab_name):
+def create_second_column(tab_task):
     # colummns 2-6: Model
-    model_label = tk.Label(tab_name, text="Model options:")
+    model_label = tk.Label(tab_task, text="Model options:")
     model_label.grid(row=1, column=2, sticky="W")
 
-    hparam_label = tk.Label(tab_name, text="Hyperparameters:")
+    hparam_label = tk.Label(tab_task, text="Hyperparameters:")
     hparam_label.grid(row=2, column=2, sticky="W")
 
-    model_label = tk.Label(tab_name, text="Default values:")
+    model_label = tk.Label(tab_task, text="Default values:")
     model_label.grid(row=2, column=3, sticky="W")
 
-    model_label = tk.Label(tab_name, text="Lower bounds:")
+    model_label = tk.Label(tab_task, text="Lower bounds:")
     model_label.grid(row=2, column=4, sticky="W")
 
-    model_label = tk.Label(tab_name, text="Upper bounds:")
+    model_label = tk.Label(tab_task, text="Upper bounds:")
     model_label.grid(row=2, column=5, sticky="W")
 
-    model_label = tk.Label(tab_name, text="Transformation:")
+    model_label = tk.Label(tab_task, text="Transformation:")
     model_label.grid(row=2, column=6, sticky="W")
 
 
-def create_third_column(tab_name):
+def create_third_column(tab_task):
+    global tb_clean, tb_start, tb_stop
     # column 8: Save and run button
-    tb_label = tk.Label(tab_name, text="Tensorboard options:")
+    tb_label = tk.Label(tab_task, text="Tensorboard options:")
     tb_label.grid(row=1, column=8, sticky="W")
 
     tb_clean = tk.BooleanVar()
     tb_clean.set(True)
-    tf_clean_checkbutton = tk.Checkbutton(tab_name, text="TENSORBOARD_CLEAN", variable=tb_clean)
+    tf_clean_checkbutton = tk.Checkbutton(tab_task, text="TENSORBOARD_CLEAN", variable=tb_clean)
     tf_clean_checkbutton.grid(row=2, column=8, sticky="W")
     tf_clean_tip = Hovertip(
         tf_clean_checkbutton,
@@ -643,65 +666,73 @@ def create_third_column(tab_name):
 
     tb_start = tk.BooleanVar()
     tb_start.set(True)
-    tf_start_checkbutton = tk.Checkbutton(tab_name, text="Start TENSORBOARD", variable=tb_start)
+    tf_start_checkbutton = tk.Checkbutton(tab_task, text="Start TENSORBOARD", variable=tb_start)
     tf_start_checkbutton.grid(row=3, column=8, sticky="W")
 
     tb_stop = tk.BooleanVar()
     tb_stop.set(True)
-    tf_stop_checkbutton = tk.Checkbutton(tab_name, text="Stop TENSORBOARD", variable=tb_stop)
+    tf_stop_checkbutton = tk.Checkbutton(tab_task, text="Stop TENSORBOARD", variable=tb_stop)
     tf_stop_checkbutton.grid(row=4, column=8, sticky="W")
 
-    tb_text = tk.Label(tab_name, text="Open browser logging:")
+    tb_text = tk.Label(tab_task, text="Open browser logging:")
     tb_text.grid(row=5, column=8, sticky="W")
-    tb_link = tk.Label(tab_name, text="http://localhost:6006", fg="blue", cursor="hand2")
+    tb_link = tk.Label(tab_task, text="http://localhost:6006", fg="blue", cursor="hand2")
     tb_link.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
     tb_link.grid(row=5, column=9, sticky="W")
 
-    spot_doc = tk.Label(tab_name, text="Open SPOT documentation:")
+    spot_doc = tk.Label(tab_task, text="Open SPOT documentation:")
     spot_doc.grid(row=6, column=8, sticky="W")
-    spot_link = tk.Label(tab_name, text="spotPython documentation", fg="blue", cursor="hand2")
+    spot_link = tk.Label(tab_task, text="spotPython documentation", fg="blue", cursor="hand2")
     spot_link.bind(
         "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/")
     )
     spot_link.grid(row=6, column=9, sticky="W")
 
-    spot_river_doc = tk.Label(tab_name, text="Open spotRiver documentation:")
+    spot_river_doc = tk.Label(tab_task, text="Open spotRiver documentation:")
     spot_river_doc.grid(row=7, column=8, sticky="W")
-    spot_river_link = tk.Label(tab_name, text="spotRiver documentation", fg="blue", cursor="hand2")
+    spot_river_link = tk.Label(tab_task, text="spotRiver documentation", fg="blue", cursor="hand2")
     spot_river_link.bind(
         "<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/")
     )
     spot_river_link.grid(row=7, column=9, sticky="W")
 
-    river_doc = tk.Label(tab_name, text="Open River documentation:")
+    river_doc = tk.Label(tab_task, text="Open River documentation:")
     river_doc.grid(row=8, column=8, sticky="W")
-    river_doc_link = tk.Label(tab_name, text="River documentation", fg="blue", cursor="hand2")
+    river_doc_link = tk.Label(tab_task, text="River documentation", fg="blue", cursor="hand2")
     river_doc_link.bind("<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/"))
     river_doc_link.grid(row=8, column=9, sticky="W")
 
-    data_button = ttk.Button(tab_name, text="Show Data", command=lambda: run_experiment(show_data_only=True))
+    data_button = ttk.Button(
+        tab_task, text="Show Data", command=lambda: run_experiment(tab_task=tab_task, show_data_only=True)
+    )
     data_button.grid(row=10, column=8, columnspan=2, sticky="E")
-    load_button = ttk.Button(tab_name, text="Load Experiment", command=lambda: load_experiment(tab_name=tab_name))
+    load_button = ttk.Button(tab_task, text="Load Experiment", command=lambda: load_experiment(tab_task=tab_task))
     load_button.grid(row=11, column=8, columnspan=2, sticky="E")
-    save_button = ttk.Button(tab_name, text="Save Experiment", command=lambda: run_experiment(save_only=True))
+    save_button = ttk.Button(
+        tab_task, text="Save Experiment", command=lambda: run_experiment(tab_task=tab_task, save_only=True)
+    )
     save_button.grid(row=12, column=8, columnspan=2, sticky="E")
-    run_button = ttk.Button(tab_name, text="Run Experiment", command=run_experiment)
+    run_button = ttk.Button(tab_task, text="Run Experiment", command=lambda: run_experiment(tab_task=tab_task))
     run_button.grid(row=13, column=8, columnspan=2, sticky="E")
 
 
-def update_hyperparams(event, tab_name=None):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry, transform_entry, core_model_combo
+def update_hyperparams(event, tab_task):
+    global hyper_dict, core_model_combo
 
-    destroy_entries(label)
-    destroy_entries(default_entry)
-    destroy_entries(lower_bound_entry)
-    destroy_entries(upper_bound_entry)
-    destroy_entries(transform_entry)
+    print(f"tab_task in update_hyperparams(): {tab_task.name}")
 
-    if factor_level_entry is not None:
-        for i in range(len(factor_level_entry)):
-            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                factor_level_entry[i].destroy()
+    destroy_entries(hyper_dict[tab_task.name]["label"])
+    destroy_entries(hyper_dict[tab_task.name]["default_entry"])
+    destroy_entries(hyper_dict[tab_task.name]["lower_bound_entry"])
+    destroy_entries(hyper_dict[tab_task.name]["upper_bound_entry"])
+    destroy_entries(hyper_dict[tab_task.name]["transform_entry"])
+
+    if hyper_dict[tab_task.name]["factor_level_entry"] is not None:
+        for i in range(len(hyper_dict[tab_task.name]["factor_level_entry"])):
+            if hyper_dict[tab_task.name]["factor_level_entry"][i] is not None and not isinstance(
+                hyper_dict[tab_task.name]["factor_level_entry"][i], StringVar
+            ):
+                hyper_dict[tab_task.name]["factor_level_entry"][i].destroy()
 
     core_model_name = core_model_combo.get()
     coremodel = core_model_name.split(".")[1]
@@ -710,7 +741,7 @@ def update_hyperparams(event, tab_name=None):
         dict = rhd.hyper_dict[coremodel]
     else:
         dict = load_dict_from_file(coremodel, dirname="userModel")
-    update_entries_from_dict(dict, tab_name=tab_name)
+    update_entries_from_dict(dict, tab_task=tab_task)
 
 
 # Create the main application window
@@ -718,8 +749,10 @@ app = tk.Tk()
 app.title("Spot River Hyperparameter Tuning GUI")
 
 # generate a list of StringVar() objects of size n_keys
-for i in range(n_keys):
-    factor_level_entry.append(StringVar())
+# TODO
+# for i in range(n_keys):
+#     hyper_dict["run_tab"]["factor_level_entry"].append(StringVar())
+#     hyper_dict["regression_tab"]["factor_level_entry"].append(StringVar())
 
 # Create a notebook (tabbed interface)
 notebook = ttk.Notebook(app)
@@ -727,15 +760,17 @@ notebook = ttk.Notebook(app)
 
 # Create and pack entry fields for the "Run" tab
 run_tab = ttk.Frame(notebook)
+run_tab.name = "run_tab"
 notebook.add(run_tab, text="Binary classification")
-create_first_column(run_tab)
-create_second_column(run_tab)
-create_third_column(run_tab)
+create_first_column(tab_task=run_tab)
+create_second_column(tab_task=run_tab)
+create_third_column(tab_task=run_tab)
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 regression_tab = ttk.Frame(notebook)
+regression_tab.name = "regression_tab"
 notebook.add(regression_tab, text="Regression")
-create_first_column(regression_tab)
+# create_first_column(regression_tab)
 # create_second_column(regression_tab)
 # create_third_column(regression_tab)
 
