@@ -110,6 +110,7 @@ task_entries = dict(core_model_names=[],
                     n_total_entry=None,
                     test_size_entry=None,
                     prep_model_combo=None,
+                    max_sp_entry=None,
                     max_time_entry=None,
                     fun_evals_entry=None,
                     init_size_entry=None,
@@ -244,6 +245,7 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     noise = map_to_True_False(task_dict[tab_task.name]["noise_entry"].get())
     n_total = get_n_total(task_dict[tab_task.name]["n_total_entry"].get())
     fun_evals_val = get_fun_evals(task_dict[tab_task.name]["fun_evals_entry"].get())
+    max_surrogate_points = int(task_dict[tab_task.name]["max_sp_entry"].get())
     seed = int(task_dict[tab_task.name]["seed_entry"].get())
     test_size = float(task_dict[tab_task.name]["test_size_entry"].get())
     core_model_name = task_dict[tab_task.name]["core_model_combo"].get()
@@ -275,6 +277,7 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
         fun_evals=fun_evals_val,
         fun_repeats=1,
         horizon=int(task_dict[tab_task.name]["horizon_entry"].get()),
+        max_surrogate_points=max_surrogate_points,
         max_time=float(task_dict[tab_task.name]["max_time_entry"].get()),
         metric_sklearn=metric_sklearn,
         noise=noise,
@@ -443,6 +446,9 @@ def load_experiment(tab_task):
 
         task_dict[tab_task.name]["noise_entry"].delete(0, tk.END)
         task_dict[tab_task.name]["noise_entry"].insert(0, str(fun_control["noise"]))
+
+        task_dict[tab_task.name]["max_sp_entry"].delete(0, tk.END)
+        task_dict[tab_task.name]["max_sp_entry"].insert(0, str(fun_control["max_surrogate_points"]))
 
         task_dict[tab_task.name]["seed_entry"].delete(0, tk.END)
         task_dict[tab_task.name]["seed_entry"].insert(0, str(fun_control["seed"]))
@@ -659,23 +665,29 @@ def create_first_column(tab_task):
     task_dict[tab_task.name]["lambda_min_max_entry"].insert(0, "1e-3, 1e2")
     task_dict[tab_task.name]["lambda_min_max_entry"].grid(row=13, column=1)
 
+    max_sp_label = tk.Label(tab_task, text="max surrogate points (int):")
+    max_sp_label.grid(row=14, column=0, sticky="W")
+    task_dict[tab_task.name]["max_sp_entry"] = tk.Entry(tab_task)
+    task_dict[tab_task.name]["max_sp_entry"].insert(0, "30")
+    task_dict[tab_task.name]["max_sp_entry"].grid(row=14, column=1)
+
     seed_label = tk.Label(tab_task, text="seed (int):")
-    seed_label.grid(row=14, column=0, sticky="W")
+    seed_label.grid(row=15, column=0, sticky="W")
     task_dict[tab_task.name]["seed_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["seed_entry"].insert(0, "123")
-    task_dict[tab_task.name]["seed_entry"].grid(row=14, column=1)
+    task_dict[tab_task.name]["seed_entry"].grid(row=15, column=1)
 
     # columns 0+1: Evaluation
     experiment_label = tk.Label(tab_task, text="Evaluation options:")
-    experiment_label.grid(row=15, column=0, sticky="W")
+    experiment_label.grid(row=16, column=0, sticky="W")
     metric_label = tk.Label(tab_task, text="metric (sklearn):")
-    metric_label.grid(row=16, column=0, sticky="W")
+    metric_label.grid(row=17, column=0, sticky="W")
     task_dict[tab_task.name]["metric_combo"] = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["metric_levels"])
     task_dict[tab_task.name]["metric_combo"].set(task_dict[tab_task.name]["metric_levels"][0])  # Default selection, the first metric in the list
     task_dict[tab_task.name]["metric_combo"].grid(row=16, column=1)
 
     metric_weights_label = tk.Label(tab_task, text="weights: y,time,mem (>0.0):")
-    metric_weights_label.grid(row=17, column=0, sticky="W")
+    metric_weights_label.grid(row=18, column=0, sticky="W")
     metric_weights_tip = Hovertip(
         metric_weights_label,
         "The weights for metric, time, and memory.\nAll values are positive real numbers and should be separated by a comma.\nIf the metric is to be minimized, the weights will be automatically adopted.\nIf '1,0,0' is selected, only the metric is considered.\nIf '1000,1,1' is selected, the metric is considered 1000 times more important than time and memory.",
@@ -685,13 +697,13 @@ def create_first_column(tab_task):
     task_dict[tab_task.name]["metric_weights_entry"].grid(row=17, column=1)
 
     horizon_label = tk.Label(tab_task, text="horizon (int):")
-    horizon_label.grid(row=18, column=0, sticky="W")
+    horizon_label.grid(row=19, column=0, sticky="W")
     task_dict[tab_task.name]["horizon_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["horizon_entry"].insert(0, "10")
     task_dict[tab_task.name]["horizon_entry"].grid(row=18, column=1)
 
     oml_grace_period_label = tk.Label(tab_task, text="oml_grace_period (int|None):")
-    oml_grace_period_label.grid(row=19, column=0, sticky="W")
+    oml_grace_period_label.grid(row=20, column=0, sticky="W")
     task_dict[tab_task.name]["oml_grace_period_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["oml_grace_period_entry"].insert(0, "None")
     task_dict[tab_task.name]["oml_grace_period_entry"].grid(row=19, column=1)
@@ -702,10 +714,10 @@ def create_first_column(tab_task):
 
     # Experiment name:
     experiment_label = tk.Label(tab_task, text="Experiment Name:")
-    experiment_label.grid(row=20, column=0, sticky="W")
+    experiment_label.grid(row=21, column=0, sticky="W")
 
     prefix_label = tk.Label(tab_task, text="Name prefix (str):")
-    prefix_label.grid(row=21, column=0, sticky="W")
+    prefix_label.grid(row=22, column=0, sticky="W")
     task_dict[tab_task.name]["prefix_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["prefix_entry"].insert(0, "00")
     task_dict[tab_task.name]["prefix_entry"].grid(row=21, column=1)
