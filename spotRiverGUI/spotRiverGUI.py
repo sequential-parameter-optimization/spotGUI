@@ -44,15 +44,15 @@ from spotRiver.data.selector import get_river_dataset_from_name
 from spotRiver.utils.data_conversion import split_df
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
-core_model_names = [
+classification_core_model_names = [
     "forest.AMFClassifier",
     "forest.ARFClassifier",
+    "linear_model.LogisticRegression",
     "tree.ExtremelyFastDecisionTreeClassifier",
     "tree.HoeffdingTreeClassifier",
     "tree.HoeffdingAdaptiveTreeClassifier",
-    "linear_model.LogisticRegression",
 ]
-metric_levels = [
+classification_metric_levels = [
     "accuracy_score",
     "cohen_kappa_score",
     "f1_score",
@@ -65,8 +65,33 @@ metric_levels = [
     "roc_auc_score",
     "zero_one_loss",
 ]
-prep_model_values = ["AdaptiveStandardScaler", "MaxAbsScaler", "MinMaxScaler", "StandardScaler", "None"]
 river_binary_classification_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
+
+regression_core_model_names = ["forest.AMFRegressor", "forest.ARFRegressor", "linear_model.LinearRegression",
+                               "tree.HoeffdingTreeRegressor", "tree.HoeffdingAdaptiveTreeRegressor"]
+
+regression_metric_levels = ["explained_variance_score", "max_error", "mean_absolute_error", "mean_squared_error",
+                            "root_mean_squared_error", "mean_squared_log_error", "root_mean_squared_log_error",
+                            "median_absolute_error", "r2_score", "mean_poisson_deviance", "mean_gamma_deviance",
+                            "mean_absolute_percentage_error", "d2_absolute_error_score", "d2_pinball_score",
+                            "d2_tweedie_score"]
+
+river_regression_datasets = ["AirlinePassengers", "Bikes", "ChickWeights", "Taxis", "TrumpApproval", "WaterFlow", "WebTraffic"]
+
+task_dict = {"run_tab": dict(core_model_names=[], metric_levels=[], datasets=[]),
+             "regression_tab": dict(core_model_names=[], metric_levels=[], datasets=[])}
+
+task_dict["run_tab"]["core_model_names"] = classification_core_model_names
+task_dict["run_tab"]["metric_levels"] = classification_metric_levels
+task_dict["run_tab"]["datasets"] = river_binary_classification_datasets
+task_dict["regression_tab"]["core_model_names"] = regression_core_model_names
+task_dict["regression_tab"]["metric_levels"] = regression_metric_levels
+task_dict["regression_tab"]["datasets"] = river_regression_datasets
+
+prep_model_values = ["AdaptiveStandardScaler", "MaxAbsScaler", "MinMaxScaler", "StandardScaler", "None"]
+
+pprint.pprint(task_dict)
+
 spot_tuner = None
 rhd = RiverHyperDict()
 #
@@ -177,7 +202,7 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     oml_grace_period = get_oml_grace_period(oml_grace_period_entry.get())
     data_set_name = data_set_combo.get()
     dataset, n_samples = get_river_dataset_from_name(
-        data_set_name=data_set_name, n_total=n_total, river_datasets=river_binary_classification_datasets
+        data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
     )
     train, test, n_samples = split_df(dataset=dataset, test_size=test_size, target_type="int", seed=seed)
 
@@ -485,7 +510,7 @@ def update_entries_from_dict(dict, tab_task):
 
 
 def create_first_column(tab_task):
-    global core_model_combo, noise_entry, n_total_entry, test_size_entry, prep_model_combo, fun_evals_entry, max_time_entry, horizon_entry, oml_grace_period_entry, metric_combo, metric_weights_entry, seed_entry, prefix_entry, lambda_min_max_entry, data_set_combo, init_size_entry
+    global hyper_dict, core_model_combo, noise_entry, n_total_entry, test_size_entry, prep_model_combo, fun_evals_entry, max_time_entry, horizon_entry, oml_grace_period_entry, metric_combo, metric_weights_entry, seed_entry, prefix_entry, lambda_min_max_entry, data_set_combo, init_size_entry
 
     print(f"tab_task in create_first_column(): {tab_task.name}")
 
@@ -497,8 +522,8 @@ def create_first_column(tab_task):
     core_model_label.grid(row=2, column=0, sticky="W")
     for filename in os.listdir("userModel"):
         if filename.endswith(".json"):
-            core_model_names.append(os.path.splitext(filename)[0])
-    core_model_combo = ttk.Combobox(tab_task, values=core_model_names)
+            task_dict[tab_task.name]["core_model_names"].append(os.path.splitext(filename)[0])
+    core_model_combo = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["core_model_names"])
     core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
     core_model_combo.bind("<<ComboboxSelected>>", lambda e: update_hyperparams(event=None, tab_task=tab_task))
     core_model_combo.grid(row=2, column=1)
@@ -513,7 +538,7 @@ def create_first_column(tab_task):
         data_set_label,
         "The data set.\n User specified data sets must have the target value in the last column.\n They are assumed to be in the directory 'userData'.\n The data set can be a CSV file.",
     )
-    data_set_values = river_binary_classification_datasets
+    data_set_values = task_dict[tab_task.name]["datasets"]
     # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
     data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
     data_set_combo = ttk.Combobox(tab_task, values=data_set_values)
@@ -587,7 +612,7 @@ def create_first_column(tab_task):
     experiment_label.grid(row=15, column=0, sticky="W")
     metric_label = tk.Label(tab_task, text="metric (sklearn):")
     metric_label.grid(row=16, column=0, sticky="W")
-    metric_combo = ttk.Combobox(tab_task, values=metric_levels)
+    metric_combo = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["metric_levels"])
     metric_combo.set("accuracy_score")  # Default selection
     metric_combo.grid(row=16, column=1)
 
