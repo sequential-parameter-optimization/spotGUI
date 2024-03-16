@@ -45,9 +45,9 @@ from spotRiver.utils.data_conversion import split_df
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
 classification_core_model_names = [
+    "linear_model.LogisticRegression",
     "forest.AMFClassifier",
     "forest.ARFClassifier",
-    "linear_model.LogisticRegression",
     "tree.ExtremelyFastDecisionTreeClassifier",
     "tree.HoeffdingTreeClassifier",
     "tree.HoeffdingAdaptiveTreeClassifier",
@@ -65,25 +65,46 @@ classification_metric_levels = [
     "roc_auc_score",
     "zero_one_loss",
 ]
-river_binary_classification_datasets = ["Bananas", "CreditCard", "Elec2", "Higgs", "HTTP", "Phishing"]
+river_binary_classification_datasets = ["Phishing",
+                                        "Bananas",
+                                        "CreditCard",
+                                        "Elec2",
+                                        "Higgs",
+                                        "HTTP"]
 
-regression_core_model_names = ["forest.AMFRegressor", "forest.ARFRegressor", "linear_model.LinearRegression",
-                               "tree.HoeffdingTreeRegressor", "tree.HoeffdingAdaptiveTreeRegressor"]
+regression_core_model_names = ["linear_model.LinearRegression",
+                               "tree.HoeffdingTreeRegressor",
+                               "forest.AMFRegressor",
+                               "forest.ARFRegressor",
+                               "tree.HoeffdingAdaptiveTreeRegressor"]
 
-regression_metric_levels = ["explained_variance_score", "max_error", "mean_absolute_error", "mean_squared_error",
-                            "root_mean_squared_error", "mean_squared_log_error", "root_mean_squared_log_error",
-                            "median_absolute_error", "r2_score", "mean_poisson_deviance", "mean_gamma_deviance",
-                            "mean_absolute_percentage_error", "d2_absolute_error_score", "d2_pinball_score",
+regression_metric_levels = ["mean_absolute_error",
+                            "explained_variance_score",
+                            "max_error",
+                            "mean_squared_error",
+                            "root_mean_squared_error",
+                            "mean_squared_log_error",
+                            "root_mean_squared_log_error",
+                            "median_absolute_error",
+                            "r2_score",
+                            "mean_poisson_deviance",
+                            "mean_gamma_deviance",
+                            "mean_absolute_percentage_error",
+                            "d2_absolute_error_score",
+                            "d2_pinball_score",
                             "d2_tweedie_score"]
 
-river_regression_datasets = ["AirlinePassengers", "Bikes", "ChickWeights", "Taxis", "TrumpApproval", "WaterFlow", "WebTraffic"]
+river_regression_datasets = ["ChickWeights",
+                             "Bikes",
+                             "Taxis",
+                             "TrumpApproval"]
 
-task_dict = {"run_tab": dict(core_model_names=[], metric_levels=[], datasets=[]),
+task_dict = {"classification_tab": dict(core_model_names=[], metric_levels=[], datasets=[]),
              "regression_tab": dict(core_model_names=[], metric_levels=[], datasets=[])}
 
-task_dict["run_tab"]["core_model_names"] = classification_core_model_names
-task_dict["run_tab"]["metric_levels"] = classification_metric_levels
-task_dict["run_tab"]["datasets"] = river_binary_classification_datasets
+task_dict["classification_tab"]["core_model_names"] = classification_core_model_names
+task_dict["classification_tab"]["metric_levels"] = classification_metric_levels
+task_dict["classification_tab"]["datasets"] = river_binary_classification_datasets
 task_dict["regression_tab"]["core_model_names"] = regression_core_model_names
 task_dict["regression_tab"]["metric_levels"] = regression_metric_levels
 task_dict["regression_tab"]["datasets"] = river_regression_datasets
@@ -111,7 +132,7 @@ label_dict = {
     "factor_level_entry": [None] * n_keys,
     "transform_entry": [None] * n_keys,
 }
-hyper_dict = {"run_tab": dict(label_dict), "regression_tab": dict(label_dict)}
+hyper_dict = {"classification_tab": dict(label_dict), "regression_tab": dict(label_dict)}
 
 
 def call_compare_tuned_default():
@@ -201,6 +222,8 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     weights = get_weights(metric_combo.get(), metric_weights_entry.get())
     oml_grace_period = get_oml_grace_period(oml_grace_period_entry.get())
     data_set_name = data_set_combo.get()
+    print(f"data_set_name: {data_set_name}")
+    print(f"task_dict[tab_task.name]['datasets']: {task_dict[tab_task.name]['datasets']}")
     dataset, n_samples = get_river_dataset_from_name(
         data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
     )
@@ -428,14 +451,14 @@ def load_experiment(tab_task):
                 ):
                     hyper_dict[tab_task.name]["factor_level_entry"][i].destroy()
 
-        update_entries_from_dict(fun_control["core_model_hyper_dict"], tab_task=tab_task)
+        update_entries_from_dict(fun_control["core_model_hyper_dict"], tab_task=tab_task, hyper_dict=hyper_dict)
 
         core_model_combo.delete(0, tk.END)
         core_model_combo.set(fun_control["core_model_name"])
 
 
-def update_entries_from_dict(dict, tab_task):
-    global hyper_dict
+def update_entries_from_dict(dict, tab_task, hyper_dict):
+    # global hyper_dict
     # global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry
     # n_keys = len(dict)
     # # Create a list of labels and entries with the same length as the number of keys in the dictionary
@@ -524,7 +547,7 @@ def create_first_column(tab_task):
         if filename.endswith(".json"):
             task_dict[tab_task.name]["core_model_names"].append(os.path.splitext(filename)[0])
     core_model_combo = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["core_model_names"])
-    core_model_combo.set("tree.HoeffdingTreeClassifier")  # Default selection
+    core_model_combo.set(task_dict[tab_task.name]["core_model_names"][0])  # Default selection, the first core model in the list
     core_model_combo.bind("<<ComboboxSelected>>", lambda e: update_hyperparams(event=None, tab_task=tab_task))
     core_model_combo.grid(row=2, column=1)
     update_hyperparams(event=None, tab_task=tab_task)
@@ -542,7 +565,7 @@ def create_first_column(tab_task):
     # get all *.csv files in the data directory "userData" and append them to the list of data_set_values
     data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
     data_set_combo = ttk.Combobox(tab_task, values=data_set_values)
-    data_set_combo.set("Phishing")  # Default selection
+    data_set_combo.set(data_set_values[0])  # Default selection, the first data set in the list
     data_set_combo.grid(row=4, column=1)
 
     n_total_label = tk.Label(tab_task, text="n_total (int|All):")
@@ -613,7 +636,7 @@ def create_first_column(tab_task):
     metric_label = tk.Label(tab_task, text="metric (sklearn):")
     metric_label.grid(row=16, column=0, sticky="W")
     metric_combo = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["metric_levels"])
-    metric_combo.set("accuracy_score")  # Default selection
+    metric_combo.set(task_dict[tab_task.name]["metric_levels"][0])  # Default selection, the first metric in the list
     metric_combo.grid(row=16, column=1)
 
     metric_weights_label = tk.Label(tab_task, text="weights: y,time,mem (>0.0):")
@@ -766,7 +789,7 @@ def update_hyperparams(event, tab_task):
         dict = rhd.hyper_dict[coremodel]
     else:
         dict = load_dict_from_file(coremodel, dirname="userModel")
-    update_entries_from_dict(dict, tab_task=tab_task)
+    update_entries_from_dict(dict, tab_task=tab_task, hyper_dict=hyper_dict)
 
 
 # Create the main application window
@@ -776,7 +799,7 @@ app.title("Spot River Hyperparameter Tuning GUI")
 # generate a list of StringVar() objects of size n_keys
 # TODO
 # for i in range(n_keys):
-#     hyper_dict["run_tab"]["factor_level_entry"].append(StringVar())
+#     hyper_dict["classification_tab"]["factor_level_entry"].append(StringVar())
 #     hyper_dict["regression_tab"]["factor_level_entry"].append(StringVar())
 
 # Create a notebook (tabbed interface)
@@ -784,18 +807,18 @@ notebook = ttk.Notebook(app)
 # notebook.pack(fill='both', expand=True)
 
 # Create and pack entry fields for the "Run" tab
-run_tab = ttk.Frame(notebook)
-run_tab.name = "run_tab"
-notebook.add(run_tab, text="Binary classification")
-create_first_column(tab_task=run_tab)
-create_second_column(tab_task=run_tab)
-create_third_column(tab_task=run_tab)
+classification_tab = ttk.Frame(notebook)
+classification_tab.name = "classification_tab"
+notebook.add(classification_tab, text="Binary classification")
+create_first_column(tab_task=classification_tab)
+create_second_column(tab_task=classification_tab)
+create_third_column(tab_task=classification_tab)
 
 # TODO: Create and pack the "Regression" tab with a button to run the analysis
 regression_tab = ttk.Frame(notebook)
 regression_tab.name = "regression_tab"
 notebook.add(regression_tab, text="Regression")
-# create_first_column(regression_tab)
+create_first_column(tab_task=regression_tab)
 # create_second_column(regression_tab)
 # create_third_column(regression_tab)
 
@@ -810,7 +833,7 @@ notebook.pack()
 
 # Add the Logo image in both tabs
 logo_image = tk.PhotoImage(file="images/spotlogo.png")
-logo_label = tk.Label(run_tab, image=logo_image)
+logo_label = tk.Label(classification_tab, image=logo_image)
 logo_label.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="W")
 
 analysis_label = tk.Label(analysis_tab, text="Analysis options:")
