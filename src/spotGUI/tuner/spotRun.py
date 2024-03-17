@@ -252,7 +252,7 @@ def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
         metric=fun_control["metric_sklearn"],
     )
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],
@@ -304,7 +304,7 @@ def plot_rocs(spot_tuner, fun_control, show=False) -> None:
         metric=fun_control["metric_sklearn"],
     )
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],
@@ -376,7 +376,7 @@ def all_compare_tuned_default(spot_tuner, fun_control) -> None:
         metric=fun_control["metric_sklearn"],
     )
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control)
+    model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],
