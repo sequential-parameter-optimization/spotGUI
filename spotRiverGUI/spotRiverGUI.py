@@ -684,7 +684,7 @@ def create_first_column(tab_task):
     metric_label.grid(row=17, column=0, sticky="W")
     task_dict[tab_task.name]["metric_combo"] = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["metric_levels"])
     task_dict[tab_task.name]["metric_combo"].set(task_dict[tab_task.name]["metric_levels"][0])  # Default selection, the first metric in the list
-    task_dict[tab_task.name]["metric_combo"].grid(row=16, column=1)
+    task_dict[tab_task.name]["metric_combo"].grid(row=17, column=1)
 
     metric_weights_label = tk.Label(tab_task, text="weights: y,time,mem (>0.0):")
     metric_weights_label.grid(row=18, column=0, sticky="W")
@@ -694,19 +694,19 @@ def create_first_column(tab_task):
     )
     task_dict[tab_task.name]["metric_weights_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["metric_weights_entry"].insert(0, "1000, 1, 1")
-    task_dict[tab_task.name]["metric_weights_entry"].grid(row=17, column=1)
+    task_dict[tab_task.name]["metric_weights_entry"].grid(row=18, column=1)
 
     horizon_label = tk.Label(tab_task, text="horizon (int):")
     horizon_label.grid(row=19, column=0, sticky="W")
     task_dict[tab_task.name]["horizon_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["horizon_entry"].insert(0, "10")
-    task_dict[tab_task.name]["horizon_entry"].grid(row=18, column=1)
+    task_dict[tab_task.name]["horizon_entry"].grid(row=19, column=1)
 
     oml_grace_period_label = tk.Label(tab_task, text="oml_grace_period (int|None):")
     oml_grace_period_label.grid(row=20, column=0, sticky="W")
     task_dict[tab_task.name]["oml_grace_period_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["oml_grace_period_entry"].insert(0, "None")
-    task_dict[tab_task.name]["oml_grace_period_entry"].grid(row=19, column=1)
+    task_dict[tab_task.name]["oml_grace_period_entry"].grid(row=20, column=1)
     oml_grace_period_tip = Hovertip(
         oml_grace_period_label,
         "The grace period for online learning (OML).\n If None, the grace period is set to the horizon.",
@@ -720,7 +720,7 @@ def create_first_column(tab_task):
     prefix_label.grid(row=22, column=0, sticky="W")
     task_dict[tab_task.name]["prefix_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["prefix_entry"].insert(0, "00")
-    task_dict[tab_task.name]["prefix_entry"].grid(row=21, column=1)
+    task_dict[tab_task.name]["prefix_entry"].grid(row=22, column=1)
 
 
 def create_second_column(tab_task):
