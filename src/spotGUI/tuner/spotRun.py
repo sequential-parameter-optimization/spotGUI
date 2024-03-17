@@ -324,6 +324,7 @@ def plot_rocs(spot_tuner, fun_control, show=False) -> None:
 
 
 def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
+    print(vars(spot_tuner))
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
     model_spot = get_one_core_model_from_X(X, fun_control)
@@ -336,6 +337,7 @@ def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
         oml_grace_period=fun_control["oml_grace_period"],
         metric=fun_control["metric_sklearn"],
     )
+
     X_start = get_default_hyperparameters_as_array(fun_control)
     model_default = get_one_core_model_from_X(X_start, fun_control)
     df_eval_default, df_true_default = eval_oml_horizon(
