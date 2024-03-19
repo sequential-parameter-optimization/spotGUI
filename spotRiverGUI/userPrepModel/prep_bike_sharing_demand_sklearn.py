@@ -26,7 +26,7 @@ print('Prep model for bike sharing demand prediction')
 #     # prepmodel = compose.Select('humidity', 'temp', 'feel_temp', 'windspeed')
 #     num = compose.Select("x11", "x9", "x10", "x12")
 #     num += (
-#          feature_extraction.TargetAgg(by=["x4"], how=stats.Mean())
+#          feature_extraction.TargetAgg(by=["x3"], how=stats.Mean())
 #     )
 #     num = num | preprocessing.StandardScaler()
 #     cat = compose.SelectType(str) | preprocessing.OneHotEncoder()
@@ -34,7 +34,13 @@ print('Prep model for bike sharing demand prediction')
 #     return prepmodel
 
 def set_prep_model():
-    num = compose.SelectType(numbers.Number) | preprocessing.StandardScaler()
+    num = compose.Select("x11", "x9", "x10", "x12") | preprocessing.StandardScaler()
     cat = compose.SelectType(str) | preprocessing.OneHotEncoder()
     prepmodel = (num + cat)
     return prepmodel
+
+
+# def set_prep_model():
+#     prepmodel = preprocessing.MinMaxScaler()
+#     return prepmodel
+
