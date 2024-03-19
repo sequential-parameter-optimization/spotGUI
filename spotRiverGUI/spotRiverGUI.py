@@ -1,3 +1,4 @@
+import sys
 import pprint
 import webbrowser
 import river.preprocessing
@@ -124,6 +125,7 @@ task_entries = dict(
     tb_stop=None,
 )
 
+prep_models = ["AdaptiveStandardScaler", "MaxAbsScaler", "MinMaxScaler", "StandardScaler", "None"]
 
 task_dict = {"classification_tab": copy.deepcopy(task_entries), "regression_tab": copy.deepcopy(task_entries)}
 
@@ -133,8 +135,9 @@ task_dict["classification_tab"]["datasets"] = river_binary_classification_datase
 task_dict["regression_tab"]["core_model_names"] = regression_core_model_names
 task_dict["regression_tab"]["metric_levels"] = regression_metric_levels
 task_dict["regression_tab"]["datasets"] = river_regression_datasets
+task_dict["classification_tab"]["prep_models"] = copy.deepcopy(prep_models)
+task_dict["regression_tab"]["prep_models"] = copy.deepcopy(prep_models)
 
-prep_model_values = ["AdaptiveStandardScaler", "MaxAbsScaler", "MinMaxScaler", "StandardScaler", "None"]
 
 spot_tuner = None
 rhd = RiverHyperDict()
@@ -237,7 +240,18 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     core_model_name = task_dict[tab_task.name]["core_model_combo"].get()
     print(f"core_model_name: {core_model_name}")
     lbd_min, lbd_max = get_lambda_min_max(task_dict[tab_task.name]["lambda_min_max_entry"].get())
-    prepmodel = get_prep_model(task_dict[tab_task.name]["prep_model_combo"].get())
+    prep_model_name = task_dict[tab_task.name]["prep_model_combo"].get()
+    print(f"prep_model_name: {prep_model_name}")
+    if prep_model_name.endswith(".py"):
+        print(f"prep_model_name = {prep_model_name}")
+        sys.path.insert(0, "./userPrepModel")
+        # remove the file extension from the prep_model_name
+        prep_model_name = prep_model_name[:-3]
+        print(f"prep_model_name = {prep_model_name}")
+        __import__(prep_model_name)
+        prepmodel = sys.modules[prep_model_name].set_prep_model()
+    else:
+        prepmodel = get_prep_model(prep_model_name)
     metric_sklearn = get_metric_sklearn(task_dict[tab_task.name]["metric_combo"].get())
     weights = get_weights(
         task_dict[tab_task.name]["metric_combo"].get(), task_dict[tab_task.name]["metric_weights_entry"].get()
@@ -606,6 +620,8 @@ def create_first_column(tab_task):
 
     prep_model_label = tk.Label(tab_task, text="Select preprocessing model")
     prep_model_label.grid(row=7, column=0, sticky="W")
+    prep_model_values = task_dict[tab_task.name]["prep_models"]
+    prep_model_values.extend([f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")])
     task_dict[tab_task.name]["prep_model_combo"] = ttk.Combobox(tab_task, values=prep_model_values)
     task_dict[tab_task.name]["prep_model_combo"].set("StandardScaler")
     task_dict[tab_task.name]["prep_model_combo"].grid(row=7, column=1)
