@@ -106,6 +106,7 @@ task_entries = dict(
     core_model_combo=None,
     data_set_combo=None,
     n_total_entry=None,
+    target_type_entry=None,
     test_size_entry=None,
     prep_model_combo=None,
     max_sp_entry=None,
@@ -237,6 +238,7 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     max_surrogate_points = int(task_dict[tab_task.name]["max_sp_entry"].get())
     seed = int(task_dict[tab_task.name]["seed_entry"].get())
     test_size = float(task_dict[tab_task.name]["test_size_entry"].get())
+    target_type = task_dict[tab_task.name]["target_type_entry"].get()
     core_model_name = task_dict[tab_task.name]["core_model_combo"].get()
     print(f"core_model_name: {core_model_name}")
     lbd_min, lbd_max = get_lambda_min_max(task_dict[tab_task.name]["lambda_min_max_entry"].get())
@@ -263,7 +265,7 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     dataset, n_samples = get_river_dataset_from_name(
         data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
     )
-    train, test, n_samples = split_df(dataset=dataset, test_size=test_size, target_type="int", seed=seed)
+    train, test, n_samples = split_df(dataset=dataset, test_size=test_size, target_type=target_type, seed=seed)
 
     TENSORBOARD_CLEAN = bool(task_dict[tab_task.name]["tb_clean"].get())
     tensorboard_start = bool(task_dict[tab_task.name]["tb_start"].get())
@@ -289,6 +291,7 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
         prep_model=prepmodel,
         seed=seed,
         target_column="y",
+        target_type=target_type,
         test=test,
         test_size=test_size,
         train=train,
@@ -430,6 +433,9 @@ def load_experiment(tab_task):
 
         task_dict[tab_task.name]["test_size_entry"].delete(0, tk.END)
         task_dict[tab_task.name]["test_size_entry"].insert(0, str(fun_control["test_size"]))
+
+        task_dict[tab_task.name]["target_type_entry"].delete(0, tk.END)
+        task_dict[tab_task.name]["target_type_entry"].insert(0, str(fun_control["target_type"]))
 
         task_dict[tab_task.name]["prep_model_combo"].delete(0, tk.END)
         # prep_model_name = fun_control["prep_model"].__class__.__name__
@@ -618,44 +624,50 @@ def create_first_column(tab_task):
     task_dict[tab_task.name]["test_size_entry"].insert(0, "0.30")
     task_dict[tab_task.name]["test_size_entry"].grid(row=6, column=1, sticky="W")
 
+    target_type_label = tk.Label(tab_task, text="target_type (int|float):")
+    target_type_label.grid(row=7, column=0, sticky="W")
+    task_dict[tab_task.name]["target_type_entry"] = tk.Entry(tab_task)
+    task_dict[tab_task.name]["target_type_entry"].insert(0, "int")
+    task_dict[tab_task.name]["target_type_entry"].grid(row=7, column=1, sticky="W")
+
     prep_model_label = tk.Label(tab_task, text="Select preprocessing model")
-    prep_model_label.grid(row=7, column=0, sticky="W")
+    prep_model_label.grid(row=8, column=0, sticky="W")
     prep_model_values = task_dict[tab_task.name]["prep_models"]
     prep_model_values.extend([f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")])
     task_dict[tab_task.name]["prep_model_combo"] = ttk.Combobox(tab_task, values=prep_model_values)
     task_dict[tab_task.name]["prep_model_combo"].set("StandardScaler")
-    task_dict[tab_task.name]["prep_model_combo"].grid(row=7, column=1)
+    task_dict[tab_task.name]["prep_model_combo"].grid(row=8, column=1)
 
     # columns 0+1: Experiment
     experiment_label = tk.Label(tab_task, text="Experiment options:")
-    experiment_label.grid(row=8, column=0, sticky="W")
+    experiment_label.grid(row=9, column=0, sticky="W")
 
     max_time_label = tk.Label(tab_task, text="MAX_TIME (min):")
-    max_time_label.grid(row=9, column=0, sticky="W")
+    max_time_label.grid(row=10, column=0, sticky="W")
     task_dict[tab_task.name]["max_time_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["max_time_entry"].insert(0, "1")
-    task_dict[tab_task.name]["max_time_entry"].grid(row=9, column=1)
+    task_dict[tab_task.name]["max_time_entry"].grid(row=10, column=1)
 
     fun_evals_label = tk.Label(tab_task, text="FUN_EVALS (int|inf):")
-    fun_evals_label.grid(row=10, column=0, sticky="W")
+    fun_evals_label.grid(row=11, column=0, sticky="W")
     task_dict[tab_task.name]["fun_evals_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["fun_evals_entry"].insert(0, "30")
-    task_dict[tab_task.name]["fun_evals_entry"].grid(row=10, column=1)
+    task_dict[tab_task.name]["fun_evals_entry"].grid(row=11, column=1)
 
     init_size_label = tk.Label(tab_task, text="INIT_SIZE (int):")
-    init_size_label.grid(row=11, column=0, sticky="W")
+    init_size_label.grid(row=12, column=0, sticky="W")
     task_dict[tab_task.name]["init_size_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["init_size_entry"].insert(0, "5")
-    task_dict[tab_task.name]["init_size_entry"].grid(row=11, column=1)
+    task_dict[tab_task.name]["init_size_entry"].grid(row=12, column=1)
 
     noise_label = tk.Label(tab_task, text="NOISE (bool):")
-    noise_label.grid(row=12, column=0, sticky="W")
+    noise_label.grid(row=13, column=0, sticky="W")
     task_dict[tab_task.name]["noise_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["noise_entry"].insert(0, "True")
-    task_dict[tab_task.name]["noise_entry"].grid(row=12, column=1)
+    task_dict[tab_task.name]["noise_entry"].grid(row=13, column=1)
 
     lambda_min_max_label = tk.Label(tab_task, text="Lambda (nugget): min, max:")
-    lambda_min_max_label.grid(row=13, column=0, sticky="W")
+    lambda_min_max_label.grid(row=14, column=0, sticky="W")
     message = (
         "The min max values for Kriging.\n"
         "If set to 0, 0, no noise will be used in the surrogate.\n"
@@ -667,23 +679,23 @@ def create_first_column(tab_task):
     )
     task_dict[tab_task.name]["lambda_min_max_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["lambda_min_max_entry"].insert(0, "1e-3, 1e2")
-    task_dict[tab_task.name]["lambda_min_max_entry"].grid(row=13, column=1)
+    task_dict[tab_task.name]["lambda_min_max_entry"].grid(row=14, column=1)
 
     max_sp_label = tk.Label(tab_task, text="max surrogate points (int):")
-    max_sp_label.grid(row=14, column=0, sticky="W")
+    max_sp_label.grid(row=15, column=0, sticky="W")
     task_dict[tab_task.name]["max_sp_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["max_sp_entry"].insert(0, "30")
-    task_dict[tab_task.name]["max_sp_entry"].grid(row=14, column=1)
+    task_dict[tab_task.name]["max_sp_entry"].grid(row=15, column=1)
 
     seed_label = tk.Label(tab_task, text="seed (int):")
-    seed_label.grid(row=15, column=0, sticky="W")
+    seed_label.grid(row=16, column=0, sticky="W")
     task_dict[tab_task.name]["seed_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["seed_entry"].insert(0, "123")
-    task_dict[tab_task.name]["seed_entry"].grid(row=15, column=1)
+    task_dict[tab_task.name]["seed_entry"].grid(row=16, column=1)
 
     # columns 0+1: Evaluation
     experiment_label = tk.Label(tab_task, text="Evaluation options:")
-    experiment_label.grid(row=16, column=0, sticky="W")
+    experiment_label.grid(row=17, column=0, sticky="W")
     metric_label = tk.Label(tab_task, text="metric (sklearn):")
     metric_label.grid(row=17, column=0, sticky="W")
     task_dict[tab_task.name]["metric_combo"] = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["metric_levels"])
