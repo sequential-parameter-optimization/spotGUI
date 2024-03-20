@@ -15,8 +15,9 @@ from spotPython.utils.file import load_experiment
 from spotPython.utils.metrics import get_metric_sign
 
 import river
+from river import compose
 from spotRiver.evaluation.eval_bml import eval_oml_horizon
-from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics
+from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics, plot_bml_oml_horizon_predictions
 from spotPython.plot.validation import plot_roc_from_dataframes
 from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
@@ -241,7 +242,11 @@ def progress_plot(spot_tuner, fun_control):
 def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
-    model_spot = get_one_core_model_from_X(X, fun_control)
+    core_model_spot = get_one_core_model_from_X(X, fun_control)
+    if fun_control["prep_model"] is None:
+        model_spot = core_model_spot
+    else:
+        model_spot = compose.Pipeline(fun_control["prep_model"], core_model_spot)
     df_eval_spot, df_true_spot = eval_oml_horizon(
         model=model_spot,
         train=fun_control["train"],
@@ -252,7 +257,11 @@ def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
         metric=fun_control["metric_sklearn"],
     )
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    core_model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    if fun_control["prep_model"] is None:
+        model_default = core_model_default
+    else:
+        model_default = compose.Pipeline(fun_control["prep_model"], core_model_default)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],
@@ -293,7 +302,11 @@ def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
 def plot_rocs(spot_tuner, fun_control, show=False) -> None:
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
-    model_spot = get_one_core_model_from_X(X, fun_control)
+    core_model_spot = get_one_core_model_from_X(X, fun_control)
+    if fun_control["prep_model"] is None:
+        model_spot = core_model_spot
+    else:
+        model_spot = compose.Pipeline(fun_control["prep_model"], core_model_spot)
     df_eval_spot, df_true_spot = eval_oml_horizon(
         model=model_spot,
         train=fun_control["train"],
@@ -304,7 +317,11 @@ def plot_rocs(spot_tuner, fun_control, show=False) -> None:
         metric=fun_control["metric_sklearn"],
     )
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    core_model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    if fun_control["prep_model"] is None:
+        model_default = core_model_default
+    else:
+        model_default = compose.Pipeline(fun_control["prep_model"], core_model_default)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],
@@ -327,7 +344,11 @@ def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
     print(vars(spot_tuner))
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
-    model_spot = get_one_core_model_from_X(X, fun_control)
+    core_model_spot = get_one_core_model_from_X(X, fun_control)
+    if fun_control["prep_model"] is None:
+        model_spot = core_model_spot
+    else:
+        model_spot = compose.Pipeline(fun_control["prep_model"], core_model_spot)
     df_eval_spot, df_true_spot = eval_oml_horizon(
         model=model_spot,
         train=fun_control["train"],
@@ -339,7 +360,11 @@ def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
     )
 
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control)
+    core_model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    if fun_control["prep_model"] is None:
+        model_default = core_model_default
+    else:
+        model_default = compose.Pipeline(fun_control["prep_model"], core_model_default)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],
@@ -362,10 +387,61 @@ def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
     )
 
 
+def actual_vs_prediction(spot_tuner, fun_control, show=False, length=50) -> None:
+    m = fun_control["test"].shape[0]
+    a = int(m / 2) - length
+    b = int(m / 2)
+    print(vars(spot_tuner))
+    X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
+    print(f"X = {X}")
+    core_model_spot = get_one_core_model_from_X(X, fun_control)
+    if fun_control["prep_model"] is None:
+        model_spot = core_model_spot
+    else:
+        model_spot = compose.Pipeline(fun_control["prep_model"], core_model_spot)
+    df_eval_spot, df_true_spot = eval_oml_horizon(
+        model=model_spot,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+
+    X_start = get_default_hyperparameters_as_array(fun_control)
+    core_model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    if fun_control["prep_model"] is None:
+        model_default = core_model_default
+    else:
+        model_default = compose.Pipeline(fun_control["prep_model"], core_model_default)
+    df_eval_default, df_true_default = eval_oml_horizon(
+        model=model_default,
+        train=fun_control["train"],
+        test=fun_control["test"],
+        target_column=fun_control["target_column"],
+        horizon=fun_control["horizon"],
+        oml_grace_period=fun_control["oml_grace_period"],
+        metric=fun_control["metric_sklearn"],
+    )
+
+    df_labels = ["default", "spot"]
+    plot_bml_oml_horizon_predictions(
+        df_true=[df_true_default[a:b], df_true_spot[a:b]],
+        target_column=fun_control["target_column"],
+        df_labels=df_labels,
+        title=fun_control["PREFIX"],
+    )
+
+
 def all_compare_tuned_default(spot_tuner, fun_control) -> None:
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
-    model_spot = get_one_core_model_from_X(X, fun_control)
+    core_model_spot = get_one_core_model_from_X(X, fun_control)
+    if fun_control["prep_model"] is None:
+        model_spot = core_model_spot
+    else:
+        model_spot = compose.Pipeline(fun_control["prep_model"], core_model_spot)
     df_eval_spot, df_true_spot = eval_oml_horizon(
         model=model_spot,
         train=fun_control["train"],
@@ -376,7 +452,11 @@ def all_compare_tuned_default(spot_tuner, fun_control) -> None:
         metric=fun_control["metric_sklearn"],
     )
     X_start = get_default_hyperparameters_as_array(fun_control)
-    model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    core_model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
+    if fun_control["prep_model"] is None:
+        model_default = core_model_default
+    else:
+        model_default = compose.Pipeline(fun_control["prep_model"], core_model_default)
     df_eval_default, df_true_default = eval_oml_horizon(
         model=model_default,
         train=fun_control["train"],

@@ -20,6 +20,7 @@ from spotGUI.tuner.spotRun import (
     parallel_plot,
     importance_plot,
     progress_plot,
+    actual_vs_prediction,
     compare_tuned_default,
     all_compare_tuned_default,
     plot_confusion_matrices,
@@ -109,6 +110,7 @@ task_entries = dict(
     target_type_entry=None,
     test_size_entry=None,
     prep_model_combo=None,
+    shuffle=None,
     max_sp_entry=None,
     max_time_entry=None,
     fun_evals_entry=None,
@@ -160,6 +162,9 @@ def call_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
         compare_tuned_default(spot_tuner, fun_control, show=True)
 
+def call_actual_vs_prediction():
+    if spot_tuner is not None and fun_control is not None:
+        actual_vs_prediction(spot_tuner, fun_control, show=True)
 
 def call_all_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
@@ -265,7 +270,13 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
     dataset, n_samples = get_river_dataset_from_name(
         data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
     )
-    train, test, n_samples = split_df(dataset=dataset, test_size=test_size, target_type=target_type, seed=seed)
+    shuffle = bool(task_dict[tab_task.name]["shuffle"].get())
+    train, test, n_samples = split_df(dataset=dataset,
+                                      test_size=test_size,
+                                      target_type=target_type,
+                                      seed=seed,
+                                      shuffle=shuffle,
+                                      stratify=None)
 
     TENSORBOARD_CLEAN = bool(task_dict[tab_task.name]["tb_clean"].get())
     tensorboard_start = bool(task_dict[tab_task.name]["tb_start"].get())
@@ -638,36 +649,43 @@ def create_first_column(tab_task):
     task_dict[tab_task.name]["prep_model_combo"].set("StandardScaler")
     task_dict[tab_task.name]["prep_model_combo"].grid(row=8, column=1)
 
+    task_dict[tab_task.name]["shuffle"] = tk.BooleanVar()
+    task_dict[tab_task.name]["shuffle"].set(True)
+    shuffle_checkbutton = tk.Checkbutton(
+        tab_task, text="Shuffle data", variable=task_dict[tab_task.name]["shuffle"]
+    )
+    shuffle_checkbutton.grid(row=9, column=1, sticky="W")
+
     # columns 0+1: Experiment
     experiment_label = tk.Label(tab_task, text="Experiment options:")
-    experiment_label.grid(row=9, column=0, sticky="W")
+    experiment_label.grid(row=10, column=0, sticky="W")
 
     max_time_label = tk.Label(tab_task, text="MAX_TIME (min):")
-    max_time_label.grid(row=10, column=0, sticky="W")
+    max_time_label.grid(row=11, column=0, sticky="W")
     task_dict[tab_task.name]["max_time_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["max_time_entry"].insert(0, "1")
-    task_dict[tab_task.name]["max_time_entry"].grid(row=10, column=1)
+    task_dict[tab_task.name]["max_time_entry"].grid(row=11, column=1)
 
     fun_evals_label = tk.Label(tab_task, text="FUN_EVALS (int|inf):")
-    fun_evals_label.grid(row=11, column=0, sticky="W")
+    fun_evals_label.grid(row=12, column=0, sticky="W")
     task_dict[tab_task.name]["fun_evals_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["fun_evals_entry"].insert(0, "30")
-    task_dict[tab_task.name]["fun_evals_entry"].grid(row=11, column=1)
+    task_dict[tab_task.name]["fun_evals_entry"].grid(row=12, column=1)
 
     init_size_label = tk.Label(tab_task, text="INIT_SIZE (int):")
-    init_size_label.grid(row=12, column=0, sticky="W")
+    init_size_label.grid(row=13, column=0, sticky="W")
     task_dict[tab_task.name]["init_size_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["init_size_entry"].insert(0, "5")
-    task_dict[tab_task.name]["init_size_entry"].grid(row=12, column=1)
+    task_dict[tab_task.name]["init_size_entry"].grid(row=13, column=1)
 
     noise_label = tk.Label(tab_task, text="NOISE (bool):")
-    noise_label.grid(row=13, column=0, sticky="W")
+    noise_label.grid(row=14, column=0, sticky="W")
     task_dict[tab_task.name]["noise_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["noise_entry"].insert(0, "True")
-    task_dict[tab_task.name]["noise_entry"].grid(row=13, column=1)
+    task_dict[tab_task.name]["noise_entry"].grid(row=14, column=1)
 
     lambda_min_max_label = tk.Label(tab_task, text="Lambda (nugget): min, max:")
-    lambda_min_max_label.grid(row=14, column=0, sticky="W")
+    lambda_min_max_label.grid(row=15, column=0, sticky="W")
     message = (
         "The min max values for Kriging.\n"
         "If set to 0, 0, no noise will be used in the surrogate.\n"
@@ -679,32 +697,33 @@ def create_first_column(tab_task):
     )
     task_dict[tab_task.name]["lambda_min_max_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["lambda_min_max_entry"].insert(0, "1e-3, 1e2")
-    task_dict[tab_task.name]["lambda_min_max_entry"].grid(row=14, column=1)
+    task_dict[tab_task.name]["lambda_min_max_entry"].grid(row=15, column=1)
 
     max_sp_label = tk.Label(tab_task, text="max surrogate points (int):")
-    max_sp_label.grid(row=15, column=0, sticky="W")
+    max_sp_label.grid(row=16, column=0, sticky="W")
     task_dict[tab_task.name]["max_sp_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["max_sp_entry"].insert(0, "30")
-    task_dict[tab_task.name]["max_sp_entry"].grid(row=15, column=1)
+    task_dict[tab_task.name]["max_sp_entry"].grid(row=16, column=1)
 
     seed_label = tk.Label(tab_task, text="seed (int):")
-    seed_label.grid(row=16, column=0, sticky="W")
+    seed_label.grid(row=17, column=0, sticky="W")
     task_dict[tab_task.name]["seed_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["seed_entry"].insert(0, "123")
-    task_dict[tab_task.name]["seed_entry"].grid(row=16, column=1)
+    task_dict[tab_task.name]["seed_entry"].grid(row=17, column=1)
 
     # columns 0+1: Evaluation
     experiment_label = tk.Label(tab_task, text="Evaluation options:")
-    experiment_label.grid(row=17, column=0, sticky="W")
+    experiment_label.grid(row=18, column=0, sticky="W")
+
     metric_label = tk.Label(tab_task, text="metric (sklearn):")
-    metric_label.grid(row=17, column=0, sticky="W")
+    metric_label.grid(row=19, column=0, sticky="W")
     task_dict[tab_task.name]["metric_combo"] = ttk.Combobox(tab_task, values=task_dict[tab_task.name]["metric_levels"])
     # Default selection, the first metric in the list:
     task_dict[tab_task.name]["metric_combo"].set(task_dict[tab_task.name]["metric_levels"][0])
-    task_dict[tab_task.name]["metric_combo"].grid(row=17, column=1)
+    task_dict[tab_task.name]["metric_combo"].grid(row=19, column=1)
 
     metric_weights_label = tk.Label(tab_task, text="weights: y,time,mem (>0.0):")
-    metric_weights_label.grid(row=18, column=0, sticky="W")
+    metric_weights_label.grid(row=20, column=0, sticky="W")
     message = (
         "The weights for metric, time, and memory.\n"
         "All values are positive real numbers and should be separated by a comma.\n"
@@ -718,19 +737,19 @@ def create_first_column(tab_task):
     )
     task_dict[tab_task.name]["metric_weights_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["metric_weights_entry"].insert(0, "1000, 1, 1")
-    task_dict[tab_task.name]["metric_weights_entry"].grid(row=18, column=1)
+    task_dict[tab_task.name]["metric_weights_entry"].grid(row=20, column=1)
 
     horizon_label = tk.Label(tab_task, text="horizon (int):")
-    horizon_label.grid(row=19, column=0, sticky="W")
+    horizon_label.grid(row=21, column=0, sticky="W")
     task_dict[tab_task.name]["horizon_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["horizon_entry"].insert(0, "10")
-    task_dict[tab_task.name]["horizon_entry"].grid(row=19, column=1)
+    task_dict[tab_task.name]["horizon_entry"].grid(row=21, column=1)
 
     oml_grace_period_label = tk.Label(tab_task, text="oml_grace_period (int|None):")
-    oml_grace_period_label.grid(row=20, column=0, sticky="W")
+    oml_grace_period_label.grid(row=22, column=0, sticky="W")
     task_dict[tab_task.name]["oml_grace_period_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["oml_grace_period_entry"].insert(0, "None")
-    task_dict[tab_task.name]["oml_grace_period_entry"].grid(row=20, column=1)
+    task_dict[tab_task.name]["oml_grace_period_entry"].grid(row=22, column=1)
     message = "The grace period for online learning (OML).\n" "If None, the grace period is set to the horizon."
     oml_grace_period_tip = Hovertip(
         oml_grace_period_label,
@@ -739,13 +758,13 @@ def create_first_column(tab_task):
 
     # Experiment name:
     experiment_label = tk.Label(tab_task, text="Experiment Name:")
-    experiment_label.grid(row=21, column=0, sticky="W")
+    experiment_label.grid(row=23, column=0, sticky="W")
 
     prefix_label = tk.Label(tab_task, text="Name prefix (str):")
-    prefix_label.grid(row=22, column=0, sticky="W")
+    prefix_label.grid(row=24, column=0, sticky="W")
     task_dict[tab_task.name]["prefix_entry"] = tk.Entry(tab_task)
     task_dict[tab_task.name]["prefix_entry"].insert(0, "00")
-    task_dict[tab_task.name]["prefix_entry"].grid(row=22, column=1)
+    task_dict[tab_task.name]["prefix_entry"].grid(row=24, column=1)
 
 
 def create_second_column(tab_task):
@@ -933,22 +952,27 @@ compare_tuned_default_button = ttk.Button(
 )
 compare_tuned_default_button.grid(row=2, column=1, columnspan=2, sticky="W")
 
+actual_vs_prediction_button = ttk.Button(
+    analysis_tab, text="Actual versus predicted", command=call_actual_vs_prediction
+)
+actual_vs_prediction_button.grid(row=3, column=1, columnspan=2, sticky="W")
+
 plot_confusion_matrices_button = ttk.Button(
     analysis_tab, text="Confusion matrices", command=call_plot_confusion_matrices
 )
-plot_confusion_matrices_button.grid(row=3, column=1, columnspan=2, sticky="W")
+plot_confusion_matrices_button.grid(row=4, column=1, columnspan=2, sticky="W")
 
 plot_rocs_button = ttk.Button(analysis_tab, text="ROC", command=call_plot_rocs)
-plot_rocs_button.grid(row=4, column=1, columnspan=2, sticky="W")
+plot_rocs_button.grid(row=5, column=1, columnspan=2, sticky="W")
 
 importance_plot_button = ttk.Button(analysis_tab, text="Importance plot", command=call_importance_plot)
-importance_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
+importance_plot_button.grid(row=6, column=1, columnspan=2, sticky="W")
 
 contour_plot_button = ttk.Button(analysis_tab, text="Contour plot", command=call_contour_plot)
-contour_plot_button.grid(row=6, column=1, columnspan=2, sticky="W")
+contour_plot_button.grid(row=7, column=1, columnspan=2, sticky="W")
 
 parallel_plot_button = ttk.Button(analysis_tab, text="Parallel plot (Browser)", command=call_parallel_plot)
-parallel_plot_button.grid(row=7, column=1, columnspan=2, sticky="W")
+parallel_plot_button.grid(row=8, column=1, columnspan=2, sticky="W")
 
 # Result options:
 show_result_button = ttk.Button(result_tab, text="Show result", command=show_result)
