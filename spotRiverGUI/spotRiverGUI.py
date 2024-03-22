@@ -162,9 +162,11 @@ def call_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
         compare_tuned_default(spot_tuner, fun_control, show=True)
 
+
 def call_actual_vs_prediction():
     if spot_tuner is not None and fun_control is not None:
         actual_vs_prediction(spot_tuner, fun_control, show=True)
+
 
 def call_all_compare_tuned_default():
     if spot_tuner is not None and fun_control is not None:
