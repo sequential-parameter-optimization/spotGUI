@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spotGUI"
-version = "0.2.11"
+version = "0.3.0"
 authors = [
   { name="T. Bartz-Beielstein", email="tbb@bartzundbartz.de" }
 ]
@@ -25,6 +25,7 @@ classifiers = [
 # adapt to your dependencies manager
 dependencies = [
   "captum",
+  "customtkinter",
   "lightning>=2.0.0rc0",
   "graphviz",
   "matplotlib",

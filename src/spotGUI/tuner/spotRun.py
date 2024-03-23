@@ -1,3 +1,4 @@
+import copy
 import matplotlib.pyplot as plt
 import sklearn.metrics
 import pylab
@@ -16,6 +17,11 @@ from spotPython.utils.metrics import get_metric_sign
 
 import river
 from river import compose
+import river.preprocessing
+import river
+from river import forest, tree, linear_model
+from river import preprocessing
+
 from spotRiver.evaluation.eval_bml import eval_oml_horizon
 from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics, plot_bml_oml_horizon_predictions
 from spotPython.plot.validation import plot_roc_from_dataframes
@@ -23,6 +29,143 @@ from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
 from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
 from spotGUI.eda.pairplot import generate_pairplot
+
+
+def get_classification_core_model_names():
+    classification_core_model_names = [
+        "linear_model.LogisticRegression",
+        "forest.AMFClassifier",
+        "forest.ARFClassifier",
+        "tree.ExtremelyFastDecisionTreeClassifier",
+        "tree.HoeffdingTreeClassifier",
+        "tree.HoeffdingAdaptiveTreeClassifier",
+        "tree.SGTClassifier",
+    ]
+    return classification_core_model_names
+
+
+def get_classification_metric_levels():
+    classification_metric_levels = [
+        "accuracy_score",
+        "cohen_kappa_score",
+        "f1_score",
+        "hamming_loss",
+        "hinge_loss",
+        "jaccard_score",
+        "matthews_corrcoef",
+        "precision_score",
+        "recall_score",
+        "roc_auc_score",
+        "zero_one_loss",
+    ]
+    return classification_metric_levels
+
+
+def get_river_binary_classification_datasets():
+    river_binary_classification_datasets = [
+        "Phishing",
+        "Bananas",
+        "CreditCard",
+        "Elec2",
+        "Higgs",
+        "HTTP",
+    ]
+    return river_binary_classification_datasets
+
+
+def get_regression_core_model_names():
+    regression_core_model_names = [
+        "linear_model.LinearRegression",
+        "tree.HoeffdingTreeRegressor",
+        "forest.AMFRegressor",
+        "forest.ARFRegressor",
+        "tree.HoeffdingAdaptiveTreeRegressor",
+        "tree.SGTRegressor",
+    ]
+    return regression_core_model_names
+
+
+def get_regression_metric_levels():
+    regression_metric_levels = [
+        "mean_absolute_error",
+        "explained_variance_score",
+        "max_error",
+        "mean_squared_error",
+        "root_mean_squared_error",
+        "mean_squared_log_error",
+        "root_mean_squared_log_error",
+        "median_absolute_error",
+        "r2_score",
+        "mean_poisson_deviance",
+        "mean_gamma_deviance",
+        "mean_absolute_percentage_error",
+        "d2_absolute_error_score",
+        "d2_pinball_score",
+        "d2_tweedie_score",
+    ]
+    return regression_metric_levels
+
+
+def get_river_regression_datasets():
+    river_regression_datasets = ["ChickWeights", "Bikes", "Taxis", "TrumpApproval"]
+    return river_regression_datasets
+
+
+def get_task_entries():
+    task_entries = dict(
+        core_model_names=[],
+        metric_levels=[],
+        datasets=[],
+        core_model_combo=None,
+        data_set_combo=None,
+        n_total_entry=None,
+        target_type_entry=None,
+        test_size_entry=None,
+        prep_model_combo=None,
+        shuffle=None,
+        max_sp_entry=None,
+        max_time_entry=None,
+        fun_evals_entry=None,
+        init_size_entry=None,
+        noise_entry=None,
+        lambda_min_max_entry=None,
+        seed_entry=None,
+        metric_combo=None,
+        metric_weights_entry=None,
+        horizon_entry=None,
+        oml_grace_period_entry=None,
+        prefix_entry=None,
+        tb_clean=None,
+        tb_start=None,
+        tb_stop=None,
+    )
+    return task_entries
+
+
+def get_task_dict():
+    task_entries = get_task_entries()
+    task_dict = {"classification_tab": copy.deepcopy(task_entries), "regression_tab": copy.deepcopy(task_entries)}
+    task_dict["classification_tab"]["core_model_names"] = get_classification_core_model_names()
+    task_dict["classification_tab"]["metric_levels"] = get_classification_metric_levels()
+    task_dict["classification_tab"]["datasets"] = get_river_binary_classification_datasets()
+    task_dict["regression_tab"]["core_model_names"] = get_regression_core_model_names()
+    task_dict["regression_tab"]["metric_levels"] = get_regression_metric_levels()
+    task_dict["regression_tab"]["datasets"] = get_river_regression_datasets()
+    prep_models = get_prep_models()
+    task_dict["classification_tab"]["prep_models"] = copy.deepcopy(prep_models)
+    task_dict["regression_tab"]["prep_models"] = copy.deepcopy(prep_models)
+    return task_dict
+
+
+def get_prep_models():
+    prep_models = [
+        "AdaptiveStandardScaler",
+        "MaxAbsScaler",
+        "MinMaxScaler",
+        "StandardScaler",
+        "None",
+    ]
+    return prep_models
 
 
 def get_report_file_name(fun_control):

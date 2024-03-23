@@ -1,10 +1,12 @@
 import tkinter
 import tkinter.messagebox
 import customtkinter
+import pprint
 
 import os
 from PIL import Image
 
+from spotGUI.tuner.spotRun import get_task_dict
 # customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 # customtkinter.set_task("Binary Classification")  # Tasks: "Binary Classification", "Regression"
 # customtkinter.set_core_model("System")
@@ -39,12 +41,15 @@ class SelectOptionMenuFrame(customtkinter.CTkFrame):
 
         self.title = customtkinter.CTkLabel(self, text=self.title, corner_radius=6)
         self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
+        print(f"item_list: {item_list}")
 
+        if item_default is None:
+            item_default = item_list[0]
         self.optionmenu_var = customtkinter.StringVar(value=item_default)
         optionmenu = customtkinter.CTkOptionMenu(self,
-                                             values=item_list,
-                                             command=command,
-                                             variable=self.optionmenu_var)
+                                                 values=item_list,
+                                                 command=command,
+                                                 variable=self.optionmenu_var)
         optionmenu.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
         self.optionmenu_var.set(item_default)
 
@@ -200,6 +205,10 @@ class App(customtkinter.CTk):
         # self.grid_columnconfigure((2, 3), weight=0)
         self.grid_rowconfigure((0, 1, 2), weight=1)
 
+        self.task_name = "regression_tab"
+        self.task_dict = get_task_dict()
+        pprint.pprint(self.task_dict)
+
         # set default values
         # these values can be changed by the GUI and will be passed to spot
         self.appearance_mode_value = "Dark"
@@ -239,11 +248,11 @@ class App(customtkinter.CTk):
 
         self.task_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 width=500,
-                                                           command=self.change_task_event,
-                                                           item_list=["Binary Classification",
-                                                                      "Regression"],
-                                                           item_default="Regression",
-                                                           title="Select Task")
+                                                command=self.change_task_event,
+                                                item_list=["Binary Classification",
+                                                           "Regression"],
+                                                item_default="Regression",
+                                                title="Select Task")
         self.task_frame.grid(row=3, column=0, padx=15, pady=15, sticky="ns")
         self.task_frame.configure(width=500)
 
@@ -276,11 +285,11 @@ class App(customtkinter.CTk):
 
         # create select core model frame
         self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                           width=500,
-                                                           command=self.select_core_model_frame_event,
-                                                           item_list=["option 1", "option 2"],
-                                                           item_default="option 2",
-                                                           title="Select Core Model")
+                                                             width=500,
+                                                             command=self.select_core_model_frame_event,
+                                                             item_list=self.task_dict[self.task_name]["core_model_names"],
+                                                             item_default=None,
+                                                             title="Select Core Model")
         self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
         self.select_core_model_frame.configure(width=500)
 
@@ -338,6 +347,23 @@ class App(customtkinter.CTk):
 
     def change_task_event(self, new_task: str):
         print(f"Task changed to: {new_task}")
+        if new_task == "Binary Classification":
+            self.task_name = "classification_tab"
+        elif new_task == "Regression":
+            self.task_name = "regression_tab"
+        else:
+            print("Error: Task not found")
+        # destroy old core model frame
+        self.select_core_model_frame.destroy()
+        # create new core model frame
+        self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
+                                                             width=500,
+                                                             command=self.select_core_model_frame_event,
+                                                             item_list=self.task_dict[self.task_name]["core_model_names"],
+                                                             item_default=None,
+                                                             title="Select Core Model")
+        self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
+        self.select_core_model_frame.configure(width=500)
 
     def run_button_event(self):
         print("Run button clicked")
