@@ -3,7 +3,7 @@ import os
 from PIL import Image
 
 
-class SelectCoreModelFrame(customtkinter.CTkScrollableFrame):
+class SelectComboBoxFrame(customtkinter.CTkScrollableFrame):
     def __init__(self, master, item_list, item_default, command=None, **kwargs):
         super().__init__(master, **kwargs)
 
@@ -150,7 +150,7 @@ class App(customtkinter.CTk):
         self.columnconfigure(2, weight=1)
 
         # create select core model frame
-        self.select_core_model_frame = SelectCoreModelFrame(master=self, width=500,
+        self.select_core_model_frame = SelectComboBoxFrame(master=self, width=500,
                                                                        command=self.select_core_model_frame_event,
                                                                        item_list=["option 1", "option 2"],
                                                                        item_default="option 2",
@@ -159,7 +159,7 @@ class App(customtkinter.CTk):
         self.select_core_model_frame.configure(width=200)
 
         # create select core model frame
-        self.select_prep_model_frame = SelectCoreModelFrame(master=self, width=500,
+        self.select_prep_model_frame = SelectComboBoxFrame(master=self, width=500,
                                                                        command=self.select_core_model_frame_event,
                                                                        item_list=["option a", "option b"],
                                                                        item_default="option b",
