@@ -227,8 +227,8 @@ class App(customtkinter.CTk):
         # self.geometry(f"{1400}x{780}")
         self.resizable(True, True)
         # configure grid layout (4x4)
-        # self.grid_columnconfigure(1, weight=1)
-        # self.grid_columnconfigure((2, 3), weight=0)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure((2, 3), weight=1)
         self.grid_rowconfigure((0, 1, 2), weight=1)
 
         self.rhd = RiverHyperDict()
@@ -356,8 +356,8 @@ class App(customtkinter.CTk):
     def create_num_hp_frame(self):
         # create new num_hp_frame
         self.num_hp_frame = NumHyperparameterFrame(master=self.hp_main_frame,
-                                                                 width=640,
-                                                                 height=480,
+                                                                 width=720,
+                                                                 height=512,
                                                                  command=self.label_button_frame_event,
                                                                  label_text="Numerical Hyperparameters",
                                                                  corner_radius=0)
