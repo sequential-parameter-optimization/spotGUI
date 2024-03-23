@@ -53,10 +53,15 @@ class SelectOptionMenuFrame(customtkinter.CTkFrame):
 
 
 class CheckboxFrame(customtkinter.CTkFrame):
-    def __init__(self, master, value):
+    def __init__(self, master, text, value, command=None, **kwargs):
         super().__init__(master)
         self.checkbox_var = customtkinter.StringVar(value=value)
-        checkbox = customtkinter.CTkCheckBox(self, text=value)
+        checkbox = customtkinter.CTkCheckBox(self,
+                                             text=text,
+                                             command=command,
+                                             variable=self.checkbox_var,
+                                             onvalue="True",
+                                             offvalue="False")
         checkbox.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
 
     def get_checkbox_var(self):
@@ -263,7 +268,9 @@ class App(customtkinter.CTk):
         self.select_data_frame.configure(width=500)
 
         # shuffle data in data main frame
-        self.shuffle_checkbox_frame = CheckboxFrame(self.data_main_frame, value="shuffle")
+        self.shuffle_checkbox_frame = CheckboxFrame(self.data_main_frame,
+                                                    text="shuffle",
+                                                    value="True",)
         self.shuffle_checkbox_frame.grid(row=1, column=1, padx=(0, 10), pady=(10, 0), sticky="nsew")
         self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
 
@@ -335,7 +342,7 @@ class App(customtkinter.CTk):
     def run_button_event(self):
         print("Run button clicked")
         print("Data:", self.select_data_frame.get_selected_optionmenu_item())
-        print("Shuffle:", self.shuffle)
+        print("Shuffle:", self.shuffle_checkbox_frame.get_checkbox_var())
         print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
         print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
         # print("Numerical Hyperparameters:", self.num_hp_frame.get())
