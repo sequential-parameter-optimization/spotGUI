@@ -270,8 +270,8 @@ class App(customtkinter.CTk):
         self.select_data_frame = SelectOptionMenuFrame(master=self.data_main_frame,
                                                            width=500,
                                                            command=self.select_data_frame_event,
-                                                           item_list=["data 0", "data 1", "data 2"],
-                                                           item_default=self.data_set,
+                                                           item_list=self.task_dict[self.task_name]["datasets"],
+                                                           item_default=None,
                                                            title="Select Data")
         self.select_data_frame.grid(row=0, column=1, padx=15, pady=15, sticky="ns")
         self.select_data_frame.configure(width=500)
@@ -297,8 +297,8 @@ class App(customtkinter.CTk):
         self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                            width=500,
                                                            command=self.select_prep_model_frame_event,
-                                                           item_list=["option a", "option b"],
-                                                           item_default="option b",
+                                                           item_list=self.task_dict[self.task_name]["prep_models"],
+                                                           item_default=None,
                                                            title="Select Prep Model")
         self.select_prep_model_frame.grid(row=5, column=0, padx=15, pady=15, sticky="ns")
         self.select_prep_model_frame.configure(width=200)
@@ -364,6 +364,17 @@ class App(customtkinter.CTk):
                                                              title="Select Core Model")
         self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
         self.select_core_model_frame.configure(width=500)
+        # destroy old data frame
+        self.select_data_frame.destroy()
+        # create new data frame
+        self.select_data_frame = SelectOptionMenuFrame(master=self.data_main_frame,
+                                                           width=500,
+                                                           command=self.select_data_frame_event,
+                                                           item_list=self.task_dict[self.task_name]["datasets"],
+                                                           item_default=None,
+                                                           title="Select Data")
+        self.select_data_frame.grid(row=0, column=1, padx=15, pady=15, sticky="ns")
+        self.select_data_frame.configure(width=500)
 
     def run_button_event(self):
         print("Run button clicked")
