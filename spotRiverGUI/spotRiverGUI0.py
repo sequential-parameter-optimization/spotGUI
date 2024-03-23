@@ -53,27 +53,14 @@ class SelectOptionMenuFrame(customtkinter.CTkFrame):
 
 
 class CheckboxFrame(customtkinter.CTkFrame):
-    def __init__(self, master, title, values):
+    def __init__(self, master, value):
         super().__init__(master)
-        self.grid_columnconfigure(0, weight=1)
-        self.values = values
-        self.title = title
-        self.checkboxes = []
-        self.variable = customtkinter.StringVar(value="")
+        self.checkbox_var = customtkinter.StringVar(value=value)
+        checkbox = customtkinter.CTkCheckBox(self, text=value)
+        checkbox.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
 
-        self.title = customtkinter.CTkLabel(self, text=self.title, corner_radius=6)
-        self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-
-        for i, value in enumerate(self.values):
-            checkbox = customtkinter.CTkCheckBox(self, text=value)
-            checkbox.grid(row=i+1, column=0, padx=10, pady=(10, 0), sticky="w")
-            self.checkboxes.append(checkbox)
-
-    def get(self):
-        checkboxes = []
-        for checkbox in self.checkboxes:
-            checkboxes.append(checkbox.get())
-        return checkboxes
+    def get_checkbox_var(self):
+        return self.checkbox_var.get()
 
 
 class NumHyperparameterFrame(customtkinter.CTkScrollableFrame):
@@ -276,9 +263,9 @@ class App(customtkinter.CTk):
         self.select_data_frame.configure(width=500)
 
         # shuffle data in data main frame
-        self.shuffle_checkbox_frame = CheckboxFrame(self.data_main_frame, "Options", values=["shuffle"])
+        self.shuffle_checkbox_frame = CheckboxFrame(self.data_main_frame, value="shuffle")
         self.shuffle_checkbox_frame.grid(row=1, column=1, padx=(0, 10), pady=(10, 0), sticky="nsew")
-        self.shuffle = self.shuffle_checkbox_frame.get()
+        self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
 
         # create select core model frame
         self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -351,8 +338,8 @@ class App(customtkinter.CTk):
         print("Shuffle:", self.shuffle)
         print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
         print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
-        print("Numerical Hyperparameters:", self.num_hp_frame.get())
-        print("Categorical Hyperparameters:", self.cat_hp_frame.get())
+        # print("Numerical Hyperparameters:", self.num_hp_frame.get())
+        # print("Categorical Hyperparameters:", self.cat_hp_frame.get())
 
 
 if __name__ == "__main__":
