@@ -170,7 +170,7 @@ class CatHyperparameterFrame(customtkinter.CTkScrollableFrame):
         self.lower_list = []
         self.upper_list = []
         self.transform_list = []
-        self.level_list = []
+        self.levels_list = []
 
     def add_header(self):
         header_hp = customtkinter.CTkLabel(self, text="Hyperparameter",  corner_radius=6)
@@ -179,38 +179,43 @@ class CatHyperparameterFrame(customtkinter.CTkScrollableFrame):
         header_hp.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ew")
         header_hp = customtkinter.CTkLabel(self, text="Levels",  corner_radius=6)
         header_hp.grid(row=0, column=2, padx=10, pady=(10, 0), sticky="ew")
-        header_hp = customtkinter.CTkLabel(self, text="Transform", corner_radius=6)
-        header_hp.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
 
-    def add_cat_item(self, item, image=None):
-        label = customtkinter.CTkLabel(self, text=item, compound="left", padx=5, anchor="w")
-        default = customtkinter.CTkLabel(self, text="Default", compound="left", padx=5, anchor="w")
-        level = customtkinter.CTkLabel(self, text="Levels", compound="left", padx=5, anchor="w")
-        transform = customtkinter.CTkLabel(self, text="Transform", compound="left", padx=5, anchor="w")
+    def add_cat_item(self, hp, default, levels, transform):
+        self.hp_col = customtkinter.CTkLabel(self, text=hp, compound="left", padx=5, anchor="w")
+        self.default_col = customtkinter.CTkLabel(self, text=default, compound="left", padx=5, anchor="w")
+        self.levels_col = customtkinter.CTkTextbox(self, width=400, height=1)
+        self.levels_col.insert("0.0", str(levels))
 
-        label.grid(row=1+len(self.hp_list), column=0, pady=(0, 10), sticky="w")
-        default.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
-        level.grid(row=1+len(self.level_list), column=2, pady=(0, 10), padx=5)
-        transform.grid(row=1+len(self.transform_list), column=3, pady=(0, 10), padx=5)
-        self.hp_list.append(label)
-        self.default_list.append(default)
-        self.level_list.append(level)
-        self.transform_list.append(transform)
+        self.hp_col.grid(row=1+len(self.hp_list), column=0, pady=(0, 10), sticky="w")
+        self.default_col.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
+        self.levels_col.grid(row=1+len(self.levels_list), column=2, pady=(0, 10), sticky="w")
+        self.hp_list.append(self.hp_col)
+        self.default_list.append(self.default_col)
+        self.levels_list.append(self.levels_col)
+
+    def get_cat_item(self):
+        # get the values from self.levels_col.get() and put them in a
+        # dictionary with the corresponding hyperparameter hh as key
+        num_hp_dict = {}
+        for label, default, levels in zip(self.hp_list,
+                                        self.default_list,
+                                        self.levels_list):
+            num_hp_dict[label.cget("text")] = dict(
+                                                levels=levels.get("0.0", "end-1c"),
+                                              )
+        return num_hp_dict
 
     def remove_cat_item(self, item):
-        for label, default, level, transform in zip(self.hp_list,
-                                                        self.default_list,
-                                                        self.level_list,
-                                                        self.transform_list):
+        for label, default, levels, in zip(self.hp_list,
+                                           self.default_list,
+                                           self.level_list):
             if item == label.cget("text"):
                 label.destroy()
                 default.destroy()
-                level.destroy()
-                transform.destroy()
+                levels.destroy()
                 self.hp_list.remove(label)
                 self.default_list.remove(default)
-                self.lower_list.remove(level)
-                self.transform_list.remove(transform)
+                self.lower_list.remove(levels)
                 return
 
 
@@ -219,7 +224,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("spotRiver GUI")
-        self.geometry(f"{1400}x{780}")
+        # self.geometry(f"{1400}x{780}")
         self.resizable(True, True)
         # configure grid layout (4x4)
         # self.grid_columnconfigure(1, weight=1)
@@ -335,17 +340,7 @@ class App(customtkinter.CTk):
                                                            corner_radius=6)
         self.hp__main_frame_title.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
         self.create_num_hp_frame()
-
-        self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame,
-                                                                 width=640,
-                                                                 command=self.label_button_frame_event,
-                                                                 label_text="Categorical Hyperparameters",
-                                                                 corner_radius=0)
-        self.cat_hp_frame.grid(row=2, column=3, padx=0, pady=0, sticky="nsew")
-        self.cat_hp_frame.add_header()
-        n_cat_items = 2
-        for i in range(n_cat_items):
-            self.cat_hp_frame.add_cat_item(f"Item {i}")
+        self.create_cat_hp_frame()
 
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
@@ -368,19 +363,37 @@ class App(customtkinter.CTk):
                                                                  corner_radius=0)
         self.num_hp_frame.grid(row=1, column=3, padx=0, pady=0, sticky="nsew")
         self.num_hp_frame.add_header()
-        # TODO: Provide correct values for the hyperparameters
-        print("***************************")
-        # print(f"self.task_dict[self.task_name]: {self.task_dict[self.task_name]}")
         print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
         dict = self.rhd.hyper_dict[coremodel]
         pprint.pprint(dict)
         for i, (key, value) in enumerate(dict.items()):
-            if dict[key]["type"] == "int" or dict[key]["type"] == "float":
+            if (dict[key]["type"] == "int"
+                or dict[key]["type"] == "float"
+                or dict[key]["core_model_parameter_type"] == "bool"):
                 self.num_hp_frame.add_num_item(hp=key,
                                                default=value["default"],
                                                lower=value["lower"],
                                                upper=value["upper"],
+                                               transform=value["transform"])
+
+    def create_cat_hp_frame(self):
+        self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame,
+                                                                 width=640,
+                                                                 command=self.label_button_frame_event,
+                                                                 label_text="Categorical Hyperparameters",
+                                                                 corner_radius=0)
+        self.cat_hp_frame.grid(row=2, column=3, padx=0, pady=0, sticky="nsew")
+        self.cat_hp_frame.add_header()
+        print(f"self.core_model_name: {self.core_model_name}")
+        coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
+        dict = self.rhd.hyper_dict[coremodel]
+        pprint.pprint(dict)
+        for i, (key, value) in enumerate(dict.items()):
+            if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
+                self.cat_hp_frame.add_cat_item(hp=key,
+                                               default=value["default"],
+                                               levels=value["levels"],
                                                transform=value["transform"])
 
     def create_core_model_frame(self):
@@ -404,6 +417,8 @@ class App(customtkinter.CTk):
         self.num_hp_frame.destroy()
         # create new num_hp_frame
         self.create_num_hp_frame()
+        self.cat_hp_frame.destroy()
+        self.create_cat_hp_frame()
 
     def select_prep_model_frame_event(self, new_prep_model: str):
         print(f"Prep Model modified: {new_prep_model}")
@@ -426,6 +441,8 @@ class App(customtkinter.CTk):
         self.num_hp_frame.destroy()
         # create new num_hp_frame
         self.create_num_hp_frame()
+        self.cat_hp_frame.destroy()
+        self.create_cat_hp_frame()
 
         # destroy old data frame
         self.select_data_frame.destroy()
@@ -446,7 +463,7 @@ class App(customtkinter.CTk):
         print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
         print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
         print("Numerical Hyperparameters:", self.num_hp_frame.get_num_item())
-        # print("Categorical Hyperparameters:", self.cat_hp_frame.get())
+        print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
 
 
 if __name__ == "__main__":

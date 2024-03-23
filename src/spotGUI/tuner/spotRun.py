@@ -78,7 +78,6 @@ def get_regression_core_model_names():
         "linear_model.LinearRegression",
         "tree.HoeffdingTreeRegressor",
         "forest.AMFRegressor",
-        "forest.ARFRegressor",
         "tree.HoeffdingAdaptiveTreeRegressor",
         "tree.SGTRegressor",
     ]
