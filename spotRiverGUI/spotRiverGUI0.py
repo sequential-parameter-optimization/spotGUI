@@ -6,7 +6,9 @@ import pprint
 import os
 from PIL import Image
 
-from spotGUI.tuner.spotRun import get_task_dict
+from spotGUI.tuner.spotRun import get_task_dict, get_core_model_from_name
+from spotRiver.data.river_hyper_dict import RiverHyperDict
+
 # customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 # customtkinter.set_task("Binary Classification")  # Tasks: "Binary Classification", "Regression"
 # customtkinter.set_core_model("System")
@@ -83,7 +85,7 @@ class NumHyperparameterFrame(customtkinter.CTkScrollableFrame):
         self.default_list = []
         self.lower_list = []
         self.upper_list = []
-        self.transformation_list = []
+        self.transform_list = []
         self.level_list = []
 
     def add_header(self):
@@ -95,18 +97,18 @@ class NumHyperparameterFrame(customtkinter.CTkScrollableFrame):
         header_hp.grid(row=0, column=2, padx=10, pady=(10, 0), sticky="ew")
         header_hp = customtkinter.CTkLabel(self, text="Upper", corner_radius=6)
         header_hp.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
-        header_hp = customtkinter.CTkLabel(self, text="Transformation",  corner_radius=6)
+        header_hp = customtkinter.CTkLabel(self, text="Transform",  corner_radius=6)
         header_hp.grid(row=0, column=4, padx=10, pady=(10, 0), sticky="ew")
 
-    def add_num_item(self, hp, default, lower, upper, transformation):
+    def add_num_item(self, hp, default, lower, upper, transform):
         self.hp_col = customtkinter.CTkLabel(self, text=hp, compound="left", padx=5, anchor="w")
         self.default_col = customtkinter.CTkLabel(self, text=default, compound="left", padx=5, anchor="w")
         self.lower_col = customtkinter.CTkEntry(self)
         self.lower_col.insert(0, str(lower))
         self.upper_col = customtkinter.CTkEntry(self)
         self.upper_col.insert(0, str(upper))
-        self.transformation_col = customtkinter.CTkLabel(self,
-                                                text=transformation,
+        self.transform_col = customtkinter.CTkLabel(self,
+                                                text=transform,
                                                 compound="left",
                                                 padx=5,
                                                 anchor="w")
@@ -115,39 +117,45 @@ class NumHyperparameterFrame(customtkinter.CTkScrollableFrame):
         self.default_col.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
         self.lower_col.grid(row=1+len(self.lower_list), column=2, pady=(0, 10), sticky="w")
         self.upper_col.grid(row=1+len(self.upper_list), column=3, pady=(0, 10), sticky="w")
-        self.transformation_col.grid(row=1+len(self.transformation_list), column=4, pady=(0, 10), padx=5)
+        self.transform_col.grid(row=1+len(self.transform_list), column=4, pady=(0, 10), padx=5)
         self.hp_list.append(self.hp_col)
         self.default_list.append(self.default_col)
         self.lower_list.append(self.lower_col)
         self.upper_list.append(self.upper_col)
-        self.transformation_list.append(self.transformation_col)
+        self.transform_list.append(self.transform_col)
 
     def get_num_item(self):
-        # get the values from self.lower_col.get() and self.upper_col.get()
-        return [(hp.cget("text"), default.cget("text"), lower.get(), upper.get(), transformation.cget("text"))
-                for hp, default, lower, upper, transformation in zip(self.hp_list,
-                                                                     self.default_list,
-                                                                     self.lower_list,
-                                                                     self.upper_list,
-                                                                     self.transformation_list)]
-
-    def remove_num_item(self, item):
-        for label, default, lower, upper, transformation in zip(self.hp_list,
+        # get the values from self.lower_col.get() and self.upper_col.get() and put them in a 
+        # dictionary with the corresponding hyperparameter hh as key
+        num_hp_dict = {}
+        for label, default, lower, upper, transform in zip(self.hp_list,
                                                                 self.default_list,
                                                                 self.lower_list,
                                                                 self.upper_list,
-                                                                self.transformation_list):
+                                                                self.transform_list):
+            num_hp_dict[label.cget("text")] = dict(
+                                                lower=lower.get(),
+                                                upper=upper.get(),
+                                              )
+        return num_hp_dict
+
+    def remove_num_item(self, item):
+        for label, default, lower, upper, transform in zip(self.hp_list,
+                                                                self.default_list,
+                                                                self.lower_list,
+                                                                self.upper_list,
+                                                                self.transform_list):
             if item == label.cget("text"):
                 label.destroy()
                 default.destroy()
                 lower.destroy()
                 upper.destroy()
-                transformation.destroy()
+                transform.destroy()
                 self.hp_list.remove(label)
                 self.default_list.remove(default)
                 self.lower_list.remove(lower)
                 self.upper_list.remove(upper)
-                self.transformation_list.remove(transformation)
+                self.transform_list.remove(transform)
                 return
 
 
@@ -161,7 +169,7 @@ class CatHyperparameterFrame(customtkinter.CTkScrollableFrame):
         self.default_list = []
         self.lower_list = []
         self.upper_list = []
-        self.transformation_list = []
+        self.transform_list = []
         self.level_list = []
 
     def add_header(self):
@@ -171,38 +179,38 @@ class CatHyperparameterFrame(customtkinter.CTkScrollableFrame):
         header_hp.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ew")
         header_hp = customtkinter.CTkLabel(self, text="Levels",  corner_radius=6)
         header_hp.grid(row=0, column=2, padx=10, pady=(10, 0), sticky="ew")
-        header_hp = customtkinter.CTkLabel(self, text="Transformation", corner_radius=6)
+        header_hp = customtkinter.CTkLabel(self, text="Transform", corner_radius=6)
         header_hp.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
 
     def add_cat_item(self, item, image=None):
         label = customtkinter.CTkLabel(self, text=item, compound="left", padx=5, anchor="w")
         default = customtkinter.CTkLabel(self, text="Default", compound="left", padx=5, anchor="w")
         level = customtkinter.CTkLabel(self, text="Levels", compound="left", padx=5, anchor="w")
-        transformation = customtkinter.CTkLabel(self, text="Transformation", compound="left", padx=5, anchor="w")
+        transform = customtkinter.CTkLabel(self, text="Transform", compound="left", padx=5, anchor="w")
 
         label.grid(row=1+len(self.hp_list), column=0, pady=(0, 10), sticky="w")
         default.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
         level.grid(row=1+len(self.level_list), column=2, pady=(0, 10), padx=5)
-        transformation.grid(row=1+len(self.transformation_list), column=3, pady=(0, 10), padx=5)
+        transform.grid(row=1+len(self.transform_list), column=3, pady=(0, 10), padx=5)
         self.hp_list.append(label)
         self.default_list.append(default)
         self.level_list.append(level)
-        self.transformation_list.append(transformation)
+        self.transform_list.append(transform)
 
     def remove_cat_item(self, item):
-        for label, default, level, transformation in zip(self.hp_list,
+        for label, default, level, transform in zip(self.hp_list,
                                                         self.default_list,
                                                         self.level_list,
-                                                        self.transformation_list):
+                                                        self.transform_list):
             if item == label.cget("text"):
                 label.destroy()
                 default.destroy()
                 level.destroy()
-                transformation.destroy()
+                transform.destroy()
                 self.hp_list.remove(label)
                 self.default_list.remove(default)
                 self.lower_list.remove(level)
-                self.transformation_list.remove(transformation)
+                self.transform_list.remove(transform)
                 return
 
 
@@ -218,9 +226,12 @@ class App(customtkinter.CTk):
         # self.grid_columnconfigure((2, 3), weight=0)
         self.grid_rowconfigure((0, 1, 2), weight=1)
 
+        self.rhd = RiverHyperDict()
+
         self.task_name = "regression_tab"
         self.task_dict = get_task_dict()
         pprint.pprint(self.task_dict)
+        self.core_model_name = self.task_dict[self.task_name]["core_model_names"][0]
 
         # set default values
         # these values can be changed by the GUI and will be passed to spot
@@ -302,15 +313,8 @@ class App(customtkinter.CTk):
         self.shuffle_checkbox_frame.grid(row=2, column=1, padx=(0, 10), pady=(10, 0), sticky="nsew")
         self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
 
-        # create select core model frame
-        self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                             width=500,
-                                                             command=self.select_core_model_frame_event,
-                                                             item_list=self.task_dict[self.task_name]["core_model_names"],
-                                                             item_default=None,
-                                                             title="Select Core Model")
-        self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
-        self.select_core_model_frame.configure(width=500)
+        # create core model frame
+        self.create_core_model_frame()
 
         # create select prep model frame
         self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -330,7 +334,7 @@ class App(customtkinter.CTk):
                                                                             weight="bold"),
                                                            corner_radius=6)
         self.hp__main_frame_title.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
-        self.create_new_hp_frame()
+        self.create_num_hp_frame()
 
         self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame,
                                                                  width=640,
@@ -354,31 +358,52 @@ class App(customtkinter.CTk):
         print(f"Data modified: {new_data}")
         print(f"Data Selection modified: {self.select_data_frame.get_selected_optionmenu_item()}")
 
-    def create_new_hp_frame(self):
+    def create_num_hp_frame(self):
         # create new num_hp_frame
         self.num_hp_frame = NumHyperparameterFrame(master=self.hp_main_frame,
                                                                  width=640,
+                                                                 height=480,
                                                                  command=self.label_button_frame_event,
                                                                  label_text="Numerical Hyperparameters",
                                                                  corner_radius=0)
         self.num_hp_frame.grid(row=1, column=3, padx=0, pady=0, sticky="nsew")
         self.num_hp_frame.add_header()
-        n_num_items = 4
-        for i in range(n_num_items):
-            self.num_hp_frame.add_num_item(hp=f"Hyperparameter {i}",
-                                           default=f"Default {i}",
-                                           lower=i,
-                                           upper=i,
-                                           transformation=f"Transformation {i}")
+        # TODO: Provide correct values for the hyperparameters
+        print("***************************")
+        # print(f"self.task_dict[self.task_name]: {self.task_dict[self.task_name]}")
+        print(f"self.core_model_name: {self.core_model_name}")
+        coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
+        dict = self.rhd.hyper_dict[coremodel]
+        pprint.pprint(dict)
+        for i, (key, value) in enumerate(dict.items()):
+            if dict[key]["type"] == "int" or dict[key]["type"] == "float":
+                self.num_hp_frame.add_num_item(hp=key,
+                                               default=value["default"],
+                                               lower=value["lower"],
+                                               upper=value["upper"],
+                                               transform=value["transform"])
+
+    def create_core_model_frame(self):
+        # create new core model frame
+        self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
+                                                             width=500,
+                                                             command=self.select_core_model_frame_event,
+                                                             item_list=self.task_dict[self.task_name]["core_model_names"],
+                                                             item_default=None,
+                                                             title="Select Core Model")
+        self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
+        self.select_core_model_frame.configure(width=500)
+        self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
 
     def select_core_model_frame_event(self, new_core_model: str):
         print(f"Core Model modified: {new_core_model}")
-        print(f"Core Model modified: {self.select_core_model_frame.get_selected_optionmenu_item()}")
+        self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
+        print(f"New self.core_model_name: {self.core_model_name}")
         # TODO: Modify the hyperparameters based on the core model
         # destroy old num_hp_frame
         self.num_hp_frame.destroy()
         # create new num_hp_frame
-        self.create_new_hp_frame()
+        self.create_num_hp_frame()
 
     def select_prep_model_frame_event(self, new_prep_model: str):
         print(f"Prep Model modified: {new_prep_model}")
@@ -395,14 +420,13 @@ class App(customtkinter.CTk):
         # destroy old core model frame
         self.select_core_model_frame.destroy()
         # create new core model frame
-        self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                             width=500,
-                                                             command=self.select_core_model_frame_event,
-                                                             item_list=self.task_dict[self.task_name]["core_model_names"],
-                                                             item_default=None,
-                                                             title="Select Core Model")
-        self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
-        self.select_core_model_frame.configure(width=500)
+        self.create_core_model_frame()
+        print(f"New self.core_model_name: {self.core_model_name}")
+        # destroy old num_hp_frame
+        self.num_hp_frame.destroy()
+        # create new num_hp_frame
+        self.create_num_hp_frame()
+
         # destroy old data frame
         self.select_data_frame.destroy()
         # create new data frame
