@@ -225,57 +225,28 @@ class App(customtkinter.CTk):
 
         self.title("spotRiver GUI")
         self.geometry(f"{1400}x{780}")
-        self.resizable(True, True)
-        # configure grid layout (4x4)
-        # self.grid_columnconfigure(0, weight=1)
-        # self.grid_columnconfigure(1, weight=1)
-        # self.grid_columnconfigure((0, 1, 2, 3), weight=1)
-        # self.grid_rowconfigure((0, 1, 2), weight=1)
+        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        self.grid_rowconfigure((0, 1), weight=1)
 
         self.rhd = RiverHyperDict()
-
         self.task_name = "regression_tab"
         self.task_dict = get_task_dict()
         pprint.pprint(self.task_dict)
         self.core_model_name = self.task_dict[self.task_name]["core_model_names"][0]
 
-        # set default values
-        # these values can be changed by the GUI and will be passed to spot
-        # self.appearance_mode_value = "Dark"
-        # self.data_set = "data 0"
-        # self.shuffle = None
-
-        # create sidebar frame with widgets
+        # ---------------- Sidebar Frame --------------------------------------- #
+        # create sidebar frame with widgets in row 0 and column 0
         self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
-
+        # Inside the sidebar frame
         self.logo_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                  text="SpotRiver GUI",
                                                  font=customtkinter.CTkFont(size=20,
                                                                             weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-
-        # create data main frame with widgets
-        self.data_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.data_main_frame.grid(row=0, column=1, sticky="nsew")
-        self.data_main_frame.grid_rowconfigure(4, weight=1)
-
-        # create hyperparameter main frame with widgets
-        self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
-        # self.hp_main_frame.grid_rowconfigure((0, 1, 2), weight=0)
-
-        # Execution main frame
-        self.exec_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.exec_main_frame.grid(row=0, column=3, sticky="nsew")
-        # self.exec_main_frame.grid_rowconfigure(4, weight=1)
-        # create run button
-        self.run_button = customtkinter.CTkButton(master=self.exec_main_frame,
-                                             text="Run",
-                                             command=self.run_button_event)
-        self.run_button.grid(row=4, column=0)
-
+        #
+        # create task frame inside sidebar frame
         self.task_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 command=self.change_task_event,
                                                 item_list=["Binary Classification",
@@ -284,7 +255,18 @@ class App(customtkinter.CTk):
                                                 title="Select Task")
         self.task_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
         # self.task_frame.configure(width=500)
-
+        #
+        # create core model frame inside sidebar frame
+        self.create_core_model_frame()
+        # create select prep model frame inside sidebar frame
+        self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
+                                                           command=self.select_prep_model_frame_event,
+                                                           item_list=self.task_dict[self.task_name]["prep_models"],
+                                                           item_default=None,
+                                                           title="Select Prep Model")
+        self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
+        # self.select_prep_model_frame.configure(width=200)
+        #
         # create appearance mode frame
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 width=500,
@@ -295,14 +277,17 @@ class App(customtkinter.CTk):
         self.appearance_frame.grid(row=4, column=0, padx=15, pady=15, sticky="nsew")
         self.appearance_frame.configure(width=500)
 
-        # create select data set frame
+        # ----------------- Data Main Frame -------------------------------------- #
+        # create data main frame with widgets in row 0 and column 1
+        self.data_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.data_main_frame.grid(row=0, column=1, sticky="nsew")
+        self.data_main_frame.grid_rowconfigure(4, weight=1)
+        # create select data set frame in data main frame
         self.data_main_frame_title = customtkinter.CTkLabel(self.data_main_frame,
-                                            text="Data",
-                                            font=customtkinter.CTkFont(size=20,
-                                                            weight="bold"),
+                                                            text="Data",                                         font=customtkinter.CTkFont(size=20,                 weight="bold"),
                                             corner_radius=6)
         self.data_main_frame_title.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="nsew")
-
+        # select data frame in data main frame
         self.select_data_frame = SelectOptionMenuFrame(master=self.data_main_frame,
                                                            width=500,
                                                            command=self.select_data_frame_event,
@@ -311,7 +296,6 @@ class App(customtkinter.CTk):
                                                            title="Select Data")
         self.select_data_frame.grid(row=1, column=1, padx=15, pady=15, sticky="nsew")
         self.select_data_frame.configure(width=500)
-
         # shuffle data in data main frame
         self.shuffle_checkbox_frame = CheckboxFrame(self.data_main_frame,
                                                     text="shuffle",
@@ -319,31 +303,44 @@ class App(customtkinter.CTk):
         self.shuffle_checkbox_frame.grid(row=2, column=1, padx=(0, 10), pady=(10, 0), sticky="nsew")
         self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
 
-        # create core model frame
-        self.create_core_model_frame()
-
-        # create select prep model frame
-        self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                           command=self.select_prep_model_frame_event,
-                                                           item_list=self.task_dict[self.task_name]["prep_models"],
-                                                           item_default=None,
-                                                           title="Select Prep Model")
-        self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
-        # self.select_prep_model_frame.configure(width=200)
-
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # ------------------ Hyperparameter Main Frame ------------------------------------- #
+        # create hyperparameter main frame with widgets in row 0 and column 2
+        self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
+        # self.hp_main_frame.grid_rowconfigure((0, 1, 2), weight=0)
+        #
+        # create hyperparameter title frame in hyperparameter main frame
         self.hp_main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
                                                            text="Hyperparameter",
                                                            font=customtkinter.CTkFont(size=20,
                                                                             weight="bold"),
                                                            corner_radius=6)
         self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=15, sticky="nsew")
+        #
         self.create_num_hp_frame()
+        #
         self.create_cat_hp_frame()
 
-        # create textbox
+        # ------------------- Execution Main Frame ------------------------------------ #
+        # Execution main frame in row 0 and column 3
+        self.exec_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.exec_main_frame.grid(row=0, column=3, sticky="nsew")
+        #
+        # create plot data button
+        self.plot_data_button = customtkinter.CTkButton(master=self.exec_main_frame,
+                                                        text="Plot Data",
+                                                        command=self.plot_data_button_event)
+        self.plot_data_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+        # create run button
+        self.run_button = customtkinter.CTkButton(master=self.exec_main_frame,
+                                                  text="Run",
+                                                  command=self.run_button_event)
+        self.run_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+
+        # ------------------- Textbox Frame ------------------------------------ #
+        # create textbox in row 1 and column 0
         self.textbox = customtkinter.CTkTextbox(self)
-        self.textbox.grid(row=5, column=0, columnspan=4, padx=(20, 0), pady=(20, 0), sticky="nsew")
+        self.textbox.grid(row=1, column=0, columnspan=4, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
@@ -464,6 +461,195 @@ class App(customtkinter.CTk):
         print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
         print("Numerical Hyperparameters:", self.num_hp_frame.get_num_item())
         print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
+
+    def plot_data_button_event(self):
+        print("Plot Data button clicked")
+        run_experiment(tab_task=self.task_name, show_data_only=True)
+
+    def run_experiment(tab_task, save_only=False, show_data_only=False):
+        global spot_tuner, fun_control, hyper_dict, task_dict
+
+        print(f"tab_task in run_experiment(): {tab_task.name}")
+        noise = map_to_True_False(task_dict[tab_task.name]["noise_entry"].get())
+        n_total = get_n_total(task_dict[tab_task.name]["n_total_entry"].get())
+        fun_evals_val = get_fun_evals(task_dict[tab_task.name]["fun_evals_entry"].get())
+        max_surrogate_points = int(task_dict[tab_task.name]["max_sp_entry"].get())
+        seed = int(task_dict[tab_task.name]["seed_entry"].get())
+        test_size = float(task_dict[tab_task.name]["test_size_entry"].get())
+        target_type = task_dict[tab_task.name]["target_type_entry"].get()
+        core_model_name = task_dict[tab_task.name]["core_model_combo"].get()
+        print(f"core_model_name: {core_model_name}")
+        lbd_min, lbd_max = get_lambda_min_max(task_dict[tab_task.name]["lambda_min_max_entry"].get())
+        prep_model_name = task_dict[tab_task.name]["prep_model_combo"].get()
+        print(f"prep_model_name: {prep_model_name}")
+        if prep_model_name.endswith(".py"):
+            print(f"prep_model_name = {prep_model_name}")
+            sys.path.insert(0, "./userPrepModel")
+            # remove the file extension from the prep_model_name
+            prep_model_name = prep_model_name[:-3]
+            print(f"prep_model_name = {prep_model_name}")
+            __import__(prep_model_name)
+            prepmodel = sys.modules[prep_model_name].set_prep_model()
+        else:
+            prepmodel = get_prep_model(prep_model_name)
+        metric_sklearn = get_metric_sklearn(task_dict[tab_task.name]["metric_combo"].get())
+        weights = get_weights(
+            task_dict[tab_task.name]["metric_combo"].get(), task_dict[tab_task.name]["metric_weights_entry"].get()
+        )
+        oml_grace_period = get_oml_grace_period(task_dict[tab_task.name]["oml_grace_period_entry"].get())
+        data_set_name = task_dict[tab_task.name]["data_set_combo"].get()
+        print(f"data_set_name: {data_set_name}")
+        print(f"task_dict[tab_task.name]['datasets']: {task_dict[tab_task.name]['datasets']}")
+        dataset, n_samples = get_river_dataset_from_name(
+            data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
+        )
+        shuffle = bool(task_dict[tab_task.name]["shuffle"].get())
+        train, test, n_samples = split_df(dataset=dataset,
+                                        test_size=test_size,
+                                        target_type=target_type,
+                                        seed=seed,
+                                        shuffle=shuffle,
+                                        stratify=None)
+
+        TENSORBOARD_CLEAN = bool(task_dict[tab_task.name]["tb_clean"].get())
+        tensorboard_start = bool(task_dict[tab_task.name]["tb_start"].get())
+        tensorboard_stop = bool(task_dict[tab_task.name]["tb_stop"].get())
+
+        # Initialize the fun_control dictionary with the static parameters,
+        # i.e., the parameters that are not hyperparameters (depending on the core model)
+        fun_control = fun_control_init(
+            PREFIX=task_dict[tab_task.name]["prefix_entry"].get(),
+            TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
+            core_model_name=core_model_name,
+            data_set_name=data_set_name,
+            fun_evals=fun_evals_val,
+            fun_repeats=1,
+            horizon=int(task_dict[tab_task.name]["horizon_entry"].get()),
+            max_surrogate_points=max_surrogate_points,
+            max_time=float(task_dict[tab_task.name]["max_time_entry"].get()),
+            metric_sklearn=metric_sklearn,
+            noise=noise,
+            n_samples=n_samples,
+            ocba_delta=0,
+            oml_grace_period=oml_grace_period,
+            prep_model=prepmodel,
+            seed=seed,
+            target_column="y",
+            target_type=target_type,
+            test=test,
+            test_size=test_size,
+            train=train,
+            tolerance_x=np.sqrt(np.spacing(1)),
+            verbosity=1,
+            weights=weights,
+            log_level=50,
+        )
+
+        # TODO:
+        # Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
+        # > For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
+        # Therefore, we set l1 bounds to 0.0:
+        # modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
+        # set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
+        # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
+
+        # TODO:
+        #  Enable user specific core models. An example is given below:
+        # from spotPython.hyperparameters.values import add_core_model_to_fun_control
+        # import sys
+        # sys.path.insert(0, './userModel')
+        # import river.tree
+        # import river_hyper_dict
+        # add_core_model_to_fun_control(fun_control=fun_control,
+        #                             core_model=river.tree.HoeffdingTreeRegressor,
+        #                             hyper_dict=river_hyper_dict.RiverHyperDict)
+
+        coremodel, core_model_instance = get_core_model_from_name(core_model_name)
+        add_core_model_to_fun_control(
+            core_model=core_model_instance,
+            fun_control=fun_control,
+            hyper_dict=RiverHyperDict,
+            filename=None,
+        )
+        dict = rhd.hyper_dict[coremodel]
+        for i, (key, value) in enumerate(dict.items()):
+            if dict[key]["type"] == "int":
+                set_control_hyperparameter_value(
+                    fun_control,
+                    key,
+                    [
+                        int(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
+                        int(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
+                    ],
+                )
+            if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
+                set_control_hyperparameter_value(
+                    fun_control,
+                    key,
+                    [
+                        int(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
+                        int(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
+                    ],
+                )
+            if dict[key]["type"] == "float":
+                set_control_hyperparameter_value(
+                    fun_control,
+                    key,
+                    [
+                        float(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
+                        float(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
+                    ],
+                )
+            if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
+                fle = hyper_dict[tab_task.name]["factor_level_entry"][i].get()
+                # convert the string to a list of strings
+                fle = fle.split()
+                set_control_hyperparameter_value(fun_control, key, fle)
+                fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
+        design_control = design_control_init(
+            init_size=int(task_dict[tab_task.name]["init_size_entry"].get()),
+            repeats=1,
+        )
+        surrogate_control = surrogate_control_init(
+            # If lambda is set to 0, no noise will be used in the surrogate
+            # Otherwise use noise in the surrogate:
+            noise=get_kriging_noise(lbd_min, lbd_max),
+            n_theta=2,
+            min_Lambda=lbd_min,
+            max_Lambda=lbd_max,
+            log_level=50,
+        )
+        print("surrogate_control in run_experiment():")
+        pprint.pprint(surrogate_control)
+        optimizer_control = optimizer_control_init()
+        print(gen_design_table(fun_control))
+        (
+            SPOT_PKL_NAME,
+            spot_tuner,
+            fun_control,
+            design_control,
+            surrogate_control,
+            optimizer_control,
+            p_open,
+        ) = run_spot_python_experiment(
+            save_only=save_only,
+            show_data_only=show_data_only,
+            fun_control=fun_control,
+            design_control=design_control,
+            surrogate_control=surrogate_control,
+            optimizer_control=optimizer_control,
+            fun=HyperRiver(log_level=fun_control["log_level"]).fun_oml_horizon,
+            tensorboard_start=tensorboard_start,
+            tensorboard_stop=tensorboard_stop,
+        )
+        if SPOT_PKL_NAME is not None and save_only:
+            print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
+        elif SPOT_PKL_NAME is not None and not save_only:
+            print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
+        elif show_data_only:
+            print("\nData shown. No result saved.")
+        else:
+            print("\nExperiment failed. No result saved.")
 
 
 if __name__ == "__main__":
