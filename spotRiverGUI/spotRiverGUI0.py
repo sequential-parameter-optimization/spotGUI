@@ -75,7 +75,7 @@ class CheckboxFrame(customtkinter.CTkFrame):
         return self.checkbox_var.get()
 
 
-class NumHyperparameterFrame(customtkinter.CTkScrollableFrame):
+class NumHyperparameterFrame(customtkinter.CTkFrame):
     def __init__(self, master, command=None, **kwargs):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
@@ -159,7 +159,7 @@ class NumHyperparameterFrame(customtkinter.CTkScrollableFrame):
                 return
 
 
-class CatHyperparameterFrame(customtkinter.CTkScrollableFrame):
+class CatHyperparameterFrame(customtkinter.CTkFrame):
     def __init__(self, master, command=None, **kwargs):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
@@ -225,11 +225,12 @@ class App(customtkinter.CTk):
 
         self.title("spotRiver GUI")
         # self.geometry(f"{1400}x{780}")
-        self.resizable(True, True)
+        # self.resizable(True, True)
         # configure grid layout (4x4)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure((2, 3), weight=1)
-        self.grid_rowconfigure((0, 1, 2), weight=1)
+        # self.grid_columnconfigure(0, weight=1)
+        # self.grid_columnconfigure(1, weight=1)
+        # self.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        # self.grid_rowconfigure((0, 1, 2), weight=1)
 
         self.rhd = RiverHyperDict()
 
@@ -245,8 +246,8 @@ class App(customtkinter.CTk):
         # self.shuffle = None
 
         # create sidebar frame with widgets
-        self.sidebar_frame = customtkinter.CTkScrollableFrame(self, width=240, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew")
+        self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
+        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
 
         self.logo_label = customtkinter.CTkLabel(self.sidebar_frame,
@@ -256,34 +257,33 @@ class App(customtkinter.CTk):
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
         # create data main frame with widgets
-        self.data_main_frame = customtkinter.CTkScrollableFrame(self, width=240, corner_radius=0)
-        self.data_main_frame.grid(row=0, column=1, rowspan=4, sticky="nsew")
+        self.data_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.data_main_frame.grid(row=0, column=1, sticky="nsew")
         self.data_main_frame.grid_rowconfigure(4, weight=1)
 
         # create hyperparameter main frame with widgets
-        self.hp_main_frame = customtkinter.CTkFrame(self, width=720, corner_radius=0)
-        self.hp_main_frame.grid(row=0, column=2, rowspan=5, sticky="nsew")
-        self.hp_main_frame.grid_rowconfigure(4, weight=1)
+        self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
+        # self.hp_main_frame.grid_rowconfigure((0, 1, 2), weight=0)
 
         # Execution main frame
-        self.exec_main_frame = customtkinter.CTkFrame(self, width=256, corner_radius=0)
-        self.exec_main_frame.grid(row=0, column=7, rowspan=2, sticky="nsew")
-        self.exec_main_frame.grid_rowconfigure(4, weight=1)
+        self.exec_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.exec_main_frame.grid(row=0, column=3, sticky="nsew")
+        # self.exec_main_frame.grid_rowconfigure(4, weight=1)
         # create run button
         self.run_button = customtkinter.CTkButton(master=self.exec_main_frame,
                                              text="Run",
                                              command=self.run_button_event)
-        self.run_button.grid(row=0, column=1, pady=(0, 10), padx=5)
+        self.run_button.grid(row=4, column=0)
 
         self.task_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                width=500,
                                                 command=self.change_task_event,
                                                 item_list=["Binary Classification",
                                                            "Regression"],
                                                 item_default="Regression",
                                                 title="Select Task")
-        self.task_frame.grid(row=3, column=0, padx=15, pady=15, sticky="ns")
-        self.task_frame.configure(width=500)
+        self.task_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
+        # self.task_frame.configure(width=500)
 
         # create appearance mode frame
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -292,23 +292,24 @@ class App(customtkinter.CTk):
                                                 item_list=["Light", "Dark", "System"],
                                                 item_default="System",
                                                 title="Appearance Mode")
-        self.appearance_frame.grid(row=7, column=0, padx=15, pady=15, sticky="ns")
+        self.appearance_frame.grid(row=4, column=0, padx=15, pady=15, sticky="nsew")
         self.appearance_frame.configure(width=500)
 
         # create select data set frame
-        self.hp__main_frame_title = customtkinter.CTkLabel(self.data_main_frame,
+        self.data_main_frame_title = customtkinter.CTkLabel(self.data_main_frame,
                                             text="Data",
                                             font=customtkinter.CTkFont(size=20,
                                                             weight="bold"),
                                             corner_radius=6)
-        self.hp__main_frame_title.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ew")
+        self.data_main_frame_title.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="nsew")
+
         self.select_data_frame = SelectOptionMenuFrame(master=self.data_main_frame,
                                                            width=500,
                                                            command=self.select_data_frame_event,
                                                            item_list=self.task_dict[self.task_name]["datasets"],
                                                            item_default=None,
                                                            title="Select Data")
-        self.select_data_frame.grid(row=1, column=1, padx=15, pady=15, sticky="ns")
+        self.select_data_frame.grid(row=1, column=1, padx=15, pady=15, sticky="nsew")
         self.select_data_frame.configure(width=500)
 
         # shuffle data in data main frame
@@ -323,24 +324,26 @@ class App(customtkinter.CTk):
 
         # create select prep model frame
         self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                           width=500,
                                                            command=self.select_prep_model_frame_event,
                                                            item_list=self.task_dict[self.task_name]["prep_models"],
                                                            item_default=None,
                                                            title="Select Prep Model")
-        self.select_prep_model_frame.grid(row=5, column=0, padx=15, pady=15, sticky="ns")
-        self.select_prep_model_frame.configure(width=200)
+        self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
+        # self.select_prep_model_frame.configure(width=200)
 
-        # create scrollable label and button frame
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.hp__main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
+        self.hp_main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
                                                            text="Hyperparameter",
                                                            font=customtkinter.CTkFont(size=20,
                                                                             weight="bold"),
                                                            corner_radius=6)
-        self.hp__main_frame_title.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
+        self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=15, sticky="nsew")
         self.create_num_hp_frame()
         self.create_cat_hp_frame()
+
+        # create textbox
+        self.textbox = customtkinter.CTkTextbox(self)
+        self.textbox.grid(row=5, column=0, columnspan=4, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
@@ -356,12 +359,11 @@ class App(customtkinter.CTk):
     def create_num_hp_frame(self):
         # create new num_hp_frame
         self.num_hp_frame = NumHyperparameterFrame(master=self.hp_main_frame,
-                                                                 width=720,
-                                                                 height=512,
-                                                                 command=self.label_button_frame_event,
-                                                                 label_text="Numerical Hyperparameters",
-                                                                 corner_radius=0)
-        self.num_hp_frame.grid(row=1, column=3, padx=0, pady=0, sticky="nsew")
+                                                   width=640,
+                                                                 command=self.label_button_frame_event)
+                                                                #  label_text="Numerical Hyperparameters",
+                                                                #  corner_radius=0)
+        self.num_hp_frame.grid(row=1, column=0, padx=0, pady=0, sticky="nsew")
         self.num_hp_frame.add_header()
         print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
@@ -379,11 +381,10 @@ class App(customtkinter.CTk):
 
     def create_cat_hp_frame(self):
         self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame,
-                                                                 width=640,
-                                                                 command=self.label_button_frame_event,
-                                                                 label_text="Categorical Hyperparameters",
-                                                                 corner_radius=0)
-        self.cat_hp_frame.grid(row=2, column=3, padx=0, pady=0, sticky="nsew")
+                                                                 command=self.label_button_frame_event)
+                                                                 # label_text="Categorical Hyperparameters",
+                                                                 # corner_radius=0)
+        self.cat_hp_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
         self.cat_hp_frame.add_header()
         print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
@@ -399,13 +400,12 @@ class App(customtkinter.CTk):
     def create_core_model_frame(self):
         # create new core model frame
         self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                             width=500,
-                                                             command=self.select_core_model_frame_event,
+                                                              command=self.select_core_model_frame_event,
                                                              item_list=self.task_dict[self.task_name]["core_model_names"],
                                                              item_default=None,
                                                              title="Select Core Model")
-        self.select_core_model_frame.grid(row=4, column=0, padx=15, pady=15, sticky="ns")
-        self.select_core_model_frame.configure(width=500)
+        self.select_core_model_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
+        # self.select_core_model_frame.configure(width=500)
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
 
     def select_core_model_frame_event(self, new_core_model: str):
