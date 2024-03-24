@@ -224,8 +224,8 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("spotRiver GUI")
-        # self.geometry(f"{1400}x{780}")
-        # self.resizable(True, True)
+        self.geometry(f"{1400}x{780}")
+        self.resizable(True, True)
         # configure grid layout (4x4)
         # self.grid_columnconfigure(0, weight=1)
         # self.grid_columnconfigure(1, weight=1)
