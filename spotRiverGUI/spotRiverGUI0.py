@@ -204,7 +204,8 @@ class CatHyperparameterFrame(customtkinter.CTkFrame):
         self.hp_col = customtkinter.CTkLabel(self, text=hp, compound="left", padx=5, anchor="w")
         self.default_col = customtkinter.CTkLabel(self, text=default, compound="left", padx=5, anchor="w")
         self.levels_col = customtkinter.CTkTextbox(self, width=400, height=1)
-        self.levels_col.insert("0.0", str(levels))
+        string_items = ' '.join(levels)
+        self.levels_col.insert("0.0", string_items)
 
         self.hp_col.grid(row=1+len(self.hp_list), column=0, pady=(0, 10), sticky="w")
         self.default_col.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
@@ -808,7 +809,7 @@ class App(customtkinter.CTk):
         tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         print(f"tensorboard_start: {tensorboard_start}")
         print(f"tensorboard_stop: {tensorboard_stop}")
-        
+
         # Initialize the fun_control dictionary with the static parameters,
         # i.e., the parameters that are not hyperparameters (depending on the core model)
         fun_control = fun_control_init(
@@ -886,6 +887,7 @@ class App(customtkinter.CTk):
                 set_control_hyperparameter_value(fun_control, key, fle)
                 fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
             pprint.pprint(fun_control["core_model_hyper_dict"])
+            
 
         
         
