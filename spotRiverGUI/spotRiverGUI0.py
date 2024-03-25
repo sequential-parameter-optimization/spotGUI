@@ -453,7 +453,7 @@ class App(customtkinter.CTk):
                                                             text="Tensorboard Options",
                                                             font=customtkinter.CTkFont(weight="bold"),
                                                             corner_radius=6)
-        self.execution_tb_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.execution_tb_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         #
         # tb_clean in execution_tb frame
         self.tb_clean_var = customtkinter.StringVar(value="True")
@@ -505,7 +505,7 @@ class App(customtkinter.CTk):
                                                             text="Documentation",
                                                             font=customtkinter.CTkFont(weight="bold"),
                                                             corner_radius=6)
-        self.execution_docs_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.execution_docs_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         # spot_doc entry in execution_model frame
         self.spot_doc_label = customtkinter.CTkLabel(self.execution_docs_frame,
                                                     text="Open SPOT Documentation", corner_radius=6)
@@ -543,16 +543,59 @@ class App(customtkinter.CTk):
         self.river_link_label.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="w")
 
         #
+        # ................. Execution_Experiment_Name Frame .......................................#
+        # create experiment data_frame with widgets in experiment_main frame
+        self.experiment_name_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
+        self.experiment_name_frame.grid(row=3, column=0, sticky="ew")
+        #
+        # experiment_data frame title
+        self.experiment_name_frame_title = customtkinter.CTkLabel(self.experiment_name_frame,
+                                                            text="Experiment Name",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.experiment_name_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # experiment_name entry in experiment_name frame
+        self.experiment_name_label = customtkinter.CTkLabel(self.experiment_name_frame,
+                                                    text="Experiment name", corner_radius=6)
+        self.experiment_name_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.experiment_name_var = customtkinter.StringVar(value="All")
+        self.experiment_name_entry = customtkinter.CTkEntry(self.experiment_name_frame,
+                                                          textvariable=self.experiment_name_var)
+        self.experiment_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+        # ................. Run_Experiment_Name Frame .......................................#
+        # create experiment_run_frame with widgets in experiment_main frame
+        self.experiment_run_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
+        self.experiment_run_frame.grid(row=4, column=0, sticky="ew")
+        #
+        # experiment_data frame title
+        self.experiment_run_frame_title = customtkinter.CTkLabel(self.experiment_run_frame,
+                                                            text="Execute",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.experiment_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
         # create plot data button
-        self.plot_data_button = customtkinter.CTkButton(master=self.execution_main_frame,
+        self.plot_data_button = customtkinter.CTkButton(master=self.experiment_run_frame,
                                                         text="Plot Data",
                                                         command=self.plot_data_button_event)
-        self.plot_data_button.grid(row=8, column=0, sticky="ew", padx=10, pady=10)
+        self.plot_data_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        # create save button
+        self.save_button = customtkinter.CTkButton(master=self.experiment_run_frame,
+                                                  text="Save",
+                                                  command=self.save_button_event)
+        self.save_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        # create load button
+        self.load_button = customtkinter.CTkButton(master=self.experiment_run_frame,
+                                                  text="Load",
+                                                  command=self.load_button_event)
+        self.load_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
         # create run button
-        self.run_button = customtkinter.CTkButton(master=self.execution_main_frame,
+        self.run_button = customtkinter.CTkButton(master=self.experiment_run_frame,
                                                   text="Run",
                                                   command=self.run_button_event)
-        self.run_button.grid(row=9, column=0, sticky="ew", padx=10, pady=10)
+        self.run_button.grid(row=4, column=0, sticky="ew", padx=10, pady=10)
+
 
         # ------------------ Hyperparameter Main Frame ------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
@@ -712,7 +755,12 @@ class App(customtkinter.CTk):
         print(f"tb_clean: {self.tb_clean_var.get()}")
         print(f"tb_start: {self.tb_start_var.get()}")
         print(f"tb_stop: {self.tb_stop_var.get()}")
-        
+
+    def save_button_event(self):
+        print("Save button clicked")
+    
+    def load_button_event(self):
+        print("Load button clicked")
 
     def plot_data_button_event(self):
         print("Plot Data button clicked")
