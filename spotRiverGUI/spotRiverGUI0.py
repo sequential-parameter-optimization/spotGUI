@@ -5,7 +5,7 @@ import pprint
 import webbrowser
 
 import numpy as np
-import os
+import copy
 import sys
 from PIL import Image
 from spotPython.utils.init import (fun_control_init,
@@ -353,7 +353,7 @@ class App(customtkinter.CTk):
         self.test_size_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
         #
         # shuffle data in experiment_data frame
-        self.shuffle_var = customtkinter.StringVar(value="True")
+        self.shuffle_var = customtkinter.StringVar(value="False")
         self.shuffle_checkbox = customtkinter.CTkCheckBox(self.experiment_data_frame,
                                              text="ShuffleData",
                                              command=None,
@@ -385,7 +385,7 @@ class App(customtkinter.CTk):
         self.fun_evals_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="fun_evals", corner_radius=6)
         self.fun_evals_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.fun_evals_var = customtkinter.StringVar(value="1")
+        self.fun_evals_var = customtkinter.StringVar(value="30")
         self.fun_evals_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.fun_evals_var)
         self.fun_evals_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
@@ -394,7 +394,7 @@ class App(customtkinter.CTk):
         self.init_size_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="init_size", corner_radius=6)
         self.init_size_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.init_size_var = customtkinter.StringVar(value="1")
+        self.init_size_var = customtkinter.StringVar(value="5")
         self.init_size_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.init_size_var)
         self.init_size_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
@@ -410,7 +410,7 @@ class App(customtkinter.CTk):
         self.max_sp_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="max_sp", corner_radius=6)
         self.max_sp_label.grid(row=5, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.max_sp_var = customtkinter.StringVar(value="1")
+        self.max_sp_var = customtkinter.StringVar(value="30")
         self.max_sp_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.max_sp_var)
         self.max_sp_entry_frame.grid(row=5, column=1, padx=10, pady=10, sticky="w")
@@ -418,7 +418,7 @@ class App(customtkinter.CTk):
         self.seed_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="seed", corner_radius=6)
         self.seed_label.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.seed_var = customtkinter.StringVar(value="1")
+        self.seed_var = customtkinter.StringVar(value="123")
         self.seed_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.seed_var)
         self.seed_entry_frame.grid(row=6, column=1, padx=10, pady=10, sticky="w")
@@ -714,23 +714,16 @@ class App(customtkinter.CTk):
         self.data_name = self.select_data_frame.get_selected_optionmenu_item()
 
     def select_core_model_frame_event(self, new_core_model: str):
-        print(f"Core Model modified: {new_core_model}")
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-        print(f"New self.core_model_name: {self.core_model_name}")
-        # TODO: Modify the hyperparameters based on the core model
-        # destroy old num_hp_frame
         self.num_hp_frame.destroy()
-        # create new num_hp_frame
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
 
     def select_prep_model_frame_event(self, new_prep_model: str):
-        print(f"Prep Model modified: {new_prep_model}")
         print(f"Prep Model modified: {self.select_prep_model_frame.get_selected_optionmenu_item()}")
 
     def select_metric_levels_frame_event(self, new_metric_levels: str):
-        print(f"Metric modified: {new_metric_levels}")
         print(f"Metric modified: {self.select_metric_levels_frame.get_selected_optionmenu_item()}")
 
     def change_task_event(self, new_task: str):
@@ -741,42 +734,48 @@ class App(customtkinter.CTk):
             self.task_name = "regression_tab"
         else:
             print("Error: Task not found")
-        # destroy old core model frame
         self.select_core_model_frame.destroy()
-        # create new core model frame
         self.create_core_model_frame(row=2, column=0)
-        print(f"New self.core_model_name: {self.core_model_name}")
-        # destroy old num_hp_frame
         self.num_hp_frame.destroy()
-        # create new num_hp_frame
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
-        # destroy old data frame
         self.select_data_frame.destroy()
-        # create new data frame
         self.create_select_data_frame(row=4, column=0)
 
     def run_button_event(self):
-        save_only = False
-        show_data_only = False
-        print("Run button clicked")
-        print("Data:", self.select_data_frame.get_selected_optionmenu_item())
-        print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
-        print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
-        print(f"n_total: {self.n_total_var.get()}")
-        print(f"Shuffle: {self.shuffle_var.get()}")
-        print(f"max_time: {self.max_time_var.get()}")
-        print(f"fun_evals: {self.fun_evals_var.get()}")
-        print(f"init_size: {self.init_size_var.get()}")
-        print(f"lambda_min_max: {self.lambda_min_max_var.get()}")
-        print(f"max_sp: {self.max_sp_var.get()}")
-        print(f"seed: {self.seed_var.get()}")
-        print(f"noise: {self.noise_var.get()}")
-        print(f"tb_clean: {self.tb_clean_var.get()}")
-        print(f"tb_start: {self.tb_start_var.get()}")
-        print(f"tb_stop: {self.tb_stop_var.get()}")
+        self.save_only = False
+        self.show_data_only = False
+        self.run_experiment()
 
+    def save_button_event(self):
+        print("Save button clicked")
+        self.save_only = True
+        self.show_data_only = False
+        self.run_experiment()
+
+    def load_button_event(self):
+        print("Load button clicked")
+
+    def plot_data_button_event(self):
+        print("Plot Data button clicked")
+        self.save_only = False
+        self.show_data_only = True
+        self.run_experiment()
+
+    def check_type(self, value):
+        if isinstance(value, (int, np.integer)):
+            return "int"
+        elif isinstance(value, (float, np.floating)):
+            return "float"
+        elif isinstance(value, (str, np.str_)):
+            return "str"
+        elif isinstance(value, (bool, np.bool_)):
+            return "bool"
+        else:
+            return None
+
+    def run_experiment(self):
         noise = map_to_True_False(self.noise_var.get())
         n_total = get_n_total(self.n_total_var.get())
         fun_evals_val = get_fun_evals(self.fun_evals_var.get())
@@ -785,23 +784,22 @@ class App(customtkinter.CTk):
         test_size = float(self.test_size_var.get())
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
         lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
-        print(f"lbd_min: {lbd_min}, lbd_max: {lbd_max}")
         self.prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
         prepmodel = self.check_user_prep_model()
         metric_sklearn = get_metric_sklearn(self.select_metric_levels_frame.get_selected_optionmenu_item())
         weights = get_weights(self.select_metric_levels_frame.get_selected_optionmenu_item(), self.weights_var.get())
-        print(f"weights: {weights}")
         oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
         data_set_name = self.select_data_frame.get_selected_optionmenu_item()
         dataset, n_samples = get_river_dataset_from_name(data_set_name=data_set_name,
                                                          n_total=n_total,
                                                          river_datasets=self.task_dict[self.task_name]["datasets"])
-        print(f"dataset: {dataset}")
-        print(f"n_samples: {n_samples}")
+        print(f"dataset: {dataset.head()}")
+        val = copy.deepcopy(dataset.iloc[0, -1])
+        target_type = self.check_type(val)
+        if target_type == "bool" or target_type == "str":
+            # convert the target column to 0 and 1
+            dataset["y"] = dataset["y"].astype(int)
         shuffle = map_to_True_False(self.shuffle_var.get())
-        print(f"shuffle: {shuffle}")
-        # TODO: fix target_type
-        target_type = float
         train, test, n_samples = split_df(dataset=dataset,
                                           test_size=test_size,
                                           target_type=target_type,
@@ -811,8 +809,6 @@ class App(customtkinter.CTk):
         TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
         tensorboard_start = map_to_True_False(self.tb_start_var.get())
         tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
-        print(f"tensorboard_start: {tensorboard_start}")
-        print(f"tensorboard_stop: {tensorboard_stop}")
 
         # Initialize the fun_control dictionary with the static parameters,
         # i.e., the parameters that are not hyperparameters (depending on the core model)
@@ -852,8 +848,6 @@ class App(customtkinter.CTk):
         )
         dict = self.rhd.hyper_dict[coremodel]
         pprint.pprint(dict)
-        print("Numerical Hyperparameters:", self.num_hp_frame.get_num_item())
-        print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
         num_dict = self.num_hp_frame.get_num_item()
         cat_dict = self.cat_hp_frame.get_cat_item()
         for i, (key, value) in enumerate(dict.items()):
@@ -891,220 +885,8 @@ class App(customtkinter.CTk):
                 set_control_hyperparameter_value(fun_control, key, fle)
                 fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
             pprint.pprint(fun_control["core_model_hyper_dict"])
-            design_control = design_control_init(
-               init_size=int(self.init_size_var.get()), repeats=1,
-            )
-            surrogate_control = surrogate_control_init(
-                # If lambda is set to 0, no noise will be used in the surrogate
-                # Otherwise use noise in the surrogate:
-                noise=get_kriging_noise(lbd_min, lbd_max),
-                n_theta=2,
-                min_Lambda=lbd_min,
-                max_Lambda=lbd_max,
-                log_level=50,
-            )
-            print("surrogate_control in run_experiment():")
-            pprint.pprint(surrogate_control)
-            optimizer_control = optimizer_control_init()
-            print(gen_design_table(fun_control))
-            (
-                SPOT_PKL_NAME,
-                spot_tuner,
-                fun_control,
-                design_control,
-                surrogate_control,
-                optimizer_control,
-                p_open,
-            ) = run_spot_python_experiment(
-                save_only=save_only,
-                show_data_only=show_data_only,
-                fun_control=fun_control,
-                design_control=design_control,
-                surrogate_control=surrogate_control,
-                optimizer_control=optimizer_control,
-                fun=HyperRiver(log_level=fun_control["log_level"]).fun_oml_horizon,
-                tensorboard_start=tensorboard_start,
-                tensorboard_stop=tensorboard_stop,
-            )
-            if SPOT_PKL_NAME is not None and save_only:
-                print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
-            elif SPOT_PKL_NAME is not None and not save_only:
-                print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
-            elif show_data_only:
-                print("\nData shown. No result saved.")
-            else:
-                print("\nExperiment failed. No result saved.")
-
-            
-
-        
-        
-    def check_user_prep_model(self):
-        if self.prep_model_name.endswith(".py"):
-            print(f"prep_model_name = {self.prep_model_name}")
-            sys.path.insert(0, "./userPrepModel")
-            # remove the file extension from the prep_model_name
-            prep_model_name = self.prep_model_name[:-3]
-            print(f"prep_model_name = {prep_model_name}")
-            __import__(prep_model_name)
-            prepmodel = sys.modules[prep_model_name].set_prep_model()
-        else:
-            prepmodel = get_prep_model(self.prep_model_name)
-        return prepmodel
-
-    def save_button_event(self):
-        print("Save button clicked")
-    
-    def load_button_event(self):
-        print("Load button clicked")
-
-    def plot_data_button_event(self):
-        print("Plot Data button clicked")
-        run_experiment(tab_task=self.task_name, show_data_only=True)
-
-    def run_experiment(tab_task, save_only=False, show_data_only=False):
-        global spot_tuner, fun_control, hyper_dict, task_dict
-
-        print(f"tab_task in run_experiment(): {tab_task.name}")
-        noise = map_to_True_False(task_dict[tab_task.name]["noise_entry"].get())
-        n_total = get_n_total(task_dict[tab_task.name]["n_total_entry"].get())
-        fun_evals_val = get_fun_evals(task_dict[tab_task.name]["fun_evals_entry"].get())
-        max_surrogate_points = int(task_dict[tab_task.name]["max_sp_entry"].get())
-        seed = int(task_dict[tab_task.name]["seed_entry"].get())
-        test_size = float(task_dict[tab_task.name]["test_size_entry"].get())
-        target_type = task_dict[tab_task.name]["target_type_entry"].get()
-        core_model_name = task_dict[tab_task.name]["core_model_combo"].get()
-        print(f"core_model_name: {core_model_name}")
-        lbd_min, lbd_max = get_lambda_min_max(task_dict[tab_task.name]["lambda_min_max_entry"].get())
-        prep_model_name = task_dict[tab_task.name]["prep_model_combo"].get()
-        print(f"prep_model_name: {prep_model_name}")
-        if prep_model_name.endswith(".py"):
-            print(f"prep_model_name = {prep_model_name}")
-            sys.path.insert(0, "./userPrepModel")
-            # remove the file extension from the prep_model_name
-            prep_model_name = prep_model_name[:-3]
-            print(f"prep_model_name = {prep_model_name}")
-            __import__(prep_model_name)
-            prepmodel = sys.modules[prep_model_name].set_prep_model()
-        else:
-            prepmodel = get_prep_model(prep_model_name)
-        metric_sklearn = get_metric_sklearn(task_dict[tab_task.name]["metric_combo"].get())
-        weights = get_weights(
-            task_dict[tab_task.name]["metric_combo"].get(), task_dict[tab_task.name]["metric_weights_entry"].get()
-        )
-        oml_grace_period = get_oml_grace_period(task_dict[tab_task.name]["oml_grace_period_entry"].get())
-        data_set_name = task_dict[tab_task.name]["data_set_combo"].get()
-        print(f"data_set_name: {data_set_name}")
-        print(f"task_dict[tab_task.name]['datasets']: {task_dict[tab_task.name]['datasets']}")
-        dataset, n_samples = get_river_dataset_from_name(
-            data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
-        )
-        shuffle = bool(task_dict[tab_task.name]["shuffle"].get())
-        train, test, n_samples = split_df(dataset=dataset,
-                                        test_size=test_size,
-                                        target_type=target_type,
-                                        seed=seed,
-                                        shuffle=shuffle,
-                                        stratify=None)
-
-        TENSORBOARD_CLEAN = bool(task_dict[tab_task.name]["tb_clean"].get())
-        tensorboard_start = bool(task_dict[tab_task.name]["tb_start"].get())
-        tensorboard_stop = bool(task_dict[tab_task.name]["tb_stop"].get())
-
-        # Initialize the fun_control dictionary with the static parameters,
-        # i.e., the parameters that are not hyperparameters (depending on the core model)
-        fun_control = fun_control_init(
-            PREFIX=task_dict[tab_task.name]["prefix_entry"].get(),
-            TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
-            core_model_name=core_model_name,
-            data_set_name=data_set_name,
-            fun_evals=fun_evals_val,
-            fun_repeats=1,
-            horizon=int(task_dict[tab_task.name]["horizon_entry"].get()),
-            max_surrogate_points=max_surrogate_points,
-            max_time=float(task_dict[tab_task.name]["max_time_entry"].get()),
-            metric_sklearn=metric_sklearn,
-            noise=noise,
-            n_samples=n_samples,
-            ocba_delta=0,
-            oml_grace_period=oml_grace_period,
-            prep_model=prepmodel,
-            seed=seed,
-            target_column="y",
-            target_type=target_type,
-            test=test,
-            test_size=test_size,
-            train=train,
-            tolerance_x=np.sqrt(np.spacing(1)),
-            verbosity=1,
-            weights=weights,
-            log_level=50,
-        )
-
-        # TODO:
-        # Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
-        # > For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
-        # Therefore, we set l1 bounds to 0.0:
-        # modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
-        # set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
-        # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
-
-        # TODO:
-        #  Enable user specific core models. An example is given below:
-        # from spotPython.hyperparameters.values import add_core_model_to_fun_control
-        # import sys
-        # sys.path.insert(0, './userModel')
-        # import river.tree
-        # import river_hyper_dict
-        # add_core_model_to_fun_control(fun_control=fun_control,
-        #                             core_model=river.tree.HoeffdingTreeRegressor,
-        #                             hyper_dict=river_hyper_dict.RiverHyperDict)
-
-        coremodel, core_model_instance = get_core_model_from_name(core_model_name)
-        add_core_model_to_fun_control(
-            core_model=core_model_instance,
-            fun_control=fun_control,
-            hyper_dict=RiverHyperDict,
-            filename=None,
-        )
-        dict = rhd.hyper_dict[coremodel]
-        for i, (key, value) in enumerate(dict.items()):
-            if dict[key]["type"] == "int":
-                set_control_hyperparameter_value(
-                    fun_control,
-                    key,
-                    [
-                        int(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
-                        int(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
-                    ],
-                )
-            if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
-                set_control_hyperparameter_value(
-                    fun_control,
-                    key,
-                    [
-                        int(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
-                        int(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
-                    ],
-                )
-            if dict[key]["type"] == "float":
-                set_control_hyperparameter_value(
-                    fun_control,
-                    key,
-                    [
-                        float(hyper_dict[tab_task.name]["lower_bound_entry"][i].get()),
-                        float(hyper_dict[tab_task.name]["upper_bound_entry"][i].get()),
-                    ],
-                )
-            if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
-                fle = hyper_dict[tab_task.name]["factor_level_entry"][i].get()
-                # convert the string to a list of strings
-                fle = fle.split()
-                set_control_hyperparameter_value(fun_control, key, fle)
-                fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
         design_control = design_control_init(
-            init_size=int(task_dict[tab_task.name]["init_size_entry"].get()),
-            repeats=1,
+            init_size=int(self.init_size_var.get()), repeats=1,
         )
         surrogate_control = surrogate_control_init(
             # If lambda is set to 0, no noise will be used in the surrogate
@@ -1128,8 +910,8 @@ class App(customtkinter.CTk):
             optimizer_control,
             p_open,
         ) = run_spot_python_experiment(
-            save_only=save_only,
-            show_data_only=show_data_only,
+            save_only=self.save_only,
+            show_data_only=self.show_data_only,
             fun_control=fun_control,
             design_control=design_control,
             surrogate_control=surrogate_control,
@@ -1138,14 +920,48 @@ class App(customtkinter.CTk):
             tensorboard_start=tensorboard_start,
             tensorboard_stop=tensorboard_stop,
         )
-        if SPOT_PKL_NAME is not None and save_only:
+        if SPOT_PKL_NAME is not None and self.save_only:
             print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
-        elif SPOT_PKL_NAME is not None and not save_only:
+        elif SPOT_PKL_NAME is not None and not self.save_only:
             print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
-        elif show_data_only:
+        elif self.show_data_only:
             print("\nData shown. No result saved.")
         else:
             print("\nExperiment failed. No result saved.")
+
+    def check_user_prep_model(self):
+        if self.prep_model_name.endswith(".py"):
+            print(f"prep_model_name = {self.prep_model_name}")
+            sys.path.insert(0, "./userPrepModel")
+            # remove the file extension from the prep_model_name
+            prep_model_name = self.prep_model_name[:-3]
+            print(f"prep_model_name = {prep_model_name}")
+            __import__(prep_model_name)
+            prepmodel = sys.modules[prep_model_name].set_prep_model()
+        else:
+            prepmodel = get_prep_model(self.prep_model_name)
+        return prepmodel
+
+# TODO:
+# Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
+# > For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
+# Therefore, we set l1 bounds to 0.0:
+# modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
+# set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
+# modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
+
+# TODO:
+#  Enable user specific core models. An example is given below:
+# from spotPython.hyperparameters.values import add_core_model_to_fun_control
+# import sys
+# sys.path.insert(0, './userModel')
+# import river.tree
+# import river_hyper_dict
+# add_core_model_to_fun_control(fun_control=fun_control,
+#                             core_model=river.tree.HoeffdingTreeRegressor,
+#                             hyper_dict=river_hyper_dict.RiverHyperDict)
+
+
 
 
 if __name__ == "__main__":

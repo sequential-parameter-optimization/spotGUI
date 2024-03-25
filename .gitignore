@@ -67,3 +67,6 @@ spotRiverGUI/spotRiverGUI5.py
 spotRiverGUI/spotRiverGUI6.py
 /runs_OLD
 spot_000_report.txt
+spot_0001_experiment.pickle
+spot_0001_report.txt
+spot_000_experiment.pickle
