@@ -225,10 +225,10 @@ class App(customtkinter.CTk):
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
         # Inside the sidebar frame
         self.logo_label = customtkinter.CTkLabel(self.sidebar_frame,
-                                                 text="SpotRiver GUI",
+                                                 text="SpotRiver",
                                                  font=customtkinter.CTkFont(size=20,
                                                                             weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+        self.logo_label.grid(row=0, column=0, padx=10, pady=2.5)
         #
         # create task frame inside sidebar frame
         self.task_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -281,7 +281,7 @@ class App(customtkinter.CTk):
                                                             text="Experiment Options",
                                                             font=customtkinter.CTkFont(size=20, weight="bold"),
                                                             corner_radius=6)
-        self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         #
         # ................. Experiment_Data Frame .......................................#
         # create experiment data_frame with widgets in experiment_main frame
@@ -379,7 +379,7 @@ class App(customtkinter.CTk):
         # noise data in experiment_model frame
         self.noise_var = customtkinter.StringVar(value="True")
         self.noise_checkbox = customtkinter.CTkCheckBox(self.experiment_model_frame,
-                                             text="noiseData",
+                                             text="noise",
                                              command=None,
                                              variable=self.noise_var,
                                              onvalue="True",
@@ -393,42 +393,50 @@ class App(customtkinter.CTk):
         #
         # execution frame title in execution main frame
         self.execution_main_frame_title = customtkinter.CTkLabel(self.execution_main_frame,
-                                                            text="execution Options",
+                                                            text="Run Options",
                                                             font=customtkinter.CTkFont(size=20, weight="bold"),
                                                             corner_radius=6)
-        self.execution_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.execution_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         #
-        # ................. execution_Data Frame .......................................#
-        # create execution data_frame with widgets in execution_main frame
-        self.execution_data_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
-        self.execution_data_frame.grid(row=1, column=0, sticky="ew")
+        # ................. execution_tb Frame .......................................#
+        # create execution_tb frame with widgets in execution_main frame
+        self.execution_tb_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
+        self.execution_tb_frame.grid(row=1, column=0, sticky="ew")
         #
-        # execution_data frame title
-        self.execution_data_frame_title = customtkinter.CTkLabel(self.execution_data_frame,
-                                                            text="Data Options",
+        # execution_tb frame title
+        self.execution_tb_frame_title = customtkinter.CTkLabel(self.execution_tb_frame,
+                                                            text="Tensorboard Options",
                                                             font=customtkinter.CTkFont(weight="bold"),
                                                             corner_radius=6)
-        self.execution_data_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.execution_tb_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
         #
-        # n_total entry in execution_data frame
-        self.n_total_label = customtkinter.CTkLabel(self.execution_data_frame,
-                                                    text="n_total", corner_radius=6)
-        self.n_total_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.n_total_var = customtkinter.StringVar(value="All")
-        self.n_total_entry_frame = customtkinter.CTkEntry(self.execution_data_frame,
-                                                          textvariable=self.n_total_var)
-        self.n_total_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-        # self.n_total_entry_frame.insert(0, "All")
-        #
-        # shuffle data in execution_data frame
-        self.shuffle_var = customtkinter.StringVar(value="True")
-        self.shuffle_checkbox = customtkinter.CTkCheckBox(self.execution_data_frame,
-                                             text="ShuffleData",
+        # tb_clean in execution_data frame
+        self.tb_clean_var = customtkinter.StringVar(value="True")
+        self.tb_clean_checkbox = customtkinter.CTkCheckBox(self.execution_tb_frame,
+                                             text="TENSORBOARD_CLEAN",
                                              command=None,
-                                             variable=self.shuffle_var,
+                                             variable=self.tb_clean_var,
                                              onvalue="True",
                                              offvalue="False")
-        self.shuffle_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.tb_clean_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
+        # tb_start in execution_data frame
+        self.tb_start_var = customtkinter.StringVar(value="True")
+        self.tb_start_checkbox = customtkinter.CTkCheckBox(self.execution_tb_frame,
+                                             text="Start Tensorboard",
+                                             command=None,
+                                             variable=self.tb_start_var,
+                                             onvalue="True",
+                                             offvalue="False")
+        self.tb_start_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        # tb_stop in execution_data frame
+        self.tb_stop_var = customtkinter.StringVar(value="True")
+        self.tb_stop_checkbox = customtkinter.CTkCheckBox(self.execution_tb_frame,
+                                             text="Stop Tensorboard",
+                                             command=None,
+                                             variable=self.tb_stop_var,
+                                             onvalue="True",
+                                             offvalue="False")
+        self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
         # ................. execution_Model Frame .......................................#
         # create execution_model frame with widgets in execution_main frame
         self.execution_model_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
@@ -523,7 +531,7 @@ class App(customtkinter.CTk):
                                                           text="Hyperparameter",
                                                           font=customtkinter.CTkFont(size=20, weight="bold"),
                                                           corner_radius=6)
-        self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=15, sticky="nsew")
+        self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         #
         self.create_num_hp_frame()
         #
