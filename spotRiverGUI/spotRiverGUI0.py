@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.messagebox
 import customtkinter
 import pprint
+import webbrowser
 
 import os
 from PIL import Image
@@ -208,7 +209,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("spotRiver GUI")
-        self.geometry(f"{1400}x{960}")
+        self.geometry(f"{1720}x{1020}")
         self.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
 
@@ -303,7 +304,15 @@ class App(customtkinter.CTk):
         self.n_total_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
                                                           textvariable=self.n_total_var)
         self.n_total_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-        # self.n_total_entry_frame.insert(0, "All")
+        #
+        # test_size entry in experiment_data frame
+        self.test_size_label = customtkinter.CTkLabel(self.experiment_data_frame,
+                                                    text="test_size", corner_radius=6)
+        self.test_size_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.test_size_var = customtkinter.StringVar(value="All")
+        self.test_size_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
+                                                          textvariable=self.test_size_var)
+        self.test_size_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
         #
         # shuffle data in experiment_data frame
         self.shuffle_var = customtkinter.StringVar(value="True")
@@ -313,11 +322,11 @@ class App(customtkinter.CTk):
                                              variable=self.shuffle_var,
                                              onvalue="True",
                                              offvalue="False")
-        self.shuffle_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.shuffle_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
         # ................. Experiment_Model Frame .......................................#
         # create experiment_model frame with widgets in experiment_main frame
         self.experiment_model_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
-        self.experiment_model_frame.grid(row=2, column=0, sticky="ew")
+        self.experiment_model_frame.grid(row=3, column=0, sticky="ew")
         #
         # experiment_model frame title
         self.experiment_model_frame_title = customtkinter.CTkLabel(self.experiment_model_frame,
@@ -386,6 +395,42 @@ class App(customtkinter.CTk):
                                              offvalue="False")
         self.noise_checkbox.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
         #
+        # ................. Experiment_Eval Frame .......................................#
+        # create experiment_eval frame with widgets in experiment_main frame
+        self.experiment_eval_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
+        self.experiment_eval_frame.grid(row=3, column=0, sticky="ew")
+        #
+        # experiment_eval frame title
+        self.experiment_eval_frame_title = customtkinter.CTkLabel(self.experiment_eval_frame,
+                                                            text="Eval Options",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.experiment_eval_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # weights entry in experiment_model frame
+        self.weights_label = customtkinter.CTkLabel(self.experiment_eval_frame,
+                                                    text="weights", corner_radius=6)
+        self.weights_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.weights_var = customtkinter.StringVar(value="(1000, 1, 1)")
+        self.weights_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
+                                                          textvariable=self.weights_var)
+        self.weights_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # horizon entry in experiment_model frame
+        self.horizon_label = customtkinter.CTkLabel(self.experiment_eval_frame,
+                                                    text="horizon", corner_radius=6)
+        self.horizon_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.horizon_var = customtkinter.StringVar(value="10")
+        self.horizon_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
+                                                          textvariable=self.horizon_var)
+        self.horizon_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        # oml_grace_periond entry in experiment_model frame
+        self.oml_grace_period_label = customtkinter.CTkLabel(self.experiment_eval_frame,
+                                                    text="oml_grace_period", corner_radius=6)
+        self.oml_grace_period_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.oml_grace_period_var = customtkinter.StringVar(value="None")
+        self.oml_grace_period_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
+                                                          textvariable=self.oml_grace_period_var)
+        self.oml_grace_period_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
         # ----------------- Execution_Main Frame -------------------------------------- #
         # create execution_main frame with widgets in row 0 and column 3
         self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -410,7 +455,7 @@ class App(customtkinter.CTk):
                                                             corner_radius=6)
         self.execution_tb_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
         #
-        # tb_clean in execution_data frame
+        # tb_clean in execution_tb frame
         self.tb_clean_var = customtkinter.StringVar(value="True")
         self.tb_clean_checkbox = customtkinter.CTkCheckBox(self.execution_tb_frame,
                                              text="TENSORBOARD_CLEAN",
@@ -419,7 +464,7 @@ class App(customtkinter.CTk):
                                              onvalue="True",
                                              offvalue="False")
         self.tb_clean_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
-        # tb_start in execution_data frame
+        # tb_start in execution_tb frame
         self.tb_start_var = customtkinter.StringVar(value="True")
         self.tb_start_checkbox = customtkinter.CTkCheckBox(self.execution_tb_frame,
                                              text="Start Tensorboard",
@@ -428,7 +473,7 @@ class App(customtkinter.CTk):
                                              onvalue="True",
                                              offvalue="False")
         self.tb_start_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
-        # tb_stop in execution_data frame
+        # tb_stop in execution_tb frame
         self.tb_stop_var = customtkinter.StringVar(value="True")
         self.tb_stop_checkbox = customtkinter.CTkCheckBox(self.execution_tb_frame,
                                              text="Stop Tensorboard",
@@ -437,77 +482,66 @@ class App(customtkinter.CTk):
                                              onvalue="True",
                                              offvalue="False")
         self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
-        # ................. execution_Model Frame .......................................#
-        # create execution_model frame with widgets in execution_main frame
-        self.execution_model_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
-        self.execution_model_frame.grid(row=2, column=0, sticky="ew")
+        #
+        # browser_logging entry in execution_tb frame
+        self.browser_logging_label = customtkinter.CTkLabel(self.execution_tb_frame,
+                                                    text="Open browser logging", corner_radius=6)
+        self.browser_logging_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.browser_link_label = customtkinter.CTkLabel(self.execution_tb_frame,
+                                                    text="http://localhost:6006",
+                                                    text_color=("blue", "orange"),
+                                                    cursor="hand2",
+                                                    corner_radius=6)
+        self.browser_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
+        self.browser_link_label.grid(row=4, column=1, padx=10, pady=(10, 0), sticky="w")
+        #
+        # ................. execution_docs Frame .......................................#
+        # create execution_docs frame with widgets in execution_main frame
+        self.execution_docs_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
+        self.execution_docs_frame.grid(row=2, column=0, sticky="ew")
         #
         # execution_model frame title
-        self.execution_model_frame_title = customtkinter.CTkLabel(self.execution_model_frame,
-                                                            text="Model Options",
+        self.execution_docs_frame_title = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                            text="Documentation",
                                                             font=customtkinter.CTkFont(weight="bold"),
                                                             corner_radius=6)
-        self.execution_model_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        self.execution_docs_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        # spot_doc entry in execution_model frame
+        self.spot_doc_label = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                    text="Open SPOT Documentation", corner_radius=6)
+        self.spot_doc_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.spot_link_label = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                    text="spotPython documentation",
+                                                    text_color=("blue", "orange"),
+                                                    cursor="hand2",
+                                                    corner_radius=6)
+        self.spot_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/"))
+        self.spot_link_label.grid(row=1, column=1, padx=10, pady=(10, 0), sticky="w")
         #
-        # max_time entry in execution_model frame
-        self.max_time_label = customtkinter.CTkLabel(self.execution_model_frame,
-                                                    text="max_time", corner_radius=6)
-        self.max_time_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.max_time_var = customtkinter.StringVar(value="1")
-        self.max_time_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
-                                                          textvariable=self.max_time_var)
-        self.max_time_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # spotriver_doc entry in execution_model frame
+        self.spotriver_doc_label = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                    text="Open spotRiver documentation", corner_radius=6)
+        self.spotriver_doc_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.spotriver_link_label = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                    text="spotRiver documentation",
+                                                    text_color=("blue", "orange"),
+                                                    cursor="hand2",
+                                                    corner_radius=6)
+        self.spotriver_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/"))
+        self.spotriver_link_label.grid(row=2, column=1, padx=10, pady=(10, 0), sticky="w")
         #
-        self.fun_evals_label = customtkinter.CTkLabel(self.execution_model_frame,
-                                                    text="fun_evals", corner_radius=6)
-        self.fun_evals_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.fun_evals_var = customtkinter.StringVar(value="1")
-        self.fun_evals_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
-                                                          textvariable=self.fun_evals_var)
-        self.fun_evals_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
-        #
-        # init_size entry in execution_model frame
-        self.init_size_label = customtkinter.CTkLabel(self.execution_model_frame,
-                                                    text="init_size", corner_radius=6)
-        self.init_size_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.init_size_var = customtkinter.StringVar(value="1")
-        self.init_size_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
-                                                          textvariable=self.init_size_var)
-        self.init_size_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.lambda_min_max_label = customtkinter.CTkLabel(self.execution_model_frame,
-                                                    text="lambda_min_max", corner_radius=6)
-        self.lambda_min_max_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.lambda_min_max_var = customtkinter.StringVar(value="1")
-        self.lambda_min_max_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
-                                                          textvariable=self.lambda_min_max_var)
-        self.lambda_min_max_entry_frame.grid(row=4, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.max_sp_label = customtkinter.CTkLabel(self.execution_model_frame,
-                                                    text="max_sp", corner_radius=6)
-        self.max_sp_label.grid(row=5, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.max_sp_var = customtkinter.StringVar(value="1")
-        self.max_sp_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
-                                                          textvariable=self.max_sp_var)
-        self.max_sp_entry_frame.grid(row=5, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.seed_label = customtkinter.CTkLabel(self.execution_model_frame,
-                                                    text="seed", corner_radius=6)
-        self.seed_label.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.seed_var = customtkinter.StringVar(value="1")
-        self.seed_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
-                                                          textvariable=self.seed_var)
-        self.seed_entry_frame.grid(row=6, column=1, padx=10, pady=10, sticky="w")
-        #
-        # noise data in execution_data frame
-        self.noise_var = customtkinter.StringVar(value="True")
-        self.noise_checkbox = customtkinter.CTkCheckBox(self.execution_model_frame,
-                                             text="noiseData",
-                                             command=None,
-                                             variable=self.noise_var,
-                                             onvalue="True",
-                                             offvalue="False")
-        self.noise_checkbox.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
+        # browser_logging entry in execution_model frame
+        self.browser_logging_label = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                    text="Open River documentation", corner_radius=6)
+        self.browser_logging_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.river_link_label = customtkinter.CTkLabel(self.execution_docs_frame,
+                                                    text="River documentation",
+                                                    text_color=("blue", "orange"),
+                                                    cursor="hand2",
+                                                    corner_radius=6)
+        self.river_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/"))
+        self.river_link_label.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="w")
+
         #
         # create plot data button
         self.plot_data_button = customtkinter.CTkButton(master=self.execution_main_frame,
@@ -668,6 +702,17 @@ class App(customtkinter.CTk):
         print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
         print(f"n_total: {self.n_total_var.get()}")
         print(f"Shuffle: {self.shuffle_var.get()}")
+        print(f"max_time: {self.max_time_var.get()}")
+        print(f"fun_evals: {self.fun_evals_var.get()}")
+        print(f"init_size: {self.init_size_var.get()}")
+        print(f"lambda_min_max: {self.lambda_min_max_var.get()}")
+        print(f"max_sp: {self.max_sp_var.get()}")
+        print(f"seed: {self.seed_var.get()}")
+        print(f"noise: {self.noise_var.get()}")
+        print(f"tb_clean: {self.tb_clean_var.get()}")
+        print(f"tb_start: {self.tb_start_var.get()}")
+        print(f"tb_stop: {self.tb_stop_var.get()}")
+        
 
     def plot_data_button_event(self):
         print("Plot Data button clicked")
