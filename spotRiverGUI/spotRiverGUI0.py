@@ -224,7 +224,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("spotRiver GUI")
-        self.geometry(f"{1400}x{780}")
+        self.geometry(f"{1400}x{960}")
         self.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
 
@@ -254,10 +254,10 @@ class App(customtkinter.CTk):
                                                 item_default="Regression",
                                                 title="Select Task")
         self.task_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
-        # self.task_frame.configure(width=500)
+        self.task_frame.configure(width=500)
         #
         # create core model frame inside sidebar frame
-        self.create_core_model_frame()
+        self.create_core_model_frame(row=2, column=0)
         # create select prep model frame inside sidebar frame
         self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                            command=self.select_prep_model_frame_event,
@@ -265,7 +265,9 @@ class App(customtkinter.CTk):
                                                            item_default=None,
                                                            title="Select Prep Model")
         self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
-        # self.select_prep_model_frame.configure(width=200)
+        self.select_prep_model_frame.configure(width=500)
+        # select data frame in data main frame
+        self.create_select_data_frame(row=4, column=0)
         #
         # create appearance mode frame
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -274,34 +276,48 @@ class App(customtkinter.CTk):
                                                 item_list=["Light", "Dark", "System"],
                                                 item_default="System",
                                                 title="Appearance Mode")
-        self.appearance_frame.grid(row=4, column=0, padx=15, pady=15, sticky="nsew")
-        self.appearance_frame.configure(width=500)
+        self.appearance_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
+        # self.appearance_frame.configure(width=500)
 
-        # ----------------- Data Main Frame -------------------------------------- #
-        # create data main frame with widgets in row 0 and column 1
-        self.data_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.data_main_frame.grid(row=0, column=1, sticky="nsew")
-        self.data_main_frame.grid_rowconfigure(4, weight=1)
-        # create select data set frame in data main frame
-        self.data_main_frame_title = customtkinter.CTkLabel(self.data_main_frame,
-                                                            text="Data",                                         font=customtkinter.CTkFont(size=20,                 weight="bold"),
-                                            corner_radius=6)
-        self.data_main_frame_title.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="nsew")
-        # select data frame in data main frame
-        self.select_data_frame = SelectOptionMenuFrame(master=self.data_main_frame,
-                                                           width=500,
-                                                           command=self.select_data_frame_event,
-                                                           item_list=self.task_dict[self.task_name]["datasets"],
-                                                           item_default=None,
-                                                           title="Select Data")
-        self.select_data_frame.grid(row=1, column=1, padx=15, pady=15, sticky="nsew")
-        self.select_data_frame.configure(width=500)
-        # shuffle data in data main frame
-        self.shuffle_checkbox_frame = CheckboxFrame(self.data_main_frame,
-                                                    text="shuffle",
-                                                    value="True",)
-        self.shuffle_checkbox_frame.grid(row=2, column=1, padx=(0, 10), pady=(10, 0), sticky="nsew")
-        self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
+        # ----------------- Experiment Main Frame -------------------------------------- #
+        # create experiment main frame with widgets in row 0 and column 1
+        self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.experiment_main_frame.grid(row=0, column=1, sticky="nsew")
+        #
+        # experiment frame title in experiment main frame
+        self.experiment_main_frame_title = customtkinter.CTkLabel(self.experiment_main_frame,
+                                                            text="Experiment Options",
+                                                            font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                            corner_radius=6)
+        self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+
+
+        # # ----------------- Experiment Main Frame -------------------------------------- #
+        # # create experiment main frame with widgets in row 1 and column 1
+        # self.experiment_main_frame = customtkinter.CTkFrame(self.data_main_frame, corner_radius=0)
+        # self.experiment_main_frame.grid(row=3, column=0, sticky="nsew")
+        # #
+        # # Experiment frame title in experiment main frame
+        # self.experiment_main_frame_title = customtkinter.CTkLabel(self.experiment_main_frame,
+        #                                                     text="Experiment Options",
+        #                                                     font=customtkinter.CTkFont(size=20, weight="bold"),
+        #                                                     corner_radius=6)
+        # self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        # #
+        # # shuffle data in data main frame
+        # self.shuffle_checkbox_frame = CheckboxFrame(self.experiment_main_frame,
+        #                                             text="Shuffle Data",
+        #                                             value="True",)
+        # self.shuffle_checkbox_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        # self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
+        # #
+        # # noise option in experiment main frame
+        # self.shuffle_checkbox_frame = CheckboxFrame(self.experiment_main_frame,
+        #                                             text="Noise",
+        #                                             value="True",)
+        # self.shuffle_checkbox_frame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        # self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
 
         # ------------------ Hyperparameter Main Frame ------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
@@ -357,9 +373,8 @@ class App(customtkinter.CTk):
         # create new num_hp_frame
         self.num_hp_frame = NumHyperparameterFrame(master=self.hp_main_frame,
                                                    width=640,
-                                                                 command=self.label_button_frame_event)
-                                                                #  label_text="Numerical Hyperparameters",
-                                                                #  corner_radius=0)
+                                                   command=self.label_button_frame_event)
+
         self.num_hp_frame.grid(row=1, column=0, padx=0, pady=0, sticky="nsew")
         self.num_hp_frame.add_header()
         print(f"self.core_model_name: {self.core_model_name}")
@@ -367,8 +382,7 @@ class App(customtkinter.CTk):
         dict = self.rhd.hyper_dict[coremodel]
         pprint.pprint(dict)
         for i, (key, value) in enumerate(dict.items()):
-            if (dict[key]["type"] == "int"
-                or dict[key]["type"] == "float"
+            if (dict[key]["type"] == "int" or dict[key]["type"] == "float"
                 or dict[key]["core_model_parameter_type"] == "bool"):
                 self.num_hp_frame.add_num_item(hp=key,
                                                default=value["default"],
@@ -378,32 +392,42 @@ class App(customtkinter.CTk):
 
     def create_cat_hp_frame(self):
         self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame,
-                                                                 command=self.label_button_frame_event)
-                                                                 # label_text="Categorical Hyperparameters",
-                                                                 # corner_radius=0)
+                                                   command=self.label_button_frame_event)
         self.cat_hp_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
-        self.cat_hp_frame.add_header()
         print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
         dict = self.rhd.hyper_dict[coremodel]
         pprint.pprint(dict)
+        empty = True
         for i, (key, value) in enumerate(dict.items()):
             if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
+                if empty:
+                    self.cat_hp_frame.add_header()
+                    empty = False
                 self.cat_hp_frame.add_cat_item(hp=key,
                                                default=value["default"],
                                                levels=value["levels"],
                                                transform=value["transform"])
 
-    def create_core_model_frame(self):
+    def create_core_model_frame(self, row, column):
         # create new core model frame
         self.select_core_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                              command=self.select_core_model_frame_event,
+                                                             command=self.select_core_model_frame_event,
                                                              item_list=self.task_dict[self.task_name]["core_model_names"],
                                                              item_default=None,
                                                              title="Select Core Model")
-        self.select_core_model_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
-        # self.select_core_model_frame.configure(width=500)
+        self.select_core_model_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nsew")
+        self.select_core_model_frame.configure(width=500)
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
+    
+    def create_select_data_frame(self, row, column):
+        self.select_data_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
+                                                           width=500,
+                                                           command=self.select_data_frame_event,
+                                                           item_list=self.task_dict[self.task_name]["datasets"],
+                                                           item_default=None,
+                                                           title="Select Data")
+        self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
 
     def select_core_model_frame_event(self, new_core_model: str):
         print(f"Core Model modified: {new_core_model}")
@@ -432,7 +456,7 @@ class App(customtkinter.CTk):
         # destroy old core model frame
         self.select_core_model_frame.destroy()
         # create new core model frame
-        self.create_core_model_frame()
+        self.create_core_model_frame(row=2, column=0)
         print(f"New self.core_model_name: {self.core_model_name}")
         # destroy old num_hp_frame
         self.num_hp_frame.destroy()
@@ -440,18 +464,10 @@ class App(customtkinter.CTk):
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
-
         # destroy old data frame
         self.select_data_frame.destroy()
         # create new data frame
-        self.select_data_frame = SelectOptionMenuFrame(master=self.data_main_frame,
-                                                           width=500,
-                                                           command=self.select_data_frame_event,
-                                                           item_list=self.task_dict[self.task_name]["datasets"],
-                                                           item_default=None,
-                                                           title="Select Data")
-        self.select_data_frame.grid(row=1, column=1, padx=15, pady=15, sticky="ns")
-        self.select_data_frame.configure(width=500)
+        self.create_select_data_frame(row=4, column=0)
 
     def run_button_event(self):
         print("Run button clicked")
