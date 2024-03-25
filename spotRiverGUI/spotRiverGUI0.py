@@ -483,17 +483,13 @@ class App(customtkinter.CTk):
                                              offvalue="False")
         self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
         #
-        # browser_logging entry in execution_tb frame
-        self.browser_logging_label = customtkinter.CTkLabel(self.execution_tb_frame,
-                                                    text="Open browser logging", corner_radius=6)
-        self.browser_logging_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="w")
         self.browser_link_label = customtkinter.CTkLabel(self.execution_tb_frame,
-                                                    text="http://localhost:6006",
+                                                    text="Open http://localhost:6006",
                                                     text_color=("blue", "orange"),
                                                     cursor="hand2",
                                                     corner_radius=6)
         self.browser_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
-        self.browser_link_label.grid(row=4, column=1, padx=10, pady=(10, 0), sticky="w")
+        self.browser_link_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="w")
         #
         # ................. execution_docs Frame .......................................#
         # create execution_docs frame with widgets in execution_main frame
@@ -507,40 +503,31 @@ class App(customtkinter.CTk):
                                                             corner_radius=6)
         self.execution_docs_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         # spot_doc entry in execution_model frame
-        self.spot_doc_label = customtkinter.CTkLabel(self.execution_docs_frame,
-                                                    text="Open SPOT Documentation", corner_radius=6)
-        self.spot_doc_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
         self.spot_link_label = customtkinter.CTkLabel(self.execution_docs_frame,
                                                     text="spotPython documentation",
                                                     text_color=("blue", "orange"),
                                                     cursor="hand2",
                                                     corner_radius=6)
         self.spot_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/"))
-        self.spot_link_label.grid(row=1, column=1, padx=10, pady=(10, 0), sticky="w")
+        self.spot_link_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
         #
         # spotriver_doc entry in execution_model frame
-        self.spotriver_doc_label = customtkinter.CTkLabel(self.execution_docs_frame,
-                                                    text="Open spotRiver documentation", corner_radius=6)
-        self.spotriver_doc_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
         self.spotriver_link_label = customtkinter.CTkLabel(self.execution_docs_frame,
                                                     text="spotRiver documentation",
                                                     text_color=("blue", "orange"),
                                                     cursor="hand2",
                                                     corner_radius=6)
         self.spotriver_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/"))
-        self.spotriver_link_label.grid(row=2, column=1, padx=10, pady=(10, 0), sticky="w")
+        self.spotriver_link_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
         #
-        # browser_logging entry in execution_model frame
-        self.browser_logging_label = customtkinter.CTkLabel(self.execution_docs_frame,
-                                                    text="Open River documentation", corner_radius=6)
-        self.browser_logging_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
+        # river_link entry in execution_model frame
         self.river_link_label = customtkinter.CTkLabel(self.execution_docs_frame,
                                                     text="River documentation",
                                                     text_color=("blue", "orange"),
                                                     cursor="hand2",
                                                     corner_radius=6)
         self.river_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/"))
-        self.river_link_label.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="w")
+        self.river_link_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
 
         #
         # ................. Execution_Experiment_Name Frame .......................................#
@@ -556,13 +543,10 @@ class App(customtkinter.CTk):
         self.experiment_name_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
         #
         # experiment_name entry in experiment_name frame
-        self.experiment_name_label = customtkinter.CTkLabel(self.experiment_name_frame,
-                                                    text="Experiment name", corner_radius=6)
-        self.experiment_name_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
         self.experiment_name_var = customtkinter.StringVar(value="All")
         self.experiment_name_entry = customtkinter.CTkEntry(self.experiment_name_frame,
                                                           textvariable=self.experiment_name_var)
-        self.experiment_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+        self.experiment_name_entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
         # ................. Run_Experiment_Name Frame .......................................#
         # create experiment_run_frame with widgets in experiment_main frame
         self.experiment_run_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
