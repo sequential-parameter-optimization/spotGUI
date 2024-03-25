@@ -4,11 +4,46 @@ import customtkinter
 import pprint
 import webbrowser
 
+import numpy as np
 import os
+import sys
 from PIL import Image
+from spotPython.utils.init import (fun_control_init,
+                                   design_control_init,
+                                   surrogate_control_init,
+                                   optimizer_control_init)
 
-from spotGUI.tuner.spotRun import get_task_dict, get_core_model_from_name
 from spotRiver.data.river_hyper_dict import RiverHyperDict
+from spotGUI.tuner.spotRun import (
+    run_spot_python_experiment,
+    contour_plot,
+    parallel_plot,
+    importance_plot,
+    progress_plot,
+    actual_vs_prediction,
+    compare_tuned_default,
+    all_compare_tuned_default,
+    plot_confusion_matrices,
+    plot_rocs,
+    destroy_entries,
+    load_file_dialog,
+    get_report_file_name,
+    get_result,
+    get_core_model_from_name,
+    get_n_total,
+    get_fun_evals,
+    get_lambda_min_max,
+    get_oml_grace_period,
+    get_prep_model,
+    get_metric_sklearn,
+    get_weights,
+    get_kriging_noise,
+    get_task_dict,
+)
+from spotRiver.data.selector import get_river_dataset_from_name
+from spotPython.utils.convert import map_to_True_False
+from spotRiver.utils.data_conversion import split_df
+from spotPython.hyperparameters.values import add_core_model_to_fun_control, set_control_hyperparameter_value
 
 # customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 # customtkinter.set_task("Binary Classification")  # Tasks: "Binary Classification", "Regression"
@@ -309,7 +344,7 @@ class App(customtkinter.CTk):
         self.test_size_label = customtkinter.CTkLabel(self.experiment_data_frame,
                                                     text="test_size", corner_radius=6)
         self.test_size_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.test_size_var = customtkinter.StringVar(value="All")
+        self.test_size_var = customtkinter.StringVar(value="0.3")
         self.test_size_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
                                                           textvariable=self.test_size_var)
         self.test_size_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
@@ -364,7 +399,7 @@ class App(customtkinter.CTk):
         self.lambda_min_max_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="lambda_min_max", corner_radius=6)
         self.lambda_min_max_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.lambda_min_max_var = customtkinter.StringVar(value="1")
+        self.lambda_min_max_var = customtkinter.StringVar(value="1e-3, 1e2")
         self.lambda_min_max_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.lambda_min_max_var)
         self.lambda_min_max_entry_frame.grid(row=4, column=1, padx=10, pady=10, sticky="w")
@@ -398,7 +433,7 @@ class App(customtkinter.CTk):
         # ................. Experiment_Eval Frame .......................................#
         # create experiment_eval frame with widgets in experiment_main frame
         self.experiment_eval_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
-        self.experiment_eval_frame.grid(row=3, column=0, sticky="ew")
+        self.experiment_eval_frame.grid(row=4, column=0, sticky="ew")
         #
         # experiment_eval frame title
         self.experiment_eval_frame_title = customtkinter.CTkLabel(self.experiment_eval_frame,
@@ -411,7 +446,7 @@ class App(customtkinter.CTk):
         self.weights_label = customtkinter.CTkLabel(self.experiment_eval_frame,
                                                     text="weights", corner_radius=6)
         self.weights_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.weights_var = customtkinter.StringVar(value="(1000, 1, 1)")
+        self.weights_var = customtkinter.StringVar(value="1000, 1, 1")
         self.weights_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.weights_var)
         self.weights_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
@@ -431,6 +466,24 @@ class App(customtkinter.CTk):
         self.oml_grace_period_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.oml_grace_period_var)
         self.oml_grace_period_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+
+        # ------------------ Hyperparameter Main Frame ------------------------------------- #
+        # create hyperparameter main frame with widgets in row 0 and column 2
+        self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
+        # self.hp_main_frame.grid_rowconfigure((0, 1, 2), weight=0)
+        #
+        # create hyperparameter title frame in hyperparameter main frame
+        self.hp_main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
+                                                          text="Hyperparameter",
+                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                          corner_radius=6)
+        self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        #
+        self.create_num_hp_frame()
+        #
+        self.create_cat_hp_frame()
+
         # ----------------- Execution_Main Frame -------------------------------------- #
         # create execution_main frame with widgets in row 0 and column 3
         self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -543,7 +596,7 @@ class App(customtkinter.CTk):
         self.experiment_name_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
         #
         # experiment_name entry in experiment_name frame
-        self.experiment_name_var = customtkinter.StringVar(value="All")
+        self.experiment_name_var = customtkinter.StringVar(value="000")
         self.experiment_name_entry = customtkinter.CTkEntry(self.experiment_name_frame,
                                                           textvariable=self.experiment_name_var)
         self.experiment_name_entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
@@ -579,25 +632,6 @@ class App(customtkinter.CTk):
                                                   text="Run",
                                                   command=self.run_button_event)
         self.run_button.grid(row=4, column=0, sticky="ew", padx=10, pady=10)
-
-
-        # ------------------ Hyperparameter Main Frame ------------------------------------- #
-        # create hyperparameter main frame with widgets in row 0 and column 2
-        self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
-        # self.hp_main_frame.grid_rowconfigure((0, 1, 2), weight=0)
-        #
-        # create hyperparameter title frame in hyperparameter main frame
-        self.hp_main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
-                                                          text="Hyperparameter",
-                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
-                                                          corner_radius=6)
-        self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        #
-        self.create_num_hp_frame()
-        #
-        self.create_cat_hp_frame()
-
 
         # ------------------- Textbox Frame ------------------------------------ #
         # create textbox in row 1 and column 0
@@ -725,8 +759,6 @@ class App(customtkinter.CTk):
         print("Data:", self.select_data_frame.get_selected_optionmenu_item())
         print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
         print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
-        print("Numerical Hyperparameters:", self.num_hp_frame.get_num_item())
-        print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
         print(f"n_total: {self.n_total_var.get()}")
         print(f"Shuffle: {self.shuffle_var.get()}")
         print(f"max_time: {self.max_time_var.get()}")
@@ -739,6 +771,136 @@ class App(customtkinter.CTk):
         print(f"tb_clean: {self.tb_clean_var.get()}")
         print(f"tb_start: {self.tb_start_var.get()}")
         print(f"tb_stop: {self.tb_stop_var.get()}")
+
+        noise = map_to_True_False(self.noise_var.get())
+        n_total = get_n_total(self.n_total_var.get())
+        fun_evals_val = get_fun_evals(self.fun_evals_var.get())
+        max_surrogate_points = int(self.max_sp_var.get())
+        seed = int(self.seed_var.get())
+        test_size = float(self.test_size_var.get())
+        core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
+        lbd_min, ldb_max = get_lambda_min_max(self.lambda_min_max_var.get())
+        print(f"lbd_min: {lbd_min}, lbd_max: {ldb_max}")
+        self.prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
+        prepmodel = self.check_user_prep_model()
+        metric_sklearn = get_metric_sklearn(self.select_metric_levels_frame.get_selected_optionmenu_item())
+        weights = get_weights(self.select_metric_levels_frame.get_selected_optionmenu_item(), self.weights_var.get())
+        print(f"weights: {weights}")
+        oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+        data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+        dataset, n_samples = get_river_dataset_from_name(data_set_name=data_set_name,
+                                                         n_total=n_total,
+                                                         river_datasets=self.task_dict[self.task_name]["datasets"])
+        print(f"dataset: {dataset}")
+        print(f"n_samples: {n_samples}")
+        shuffle = map_to_True_False(self.shuffle_var.get())
+        print(f"shuffle: {shuffle}")
+        # TODO: fix target_type
+        target_type = float
+        train, test, n_samples = split_df(dataset=dataset,
+                                          test_size=test_size,
+                                          target_type=target_type,
+                                          seed=seed,
+                                          shuffle=shuffle,
+                                          stratify=None)
+        TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
+        tensorboard_start = map_to_True_False(self.tb_start_var.get())
+        tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
+        print(f"tensorboard_start: {tensorboard_start}")
+        print(f"tensorboard_stop: {tensorboard_stop}")
+        
+        # Initialize the fun_control dictionary with the static parameters,
+        # i.e., the parameters that are not hyperparameters (depending on the core model)
+        fun_control = fun_control_init(
+            PREFIX=self.experiment_name_entry.get(),
+            TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
+            core_model_name=core_model_name,
+            data_set_name=data_set_name,
+            fun_evals=fun_evals_val,
+            fun_repeats=1,
+            horizon=int(self.horizon_var.get()),
+            max_surrogate_points=max_surrogate_points,
+            max_time=float(self.max_time_var.get()),
+            metric_sklearn=metric_sklearn,
+            noise=noise,
+            n_samples=n_samples,
+            ocba_delta=0,
+            oml_grace_period=oml_grace_period,
+            prep_model=prepmodel,
+            seed=seed,
+            target_column="y",
+            target_type=target_type,
+            test=test,
+            test_size=test_size,
+            train=train,
+            tolerance_x=np.sqrt(np.spacing(1)),
+            verbosity=1,
+            weights=weights,
+            log_level=50,
+        )
+        coremodel, core_model_instance = get_core_model_from_name(core_model_name)
+        add_core_model_to_fun_control(
+            core_model=core_model_instance,
+            fun_control=fun_control,
+            hyper_dict=RiverHyperDict,
+            filename=None,
+        )
+        dict = self.rhd.hyper_dict[coremodel]
+        pprint.pprint(dict)
+        print("Numerical Hyperparameters:", self.num_hp_frame.get_num_item())
+        print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
+        num_dict = self.num_hp_frame.get_num_item()
+        cat_dict = self.cat_hp_frame.get_cat_item()
+        for i, (key, value) in enumerate(dict.items()):
+            if dict[key]["type"] == "int":
+                set_control_hyperparameter_value(
+                    fun_control,
+                    key,
+                    [
+                        int(num_dict[key]["lower"]),
+                        int(num_dict[key]["upper"]),
+                    ],
+                )
+            if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
+                set_control_hyperparameter_value(
+                    fun_control,
+                    key,
+                    [
+                        int(num_dict[key]["lower"]),
+                        int(num_dict[key]["upper"]),
+                    ],
+                )
+            if dict[key]["type"] == "float":
+                set_control_hyperparameter_value(
+                    fun_control,
+                    key,
+                    [
+                        float(num_dict[key]["lower"]),
+                        float(num_dict[key]["upper"]),
+                    ],
+                )
+            if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
+                fle = cat_dict[key]["levels"]
+                # convert the string to a list of strings
+                fle = fle.split()
+                set_control_hyperparameter_value(fun_control, key, fle)
+                fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
+            pprint.pprint(fun_control["core_model_hyper_dict"])
+
+        
+        
+    def check_user_prep_model(self):
+        if self.prep_model_name.endswith(".py"):
+            print(f"prep_model_name = {self.prep_model_name}")
+            sys.path.insert(0, "./userPrepModel")
+            # remove the file extension from the prep_model_name
+            prep_model_name = self.prep_model_name[:-3]
+            print(f"prep_model_name = {prep_model_name}")
+            __import__(prep_model_name)
+            prepmodel = sys.modules[prep_model_name].set_prep_model()
+        else:
+            prepmodel = get_prep_model(self.prep_model_name)
+        return prepmodel
 
     def save_button_event(self):
         print("Save button clicked")
