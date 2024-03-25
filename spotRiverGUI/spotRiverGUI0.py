@@ -1,4 +1,4 @@
-import tkinter
+import tkinter as tk
 import tkinter.messagebox
 import customtkinter
 import pprint
@@ -57,22 +57,6 @@ class SelectOptionMenuFrame(customtkinter.CTkFrame):
 
     def get_selected_optionmenu_item(self):
         return self.optionmenu_var.get()
-
-
-class CheckboxFrame(customtkinter.CTkFrame):
-    def __init__(self, master, text, value, command=None, **kwargs):
-        super().__init__(master)
-        self.checkbox_var = customtkinter.StringVar(value=value)
-        checkbox = customtkinter.CTkCheckBox(self,
-                                             text=text,
-                                             command=command,
-                                             variable=self.checkbox_var,
-                                             onvalue="True",
-                                             offvalue="False")
-        checkbox.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
-
-    def get_checkbox_var(self):
-        return self.checkbox_var.get()
 
 
 class NumHyperparameterFrame(customtkinter.CTkFrame):
@@ -269,6 +253,14 @@ class App(customtkinter.CTk):
         # select data frame in data main frame
         self.create_select_data_frame(row=4, column=0)
         #
+        # create select metric levels frame inside sidebar frame
+        self.select_metric_levels_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
+                                                           command=self.select_metric_levels_frame_event,
+                                                           item_list=self.task_dict[self.task_name]["metric_levels"],
+                                                           item_default=None,
+                                                           title="Select Metric")
+        self.select_metric_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
+        self.select_metric_levels_frame.configure(width=500)
         # create appearance mode frame
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 width=500,
@@ -276,10 +268,10 @@ class App(customtkinter.CTk):
                                                 item_list=["Light", "Dark", "System"],
                                                 item_default="System",
                                                 title="Appearance Mode")
-        self.appearance_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
+        self.appearance_frame.grid(row=6, column=0, padx=15, pady=15, sticky="nsew")
         # self.appearance_frame.configure(width=500)
 
-        # ----------------- Experiment Main Frame -------------------------------------- #
+        # ----------------- Experiment_Main Frame -------------------------------------- #
         # create experiment main frame with widgets in row 0 and column 1
         self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.experiment_main_frame.grid(row=0, column=1, sticky="nsew")
@@ -291,33 +283,234 @@ class App(customtkinter.CTk):
                                                             corner_radius=6)
         self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
         #
-
-
-        # # ----------------- Experiment Main Frame -------------------------------------- #
-        # # create experiment main frame with widgets in row 1 and column 1
-        # self.experiment_main_frame = customtkinter.CTkFrame(self.data_main_frame, corner_radius=0)
-        # self.experiment_main_frame.grid(row=3, column=0, sticky="nsew")
-        # #
-        # # Experiment frame title in experiment main frame
-        # self.experiment_main_frame_title = customtkinter.CTkLabel(self.experiment_main_frame,
-        #                                                     text="Experiment Options",
-        #                                                     font=customtkinter.CTkFont(size=20, weight="bold"),
-        #                                                     corner_radius=6)
-        # self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
-        # #
-        # # shuffle data in data main frame
-        # self.shuffle_checkbox_frame = CheckboxFrame(self.experiment_main_frame,
-        #                                             text="Shuffle Data",
-        #                                             value="True",)
-        # self.shuffle_checkbox_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
-        # self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
-        # #
-        # # noise option in experiment main frame
-        # self.shuffle_checkbox_frame = CheckboxFrame(self.experiment_main_frame,
-        #                                             text="Noise",
-        #                                             value="True",)
-        # self.shuffle_checkbox_frame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
-        # self.shuffle = self.shuffle_checkbox_frame.get_checkbox_var()
+        # ................. Experiment_Data Frame .......................................#
+        # create experiment data_frame with widgets in experiment_main frame
+        self.experiment_data_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
+        self.experiment_data_frame.grid(row=1, column=0, sticky="ew")
+        #
+        # experiment_data frame title
+        self.experiment_data_frame_title = customtkinter.CTkLabel(self.experiment_data_frame,
+                                                            text="Data Options",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.experiment_data_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # n_total entry in experiment_data frame
+        self.n_total_label = customtkinter.CTkLabel(self.experiment_data_frame,
+                                                    text="n_total", corner_radius=6)
+        self.n_total_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.n_total_var = customtkinter.StringVar(value="All")
+        self.n_total_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
+                                                          textvariable=self.n_total_var)
+        self.n_total_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # self.n_total_entry_frame.insert(0, "All")
+        #
+        # shuffle data in experiment_data frame
+        self.shuffle_var = customtkinter.StringVar(value="True")
+        self.shuffle_checkbox = customtkinter.CTkCheckBox(self.experiment_data_frame,
+                                             text="ShuffleData",
+                                             command=None,
+                                             variable=self.shuffle_var,
+                                             onvalue="True",
+                                             offvalue="False")
+        self.shuffle_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        # ................. Experiment_Model Frame .......................................#
+        # create experiment_model frame with widgets in experiment_main frame
+        self.experiment_model_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
+        self.experiment_model_frame.grid(row=2, column=0, sticky="ew")
+        #
+        # experiment_model frame title
+        self.experiment_model_frame_title = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                            text="Model Options",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.experiment_model_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # max_time entry in experiment_model frame
+        self.max_time_label = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                    text="max_time", corner_radius=6)
+        self.max_time_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.max_time_var = customtkinter.StringVar(value="1")
+        self.max_time_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+                                                          textvariable=self.max_time_var)
+        self.max_time_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.fun_evals_label = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                    text="fun_evals", corner_radius=6)
+        self.fun_evals_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.fun_evals_var = customtkinter.StringVar(value="1")
+        self.fun_evals_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+                                                          textvariable=self.fun_evals_var)
+        self.fun_evals_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        #
+        # init_size entry in experiment_model frame
+        self.init_size_label = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                    text="init_size", corner_radius=6)
+        self.init_size_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.init_size_var = customtkinter.StringVar(value="1")
+        self.init_size_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+                                                          textvariable=self.init_size_var)
+        self.init_size_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.lambda_min_max_label = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                    text="lambda_min_max", corner_radius=6)
+        self.lambda_min_max_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.lambda_min_max_var = customtkinter.StringVar(value="1")
+        self.lambda_min_max_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+                                                          textvariable=self.lambda_min_max_var)
+        self.lambda_min_max_entry_frame.grid(row=4, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.max_sp_label = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                    text="max_sp", corner_radius=6)
+        self.max_sp_label.grid(row=5, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.max_sp_var = customtkinter.StringVar(value="1")
+        self.max_sp_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+                                                          textvariable=self.max_sp_var)
+        self.max_sp_entry_frame.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.seed_label = customtkinter.CTkLabel(self.experiment_model_frame,
+                                                    text="seed", corner_radius=6)
+        self.seed_label.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.seed_var = customtkinter.StringVar(value="1")
+        self.seed_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+                                                          textvariable=self.seed_var)
+        self.seed_entry_frame.grid(row=6, column=1, padx=10, pady=10, sticky="w")
+        #
+        # noise data in experiment_model frame
+        self.noise_var = customtkinter.StringVar(value="True")
+        self.noise_checkbox = customtkinter.CTkCheckBox(self.experiment_model_frame,
+                                             text="noiseData",
+                                             command=None,
+                                             variable=self.noise_var,
+                                             onvalue="True",
+                                             offvalue="False")
+        self.noise_checkbox.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # ----------------- Execution_Main Frame -------------------------------------- #
+        # create execution_main frame with widgets in row 0 and column 3
+        self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.execution_main_frame.grid(row=0, column=3, sticky="nsew")
+        #
+        # execution frame title in execution main frame
+        self.execution_main_frame_title = customtkinter.CTkLabel(self.execution_main_frame,
+                                                            text="execution Options",
+                                                            font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                            corner_radius=6)
+        self.execution_main_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # ................. execution_Data Frame .......................................#
+        # create execution data_frame with widgets in execution_main frame
+        self.execution_data_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
+        self.execution_data_frame.grid(row=1, column=0, sticky="ew")
+        #
+        # execution_data frame title
+        self.execution_data_frame_title = customtkinter.CTkLabel(self.execution_data_frame,
+                                                            text="Data Options",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.execution_data_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # n_total entry in execution_data frame
+        self.n_total_label = customtkinter.CTkLabel(self.execution_data_frame,
+                                                    text="n_total", corner_radius=6)
+        self.n_total_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.n_total_var = customtkinter.StringVar(value="All")
+        self.n_total_entry_frame = customtkinter.CTkEntry(self.execution_data_frame,
+                                                          textvariable=self.n_total_var)
+        self.n_total_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # self.n_total_entry_frame.insert(0, "All")
+        #
+        # shuffle data in execution_data frame
+        self.shuffle_var = customtkinter.StringVar(value="True")
+        self.shuffle_checkbox = customtkinter.CTkCheckBox(self.execution_data_frame,
+                                             text="ShuffleData",
+                                             command=None,
+                                             variable=self.shuffle_var,
+                                             onvalue="True",
+                                             offvalue="False")
+        self.shuffle_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        # ................. execution_Model Frame .......................................#
+        # create execution_model frame with widgets in execution_main frame
+        self.execution_model_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
+        self.execution_model_frame.grid(row=2, column=0, sticky="ew")
+        #
+        # execution_model frame title
+        self.execution_model_frame_title = customtkinter.CTkLabel(self.execution_model_frame,
+                                                            text="Model Options",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.execution_model_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        #
+        # max_time entry in execution_model frame
+        self.max_time_label = customtkinter.CTkLabel(self.execution_model_frame,
+                                                    text="max_time", corner_radius=6)
+        self.max_time_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.max_time_var = customtkinter.StringVar(value="1")
+        self.max_time_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
+                                                          textvariable=self.max_time_var)
+        self.max_time_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.fun_evals_label = customtkinter.CTkLabel(self.execution_model_frame,
+                                                    text="fun_evals", corner_radius=6)
+        self.fun_evals_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.fun_evals_var = customtkinter.StringVar(value="1")
+        self.fun_evals_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
+                                                          textvariable=self.fun_evals_var)
+        self.fun_evals_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        #
+        # init_size entry in execution_model frame
+        self.init_size_label = customtkinter.CTkLabel(self.execution_model_frame,
+                                                    text="init_size", corner_radius=6)
+        self.init_size_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.init_size_var = customtkinter.StringVar(value="1")
+        self.init_size_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
+                                                          textvariable=self.init_size_var)
+        self.init_size_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.lambda_min_max_label = customtkinter.CTkLabel(self.execution_model_frame,
+                                                    text="lambda_min_max", corner_radius=6)
+        self.lambda_min_max_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.lambda_min_max_var = customtkinter.StringVar(value="1")
+        self.lambda_min_max_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
+                                                          textvariable=self.lambda_min_max_var)
+        self.lambda_min_max_entry_frame.grid(row=4, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.max_sp_label = customtkinter.CTkLabel(self.execution_model_frame,
+                                                    text="max_sp", corner_radius=6)
+        self.max_sp_label.grid(row=5, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.max_sp_var = customtkinter.StringVar(value="1")
+        self.max_sp_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
+                                                          textvariable=self.max_sp_var)
+        self.max_sp_entry_frame.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+        #
+        self.seed_label = customtkinter.CTkLabel(self.execution_model_frame,
+                                                    text="seed", corner_radius=6)
+        self.seed_label.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.seed_var = customtkinter.StringVar(value="1")
+        self.seed_entry_frame = customtkinter.CTkEntry(self.execution_model_frame,
+                                                          textvariable=self.seed_var)
+        self.seed_entry_frame.grid(row=6, column=1, padx=10, pady=10, sticky="w")
+        #
+        # noise data in execution_data frame
+        self.noise_var = customtkinter.StringVar(value="True")
+        self.noise_checkbox = customtkinter.CTkCheckBox(self.execution_model_frame,
+                                             text="noiseData",
+                                             command=None,
+                                             variable=self.noise_var,
+                                             onvalue="True",
+                                             offvalue="False")
+        self.noise_checkbox.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # create plot data button
+        self.plot_data_button = customtkinter.CTkButton(master=self.execution_main_frame,
+                                                        text="Plot Data",
+                                                        command=self.plot_data_button_event)
+        self.plot_data_button.grid(row=8, column=0, sticky="ew", padx=10, pady=10)
+        # create run button
+        self.run_button = customtkinter.CTkButton(master=self.execution_main_frame,
+                                                  text="Run",
+                                                  command=self.run_button_event)
+        self.run_button.grid(row=9, column=0, sticky="ew", padx=10, pady=10)
 
         # ------------------ Hyperparameter Main Frame ------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
@@ -327,31 +520,15 @@ class App(customtkinter.CTk):
         #
         # create hyperparameter title frame in hyperparameter main frame
         self.hp_main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
-                                                           text="Hyperparameter",
-                                                           font=customtkinter.CTkFont(size=20,
-                                                                            weight="bold"),
-                                                           corner_radius=6)
+                                                          text="Hyperparameter",
+                                                          font=customtkinter.CTkFont(size=20, weight="bold"),
+                                                          corner_radius=6)
         self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=15, sticky="nsew")
         #
         self.create_num_hp_frame()
         #
         self.create_cat_hp_frame()
 
-        # ------------------- Execution Main Frame ------------------------------------ #
-        # Execution main frame in row 0 and column 3
-        self.exec_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.exec_main_frame.grid(row=0, column=3, sticky="nsew")
-        #
-        # create plot data button
-        self.plot_data_button = customtkinter.CTkButton(master=self.exec_main_frame,
-                                                        text="Plot Data",
-                                                        command=self.plot_data_button_event)
-        self.plot_data_button.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
-        # create run button
-        self.run_button = customtkinter.CTkButton(master=self.exec_main_frame,
-                                                  text="Run",
-                                                  command=self.run_button_event)
-        self.run_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
         # ------------------- Textbox Frame ------------------------------------ #
         # create textbox in row 1 and column 0
@@ -419,15 +596,16 @@ class App(customtkinter.CTk):
         self.select_core_model_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nsew")
         self.select_core_model_frame.configure(width=500)
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-    
+
     def create_select_data_frame(self, row, column):
         self.select_data_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                           width=500,
                                                            command=self.select_data_frame_event,
                                                            item_list=self.task_dict[self.task_name]["datasets"],
                                                            item_default=None,
                                                            title="Select Data")
         self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
+        self.select_data_frame.configure(width=500)
+        self.data_name = self.select_data_frame.get_selected_optionmenu_item()
 
     def select_core_model_frame_event(self, new_core_model: str):
         print(f"Core Model modified: {new_core_model}")
@@ -444,6 +622,10 @@ class App(customtkinter.CTk):
     def select_prep_model_frame_event(self, new_prep_model: str):
         print(f"Prep Model modified: {new_prep_model}")
         print(f"Prep Model modified: {self.select_prep_model_frame.get_selected_optionmenu_item()}")
+
+    def select_metric_levels_frame_event(self, new_metric_levels: str):
+        print(f"Metric modified: {new_metric_levels}")
+        print(f"Metric modified: {self.select_metric_levels_frame.get_selected_optionmenu_item()}")
 
     def change_task_event(self, new_task: str):
         print(f"Task changed to: {new_task}")
@@ -472,11 +654,12 @@ class App(customtkinter.CTk):
     def run_button_event(self):
         print("Run button clicked")
         print("Data:", self.select_data_frame.get_selected_optionmenu_item())
-        print("Shuffle:", self.shuffle_checkbox_frame.get_checkbox_var())
         print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
         print("Prep Model:", self.select_prep_model_frame.get_selected_optionmenu_item())
         print("Numerical Hyperparameters:", self.num_hp_frame.get_num_item())
         print("Categorical Hyperparameters:", self.cat_hp_frame.get_cat_item())
+        print(f"n_total: {self.n_total_var.get()}")
+        print(f"Shuffle: {self.shuffle_var.get()}")
 
     def plot_data_button_event(self):
         print("Plot Data button clicked")
