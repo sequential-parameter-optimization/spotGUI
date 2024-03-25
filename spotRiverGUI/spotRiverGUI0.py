@@ -44,6 +44,8 @@ from spotRiver.data.selector import get_river_dataset_from_name
 from spotPython.utils.convert import map_to_True_False
 from spotRiver.utils.data_conversion import split_df
 from spotPython.hyperparameters.values import add_core_model_to_fun_control, set_control_hyperparameter_value
+from spotPython.utils.eda import gen_design_table
+from spotRiver.fun.hyperriver import HyperRiver
 
 # customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 # customtkinter.set_task("Binary Classification")  # Tasks: "Binary Classification", "Regression"
@@ -756,6 +758,8 @@ class App(customtkinter.CTk):
         self.create_select_data_frame(row=4, column=0)
 
     def run_button_event(self):
+        save_only = False
+        show_data_only = False
         print("Run button clicked")
         print("Data:", self.select_data_frame.get_selected_optionmenu_item())
         print("Core Model:", self.select_core_model_frame.get_selected_optionmenu_item())
@@ -780,8 +784,8 @@ class App(customtkinter.CTk):
         seed = int(self.seed_var.get())
         test_size = float(self.test_size_var.get())
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-        lbd_min, ldb_max = get_lambda_min_max(self.lambda_min_max_var.get())
-        print(f"lbd_min: {lbd_min}, lbd_max: {ldb_max}")
+        lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
+        print(f"lbd_min: {lbd_min}, lbd_max: {lbd_max}")
         self.prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
         prepmodel = self.check_user_prep_model()
         metric_sklearn = get_metric_sklearn(self.select_metric_levels_frame.get_selected_optionmenu_item())
@@ -887,6 +891,50 @@ class App(customtkinter.CTk):
                 set_control_hyperparameter_value(fun_control, key, fle)
                 fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
             pprint.pprint(fun_control["core_model_hyper_dict"])
+            design_control = design_control_init(
+               init_size=int(self.init_size_var.get()), repeats=1,
+            )
+            surrogate_control = surrogate_control_init(
+                # If lambda is set to 0, no noise will be used in the surrogate
+                # Otherwise use noise in the surrogate:
+                noise=get_kriging_noise(lbd_min, lbd_max),
+                n_theta=2,
+                min_Lambda=lbd_min,
+                max_Lambda=lbd_max,
+                log_level=50,
+            )
+            print("surrogate_control in run_experiment():")
+            pprint.pprint(surrogate_control)
+            optimizer_control = optimizer_control_init()
+            print(gen_design_table(fun_control))
+            (
+                SPOT_PKL_NAME,
+                spot_tuner,
+                fun_control,
+                design_control,
+                surrogate_control,
+                optimizer_control,
+                p_open,
+            ) = run_spot_python_experiment(
+                save_only=save_only,
+                show_data_only=show_data_only,
+                fun_control=fun_control,
+                design_control=design_control,
+                surrogate_control=surrogate_control,
+                optimizer_control=optimizer_control,
+                fun=HyperRiver(log_level=fun_control["log_level"]).fun_oml_horizon,
+                tensorboard_start=tensorboard_start,
+                tensorboard_stop=tensorboard_stop,
+            )
+            if SPOT_PKL_NAME is not None and save_only:
+                print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
+            elif SPOT_PKL_NAME is not None and not save_only:
+                print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
+            elif show_data_only:
+                print("\nData shown. No result saved.")
+            else:
+                print("\nExperiment failed. No result saved.")
+
             
 
         
