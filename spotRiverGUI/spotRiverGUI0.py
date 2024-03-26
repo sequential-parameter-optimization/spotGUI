@@ -835,71 +835,58 @@ class App(customtkinter.CTk):
                 self.n_total = "None"
             self.n_total_entry_frame.delete(0, "end")
             self.n_total_entry_frame.insert(0, self.n_total)
-            self.n_total_var = customtkinter.StringVar(value=self.n_total)
             #
             self.test_size = self.fun_control["test_size"]
             self.test_size_entry_frame.delete(0, "end")
             self.test_size_entry_frame.insert(0, self.test_size)
-            self.test_size_var = customtkinter.StringVar(value=self.test_size)
             #
             self.shuffle = self.fun_control["shuffle"]
             self.shuffle_checkbox.deselect()
             if self.shuffle:
                 self.shuffle_checkbox.select()
-            self.shuffle_var = customtkinter.StringVar(value=self.shuffle)
             #
             self.max_time = self.fun_control["max_time"]
             self.max_time_entry_frame.delete(0, "end")
             self.max_time_entry_frame.insert(0, self.max_time)
-            self.max_time_var = customtkinter.StringVar(value=self.max_time)
             #
             self.fun_evals = self.fun_control["fun_evals"]
             self.fun_evals_entry_frame.delete(0, "end")
             self.fun_evals_entry_frame.insert(0, self.fun_evals)
-            self.fun_evals_var = customtkinter.StringVar(value=self.fun_evals)
             #
             self.init_size = self.design_control["init_size"]
             self.init_size_entry_frame.delete(0, "end")
             self.init_size_entry_frame.insert(0, self.init_size)
-            self.init_size_var = customtkinter.StringVar(value=self.init_size)
             #
             self.lambda_min_max = [self.surrogate_control["min_Lambda"], self.surrogate_control["max_Lambda"]]
             self.lambda_min_max_entry_frame.delete(0, "end")
             self.lambda_min_max_entry_frame.insert(0, f"{self.lambda_min_max[0]}, {self.lambda_min_max[1]}")
-            self.lambda_min_max_var = customtkinter.StringVar(value=f"{self.lambda_min_max[0]}, {self.lambda_min_max[1]}")
             #
             self.max_sp = self.fun_control["max_surrogate_points"]
             self.max_sp_entry_frame.delete(0, "end")
             self.max_sp_entry_frame.insert(0, self.max_sp)
-            self.max_sp_var = customtkinter.StringVar(value=self.max_sp)
             #
             self.seed = self.fun_control["seed"]
             self.seed_entry_frame.delete(0, "end")
             self.seed_entry_frame.insert(0, self.seed)
-            self.seed_var = customtkinter.StringVar(value=self.seed)
             #
             self.noise = self.fun_control["noise"]
             self.noise_checkbox.deselect()
             if self.noise:
                 self.noise_checkbox.select()
-            self.noise_var = customtkinter.StringVar(value=self.noise)
             #
             self.weights = self.fun_control["weights_entry"]
             self.weights_entry_frame.delete(0, "end")
             self.weights_entry_frame.insert(0, self.weights)
-            self.weights_var = customtkinter.StringVar(value=self.weights)
             #
             self.horizon = self.fun_control["horizon"]
             self.horizon_entry_frame.delete(0, "end")
             self.horizon_entry_frame.insert(0, self.horizon)
-            self.horizon_var = customtkinter.StringVar(value=self.horizon)
             #
             self.oml_grace_period = self.fun_control["oml_grace_period"]
             if self.oml_grace_period is None:
                 self.oml_grace_period = "None"
             self.oml_grace_period_entry_frame.delete(0, "end")
             self.oml_grace_period_entry_frame.insert(0, self.oml_grace_period)
-            self.oml_grace_period_var = customtkinter.StringVar(value=self.oml_grace_period)
             #
             self.num_hp_frame.destroy()
             self.create_num_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
