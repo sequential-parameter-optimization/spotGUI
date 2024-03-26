@@ -44,8 +44,8 @@ def get_classification_core_model_names():
     return classification_core_model_names
 
 
-def get_classification_metric_levels():
-    classification_metric_levels = [
+def get_classification_metric_sklearn_levels():
+    classification_metric_sklearn_levels = [
         "accuracy_score",
         "cohen_kappa_score",
         "f1_score",
@@ -58,7 +58,7 @@ def get_classification_metric_levels():
         "roc_auc_score",
         "zero_one_loss",
     ]
-    return classification_metric_levels
+    return classification_metric_sklearn_levels
 
 
 def get_river_binary_classification_datasets():
@@ -84,8 +84,8 @@ def get_regression_core_model_names():
     return regression_core_model_names
 
 
-def get_regression_metric_levels():
-    regression_metric_levels = [
+def get_regression_metric_sklearn_levels():
+    regression_metric_sklearn_levels = [
         "mean_absolute_error",
         "explained_variance_score",
         "max_error",
@@ -102,7 +102,7 @@ def get_regression_metric_levels():
         "d2_pinball_score",
         "d2_tweedie_score",
     ]
-    return regression_metric_levels
+    return regression_metric_sklearn_levels
 
 
 def get_river_regression_datasets():
@@ -113,7 +113,7 @@ def get_river_regression_datasets():
 def get_task_entries():
     task_entries = dict(
         core_model_names=[],
-        metric_levels=[],
+        metric_sklearn_levels=[],
         datasets=[],
         core_model_combo=None,
         data_set_combo=None,
@@ -145,10 +145,10 @@ def get_task_dict():
     task_entries = get_task_entries()
     task_dict = {"classification_tab": copy.deepcopy(task_entries), "regression_tab": copy.deepcopy(task_entries)}
     task_dict["classification_tab"]["core_model_names"] = get_classification_core_model_names()
-    task_dict["classification_tab"]["metric_levels"] = get_classification_metric_levels()
+    task_dict["classification_tab"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
     task_dict["classification_tab"]["datasets"] = get_river_binary_classification_datasets()
     task_dict["regression_tab"]["core_model_names"] = get_regression_core_model_names()
-    task_dict["regression_tab"]["metric_levels"] = get_regression_metric_levels()
+    task_dict["regression_tab"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
     task_dict["regression_tab"]["datasets"] = get_river_regression_datasets()
     prep_models = get_prep_models()
     task_dict["classification_tab"]["prep_models"] = copy.deepcopy(prep_models)

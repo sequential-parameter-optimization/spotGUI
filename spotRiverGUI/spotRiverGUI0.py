@@ -298,14 +298,14 @@ class App(customtkinter.CTk):
         # select data frame in data main frame
         self.create_select_data_frame(row=4, column=0)
         #
-        # create select metric levels frame inside sidebar frame
-        self.select_metric_levels_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                           command=self.select_metric_levels_frame_event,
-                                                           item_list=self.task_dict[self.task_name]["metric_levels"],
+        # create select metric_sklearn levels frame inside sidebar frame
+        self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
+                                                           command=self.select_metric_sklearn_levels_frame_event,
+                                                           item_list=self.task_dict[self.task_name]["metric_sklearn_levels"],
                                                            item_default=None,
-                                                           title="Select Metric")
-        self.select_metric_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
-        self.select_metric_levels_frame.configure(width=500)
+                                                           title="Select sklearn metric")
+        self.select_metric_sklearn_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
+        self.select_metric_sklearn_levels_frame.configure(width=500)
         # create appearance mode frame
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 width=500,
@@ -703,7 +703,7 @@ class App(customtkinter.CTk):
         print(f"Data modified: {new_data}")
         print(f"Data Selection modified: {self.select_data_frame.get_selected_optionmenu_item()}")
 
-    def create_num_hp_frame(self):
+    def create_num_hp_frame(self, dict=None):
         # create new num_hp_frame
         self.num_hp_frame = NumHyperparameterFrame(master=self.hp_main_frame,
                                                    width=640,
@@ -714,8 +714,8 @@ class App(customtkinter.CTk):
         self.num_hp_frame.add_header()
         print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
-        dict = self.rhd.hyper_dict[coremodel]
-        pprint.pprint(dict)
+        if dict is None:
+            dict = self.rhd.hyper_dict[coremodel]
         for i, (key, value) in enumerate(dict.items()):
             if (dict[key]["type"] == "int" or dict[key]["type"] == "float"
                 or dict[key]["core_model_parameter_type"] == "bool"):
@@ -725,14 +725,14 @@ class App(customtkinter.CTk):
                                                upper=value["upper"],
                                                transform=value["transform"])
 
-    def create_cat_hp_frame(self):
+    def create_cat_hp_frame(self, dict=None):
         self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame,
                                                    command=self.label_button_frame_event)
         self.cat_hp_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
         print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
-        dict = self.rhd.hyper_dict[coremodel]
-        pprint.pprint(dict)
+        if dict is None:
+            dict = self.rhd.hyper_dict[coremodel]
         empty = True
         for i, (key, value) in enumerate(dict.items()):
             if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
@@ -765,7 +765,7 @@ class App(customtkinter.CTk):
                                                            title="Select Data")
         self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
         self.select_data_frame.configure(width=500)
-        self.data_name = self.select_data_frame.get_selected_optionmenu_item()
+        self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
 
     def select_core_model_frame_event(self, new_core_model: str):
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
@@ -777,8 +777,9 @@ class App(customtkinter.CTk):
     def select_prep_model_frame_event(self, new_prep_model: str):
         print(f"Prep Model modified: {self.select_prep_model_frame.get_selected_optionmenu_item()}")
 
-    def select_metric_levels_frame_event(self, new_metric_levels: str):
-        print(f"Metric modified: {self.select_metric_levels_frame.get_selected_optionmenu_item()}")
+    def select_metric_sklearn_levels_frame_event(self, new_metric_sklearn_levels: str):
+        print(f"Metric sklearn modified: {self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()}")
+        self.metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
 
     def change_task_event(self, new_task: str):
         print(f"Task changed to: {new_task}")
@@ -813,13 +814,74 @@ class App(customtkinter.CTk):
         filename = load_file_dialog()
         if filename:
             self.spot_tuner, self.fun_control, self.design_control, self.surrogate_control, self.optimizer_control = load_experiment_spot(filename)
-            print("\nfun_control in load_experiment():")
-            pprint.pprint(self.fun_control)
+            #
             self.task_frame.set_selected_optionmenu_item(self.fun_control["task"])
             self.change_task_event(self.fun_control["task"])
             #
             self.select_core_model_frame.set_selected_optionmenu_item(self.fun_control["core_model_name"])
             self.core_model_name = self.fun_control["core_model_name"]
+            #
+            self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
+            self.prep_model_name = self.fun_control["prep_model_name"]
+            #
+            self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
+            self.data_set_name = self.fun_control["data_set_name"]
+            #
+            self.select_metric_sklearn_levels_frame.set_selected_optionmenu_item(self.fun_control["metric_sklearn_name"])
+            self.metric_sklearn_name = self.fun_control["metric_sklearn_name"]
+            #
+            self.n_total_var = self.fun_control["n_total"]
+            self.n_total_entry_frame.delete(0, "end")
+            self.n_total_entry_frame.insert(0, self.n_total_var)
+            #
+            self.test_size_var = self.fun_control["test_size"]
+            self.test_size_entry_frame.delete(0, "end")
+            self.test_size_entry_frame.insert(0, self.test_size_var)
+            #
+            self.shuffle_var = self.fun_control["shuffle"]
+            #
+            self.max_time_var = self.fun_control["max_time"]
+            self.max_time_entry_frame.delete(0, "end")
+            self.max_time_entry_frame.insert(0, self.max_time_var)
+            #
+            self.fun_evals_var = self.fun_control["fun_evals"]
+            self.fun_evals_entry_frame.delete(0, "end")
+            self.fun_evals_entry_frame.insert(0, self.fun_evals_var)
+            #
+            self.init_size_var = self.fun_control["init_size"]
+            self.init_size_entry_frame.delete(0, "end")
+            self.init_size_entry_frame.insert(0, self.init_size_var)
+            #
+            self.lambda_min_max_var = [self.surrogate_control["min_lambda"], self.surrogate_control["max_lambda"]]
+            self.lambda_min_max_entry_frame.delete(0, "end")
+            self.lambda_min_max_entry_frame.insert(0, f"{self.lambda_min_max_var[0]}, {self.lambda_min_max_var[1]}")
+            #
+            self.max_sp_var = self.fun_control["max_surrogate_points"]
+            self.max_sp_entry_frame.delete(0, "end")
+            self.max_sp_entry_frame.insert(0, self.max_sp_var)
+            #
+            self.seed_var = self.fun_control["seed"]
+            self.seed_entry_frame.delete(0, "end")
+            self.seed_entry_frame.insert(0, self.seed_var)
+            #
+            self.noise_var = self.fun_control["noise"]
+            #
+            self.weights_var = self.fun_control["weights_entry"]
+            self.weights_entry_frame.delete(0, "end")
+            self.weights_entry_frame.insert(0, self.weights_var)
+            #
+            self.horizon_var = self.fun_control["horizon"]
+            self.horizon_entry_frame.delete(0, "end")
+            self.horizon_entry_frame.insert(0, self.horizon_var)
+            #
+            self.oml_grace_period_var = self.fun_control["oml_grace_period"]
+            self.oml_grace_period_entry_frame.delete(0, "end")
+            self.oml_grace_period_entry_frame.insert(0, self.oml_grace_period_var
+            #
+            self.num_hp_frame.destroy()
+            self.create_num_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
+            self.cat_hp_frame.destroy()
+            self.create_cat_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
 
     def plot_data_button_event(self):
         print("Plot Data button clicked")
@@ -840,64 +902,90 @@ class App(customtkinter.CTk):
             return None
 
     def run_experiment(self):
-        noise = map_to_True_False(self.noise_var.get())
-        n_total = get_n_total(self.n_total_var.get())
-        fun_evals_val = get_fun_evals(self.fun_evals_var.get())
-        max_surrogate_points = int(self.max_sp_var.get())
-        seed = int(self.seed_var.get())
-        test_size = float(self.test_size_var.get())
+        # if self.task_name == "classification_tab":
+        #     task = "Binary Classification"
+        # elif self.task_name == "regression_tab":
+        #     task = "Regression"
+        task_name = self.task_frame.get_selected_optionmenu_item()
+        #
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-        lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
-        self.prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
+        #
+        prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
         prepmodel = self.check_user_prep_model()
-        metric_sklearn = get_metric_sklearn(self.select_metric_levels_frame.get_selected_optionmenu_item())
-        weights = get_weights(self.select_metric_levels_frame.get_selected_optionmenu_item(), self.weights_var.get())
-        oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+        #
         data_set_name = self.select_data_frame.get_selected_optionmenu_item()
         dataset, n_samples = get_river_dataset_from_name(data_set_name=data_set_name,
-                                                         n_total=n_total,
-                                                         river_datasets=self.task_dict[self.task_name]["datasets"])
-        print(f"dataset: {dataset.head()}")
+                                                    n_total=get_n_total(self.n_total_var.get()),
+                                                    river_datasets=self.task_dict[self.task_name]["datasets"])
+        #
+        metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
+        metric_sklearn = get_metric_sklearn(self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item())
+        #
+        n_total = get_n_total(self.n_total_var.get())
+        #
+        test_size = float(self.test_size_var.get())
+        #
+        shuffle = map_to_True_False(self.shuffle_var.get())
+        #
+        max_time = float(self.max_time_var.get())
+        #
+        fun_evals = get_fun_evals(self.fun_evals_var.get())
+        #
+        init_size = int(self.init_size_var.get())
+        #
+        lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
+        #
+        max_surrogate_points = int(self.max_sp_var.get())
+        #
+        seed = int(self.seed_var.get())
+        #
+        noise = map_to_True_False(self.noise_var.get())
+        #
+        weights_entry = self.weights_var.get()
+        weights = get_weights(self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item(), self.weights_var.get())
+        #
+        horizon = int(self.horizon_var.get())
+        #
+        oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+        #
+        TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
+        tensorboard_start = map_to_True_False(self.tb_start_var.get())
+        tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
+        PREFIX = self.experiment_name_entry.get()
+        #
         val = copy.deepcopy(dataset.iloc[0, -1])
         target_type = self.check_type(val)
         if target_type == "bool" or target_type == "str":
             # convert the target column to 0 and 1
             dataset["y"] = dataset["y"].astype(int)
-        shuffle = map_to_True_False(self.shuffle_var.get())
         train, test, n_samples = split_df(dataset=dataset,
                                           test_size=test_size,
                                           target_type=target_type,
                                           seed=seed,
                                           shuffle=shuffle,
                                           stratify=None)
-        TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
-        tensorboard_start = map_to_True_False(self.tb_start_var.get())
-        tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
-
-        # Initialize the fun_control dictionary with the static parameters,
-        # i.e., the parameters that are not hyperparameters (depending on the core model)
-        if self.task_name == "classification_tab":
-            task="Binary Classification"
-        elif self.task_name == "regression_tab":
-            task="Regression"
         fun_control = fun_control_init(
-            PREFIX=self.experiment_name_entry.get(),
+            PREFIX=PREFIX,
             TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
             core_model_name=core_model_name,
             data_set_name=data_set_name,
-            fun_evals=fun_evals_val,
+            fun_evals=fun_evals,
             fun_repeats=1,
-            horizon=int(self.horizon_var.get()),
+            horizon=horizon,
             max_surrogate_points=max_surrogate_points,
-            max_time=float(self.max_time_var.get()),
+            max_time=max_time,
             metric_sklearn=metric_sklearn,
+            metric_sklearn_name=metric_sklearn_name,
             noise=noise,
             n_samples=n_samples,
+            n_total=n_total,
             ocba_delta=0,
             oml_grace_period=oml_grace_period,
             prep_model=prepmodel,
+            prep_model_name=prep_model_name,
             seed=seed,
-            task=task,
+            shuffle=shuffle,
+            task=task_name,
             target_column="y",
             target_type=target_type,
             test=test,
@@ -906,6 +994,7 @@ class App(customtkinter.CTk):
             tolerance_x=np.sqrt(np.spacing(1)),
             verbosity=1,
             weights=weights,
+            weights_entry=weights_entry,
             log_level=50,
         )
         coremodel, core_model_instance = get_core_model_from_name(core_model_name)
@@ -916,7 +1005,6 @@ class App(customtkinter.CTk):
             filename=None,
         )
         dict = self.rhd.hyper_dict[coremodel]
-        pprint.pprint(dict)
         num_dict = self.num_hp_frame.get_num_item()
         cat_dict = self.cat_hp_frame.get_cat_item()
         for i, (key, value) in enumerate(dict.items()):
@@ -955,7 +1043,7 @@ class App(customtkinter.CTk):
                 fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
             pprint.pprint(fun_control["core_model_hyper_dict"])
         design_control = design_control_init(
-            init_size=int(self.init_size_var.get()), repeats=1,
+            init_size=init_size, repeats=1,
         )
         surrogate_control = surrogate_control_init(
             # If lambda is set to 0, no noise will be used in the surrogate
