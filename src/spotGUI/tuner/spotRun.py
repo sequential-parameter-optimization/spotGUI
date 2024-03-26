@@ -15,6 +15,7 @@ from spotPython.utils.file import save_experiment
 from spotPython.utils.file import load_experiment
 from spotPython.utils.metrics import get_metric_sign
 
+import time
 import river
 from river import compose
 import river.preprocessing
@@ -331,6 +332,30 @@ def run_spot_python_experiment(
             stop_tensorboard(p_open)
             p_open = None
         return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
+
+
+def get_db_dict(SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) -> dict:
+    # get the time in seconds from 1.1.1970
+    t = time.time()
+    # convert the time to a string
+    t_str = str(t)
+    print(f"t_str = {t_str}")
+    ident = str(fun_control["PREFIX"]) + "_" + t_str
+    print(f"ident = {ident}")
+    fun_control.pop("test", None)
+    fun_control.pop("train", None)
+    spot_tuner_control = vars(spot_tuner)
+    spot_tuner_control.pop("fun_control", None)
+    db_dict = {
+        str(ident): {
+            "fun_control": fun_control,
+            "design_control": design_control,
+            "surrogate_control": surrogate_control,
+            "optimizer_control": optimizer_control,
+            "spot_tuner_control": spot_tuner_control,
+        }
+    }
+    return db_dict
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
