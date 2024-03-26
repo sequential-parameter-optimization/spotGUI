@@ -262,6 +262,9 @@ class App(customtkinter.CTk):
         self.task_dict = get_task_dict()
         pprint.pprint(self.task_dict)
         self.core_model_name = self.task_dict[self.task_name]["core_model_names"][0]
+        # for filename in os.listdir("userModel"):
+        #     if filename.endswith(".json"):
+        #         self.core_model_name.append(os.path.splitext(filename)[0])
 
         # ---------------- Sidebar Frame --------------------------------------- #
         # create sidebar frame with widgets in row 0 and column 0
@@ -288,9 +291,11 @@ class App(customtkinter.CTk):
         # create core model frame inside sidebar frame
         self.create_core_model_frame(row=2, column=0)
         # create select prep model frame inside sidebar frame
+        self.prep_model_values = self.task_dict[self.task_name]["prep_models"]
+        self.prep_model_values.extend([f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")])
         self.select_prep_model_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                            command=self.select_prep_model_frame_event,
-                                                           item_list=self.task_dict[self.task_name]["prep_models"],
+                                                           item_list=self.prep_model_values,
                                                            item_default=None,
                                                            title="Select Prep Model")
         self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
