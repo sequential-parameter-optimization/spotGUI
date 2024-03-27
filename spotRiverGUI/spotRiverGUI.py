@@ -44,17 +44,14 @@ from spotGUI.tuner.spotRun import (
 from spotRiver.data.selector import get_river_dataset_from_name
 from spotPython.utils.convert import map_to_True_False
 from spotRiver.utils.data_conversion import split_df
-from spotPython.hyperparameters.values import add_core_model_to_fun_control, set_control_hyperparameter_value
+from spotPython.hyperparameters.values import (add_core_model_to_fun_control,
+                                               set_control_hyperparameter_value,
+                                               update_fun_control_with_hyper_num_cat_dicts)
 from spotPython.utils.eda import gen_design_table
 from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.utils.file import load_experiment as load_experiment_spot
 
-# customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-# customtkinter.set_task("Binary Classification")  # Tasks: "Binary Classification", "Regression"
-# customtkinter.set_core_model("System")
-# customtkinter.set_prep_model("System")
-
-# customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
+customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 
 class SelectScrollableComboBoxFrame(customtkinter.CTkScrollableFrame):
@@ -136,10 +133,10 @@ class NumHyperparameterFrame(customtkinter.CTkFrame):
         self.upper_col = customtkinter.CTkEntry(self, width=self.entry_width)
         self.upper_col.insert(0, str(upper))
         self.transform_col = customtkinter.CTkLabel(self,
-                                                text=transform,
-                                                compound="left",
-                                                padx=5,
-                                                anchor="w")
+                                                    text=transform,
+                                                    compound="left",
+                                                    padx=5,
+                                                    anchor="w")
 
         self.hp_col.grid(row=1+len(self.hp_list), column=0, pady=(0, 10), sticky="w")
         self.default_col.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
@@ -152,15 +149,28 @@ class NumHyperparameterFrame(customtkinter.CTkFrame):
         self.upper_list.append(self.upper_col)
         self.transform_list.append(self.transform_col)
 
-    def get_num_item(self):
-        # get the values from self.lower_col.get() and self.upper_col.get() and put them in a 
-        # dictionary with the corresponding hyperparameter hh as key
+    def get_num_item(self) -> dict:
+        """
+        Get the values from self.hp_list, self.default_list, self.lower_list, self.upper_list,
+        and self.transform_list and put lower and upper in a dictionary with the corresponding
+        hyperparameter (hp) as key.
+
+        Note:
+            Method is designed for numerical parameters.
+
+        Args:
+            None
+
+        Returns:
+            num_hp_dict (dict): dictionary with hyperparameter as key and values
+            as dictionary with lower and upper values.
+        """
         num_hp_dict = {}
         for label, default, lower, upper, transform in zip(self.hp_list,
-                                                                self.default_list,
-                                                                self.lower_list,
-                                                                self.upper_list,
-                                                                self.transform_list):
+                                                           self.default_list,
+                                                           self.lower_list,
+                                                           self.upper_list,
+                                                           self.transform_list):
             num_hp_dict[label.cget("text")] = dict(
                                                 lower=lower.get(),
                                                 upper=upper.get(),
@@ -169,10 +179,10 @@ class NumHyperparameterFrame(customtkinter.CTkFrame):
 
     def remove_num_item(self, item):
         for label, default, lower, upper, transform in zip(self.hp_list,
-                                                                self.default_list,
-                                                                self.lower_list,
-                                                                self.upper_list,
-                                                                self.transform_list):
+                                                           self.default_list,
+                                                           self.lower_list,
+                                                           self.upper_list,
+                                                           self.transform_list):
             if item == label.cget("text"):
                 label.destroy()
                 default.destroy()
@@ -223,16 +233,29 @@ class CatHyperparameterFrame(customtkinter.CTkFrame):
         self.levels_list.append(self.levels_col)
 
     def get_cat_item(self):
-        # get the values from self.levels_col.get() and put them in a
-        # dictionary with the corresponding hyperparameter hh as key
-        num_hp_dict = {}
+        """
+        Get the values self.hp_list, self.default_list, self.levels_list,
+        and put lower and upper in a dictionary with the corresponding
+        hyperparameter (hp) as key.
+
+        Note:
+            Method is designed for categorical parameters.
+
+        Args:
+            None
+
+        Returns:
+            num_hp_dict (dict): dictionary with hyperparameter as key and values
+            as dictionary with lower and upper values.
+        """
+        cat_hp_dict = {}
         for label, default, levels in zip(self.hp_list,
-                                        self.default_list,
-                                        self.levels_list):
-            num_hp_dict[label.cget("text")] = dict(
+                                          self.default_list,
+                                          self.levels_list):
+            cat_hp_dict[label.cget("text")] = dict(
                                                 levels=levels.get("0.0", "end-1c"),
                                               )
-        return num_hp_dict
+        return cat_hp_dict
 
     def remove_cat_item(self, item):
         for label, default, levels, in zip(self.hp_list,
@@ -258,17 +281,18 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
 
-        # load images with light and dark mode image
-        # image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
-        self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "spotlogo.png")), size=(85, 37))
+        self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path,
+                                                                         "spotlogo.png")),
+                                                 size=(85, 37))
 
         self.rhd = RiverHyperDict()
         self.task_name = "regression_tab"
         self.task_dict = get_task_dict()
         pprint.pprint(self.task_dict)
         self.core_model_name = self.task_dict[self.task_name]["core_model_names"][0]
+        # Uncomment to get user defined core models (not useful for spotRiver):
         # for filename in os.listdir("userModel"):
         #     if filename.endswith(".json"):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
@@ -278,6 +302,7 @@ class App(customtkinter.CTk):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
+        #
         # Inside the sidebar frame
         self.logo_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                  text="    SPOTRiver",
@@ -321,6 +346,7 @@ class App(customtkinter.CTk):
         self.select_metric_sklearn_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
         self.select_metric_sklearn_levels_frame.configure(width=500)
         # create appearance mode frame
+        customtkinter.set_appearance_mode("System")
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 width=500,
                                                 command=self.change_appearance_mode_event,
@@ -1030,10 +1056,6 @@ class App(customtkinter.CTk):
             return None
 
     def run_experiment(self):
-        # if self.task_name == "classification_tab":
-        #     task = "Binary Classification"
-        # elif self.task_name == "regression_tab":
-        #     task = "Regression"
         task_name = self.task_frame.get_selected_optionmenu_item()
         #
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
@@ -1135,41 +1157,8 @@ class App(customtkinter.CTk):
         dict = self.rhd.hyper_dict[coremodel]
         num_dict = self.num_hp_frame.get_num_item()
         cat_dict = self.cat_hp_frame.get_cat_item()
-        for i, (key, value) in enumerate(dict.items()):
-            if dict[key]["type"] == "int":
-                set_control_hyperparameter_value(
-                    fun_control,
-                    key,
-                    [
-                        int(num_dict[key]["lower"]),
-                        int(num_dict[key]["upper"]),
-                    ],
-                )
-            if (dict[key]["type"] == "factor") and (dict[key]["core_model_parameter_type"] == "bool"):
-                set_control_hyperparameter_value(
-                    fun_control,
-                    key,
-                    [
-                        int(num_dict[key]["lower"]),
-                        int(num_dict[key]["upper"]),
-                    ],
-                )
-            if dict[key]["type"] == "float":
-                set_control_hyperparameter_value(
-                    fun_control,
-                    key,
-                    [
-                        float(num_dict[key]["lower"]),
-                        float(num_dict[key]["upper"]),
-                    ],
-                )
-            if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
-                fle = cat_dict[key]["levels"]
-                # convert the string to a list of strings
-                fle = fle.split()
-                set_control_hyperparameter_value(fun_control, key, fle)
-                fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
-            pprint.pprint(fun_control["core_model_hyper_dict"])
+        update_fun_control_with_hyper_num_cat_dicts(fun_control, num_dict, cat_dict, dict)
+        pprint.pprint(fun_control["core_model_hyper_dict"])
         design_control = design_control_init(
             init_size=init_size, repeats=1,
         )
