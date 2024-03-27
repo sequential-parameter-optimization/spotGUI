@@ -1,5 +1,5 @@
 import tkinter as tk
-import tkinter.messagebox
+import json
 import customtkinter
 import pprint
 import webbrowser
@@ -44,6 +44,7 @@ from spotGUI.tuner.spotRun import (
 from spotRiver.data.selector import get_river_dataset_from_name
 from spotPython.utils.convert import map_to_True_False
 from spotRiver.utils.data_conversion import split_df
+from spotPython.utils.numpy2json import NumpyEncoder
 from spotPython.hyperparameters.values import (add_core_model_to_fun_control,
                                                set_control_hyperparameter_value,
                                                update_fun_control_with_hyper_num_cat_dicts)
@@ -276,7 +277,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("spotRiver GUI")
-        self.geometry(f"{1720}x{1020}")
+        self.geometry(f"{1720}x{800}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
@@ -550,9 +551,9 @@ class App(customtkinter.CTk):
         self.create_cat_hp_frame()
 
         # ----------------- Execution_Main Frame -------------------------------------- #
-        # create execution_main frame with widgets in row 0 and column 3
+        # create execution_main frame with widgets in row 0 and column 4
         self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.execution_main_frame.grid(row=0, column=3, sticky="nsew")
+        self.execution_main_frame.grid(row=0, column=4, sticky="nsew")
         #
         # execution frame title in execution main frame
         self.execution_main_frame_title = customtkinter.CTkLabel(self.execution_main_frame,
@@ -700,9 +701,9 @@ class App(customtkinter.CTk):
         self.run_button.grid(row=4, column=0, sticky="ew", padx=10, pady=10)
 
         # ----------------- Analysis_Main Frame -------------------------------------- #
-        # create analysis_main frame with widgets in row 0 and column 4
+        # create analysis_main frame with widgets in row 0 and column 3
         self.analysis_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.analysis_main_frame.grid(row=0, column=4, sticky="nsew")
+        self.analysis_main_frame.grid(row=0, column=3, sticky="nsew")
         #
         # analysis frame title in analysis main frame
         self.analysis_main_frame_title = customtkinter.CTkLabel(self.analysis_main_frame,
@@ -1204,7 +1205,12 @@ class App(customtkinter.CTk):
                                     design_control=self.design_control,
                                     surrogate_control=self.surrogate_control,
                                     optimizer_control=self.optimizer_control)
+            # write the db_dict to a json file. If the file already exists,
+            # the content will be appended to the existing file
             pprint.pprint(db_dict)
+            with open("spotPython_db.json", "a") as f:
+                json.dump(db_dict, f, indent=4, cls=NumpyEncoder)
+            f.close()
         elif self.show_data_only:
             print("\nData shown. No result saved.")
         else:

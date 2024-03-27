@@ -72,3 +72,4 @@ spot_0001_report.txt
 spot_000_experiment.pickle
 spot_test_report.txt
 spotRiverGUI/test_output.py
+spotRiverGUI/spotPython_db.json

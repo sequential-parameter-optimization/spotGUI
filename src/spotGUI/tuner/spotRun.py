@@ -345,8 +345,22 @@ def get_db_dict(SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogat
     spot_tuner = copy.deepcopy(spot_tuner)
     fun_control.pop("test", None)
     fun_control.pop("train", None)
+    fun_control.pop("core_model", None)
+    fun_control.pop("prep_model", None)
+    fun_control.pop("metric_sklearn", None)
+    surrogate_control.pop("model_optimizer", None)
     spot_tuner_control = vars(spot_tuner)
     spot_tuner_control.pop("fun_control", None)
+    spot_tuner_control.pop("design", None)
+    spot_tuner_control.pop("fun", None)
+    spot_tuner_control.pop("optimizer", None)
+    spot_tuner_control.pop("rng", None)
+    spot_tuner_control.pop("surrogate", None)
+    spot_tuner_control.pop("surrogate_control", None)
+    spot_tuner_control.pop("design_control", None)
+    spot_tuner_control.pop("spot_writer", None)
+    spot_tuner_control.pop("surrogate", None)
+
     db_dict = {
         str(ident): {
             "fun_control": fun_control,
