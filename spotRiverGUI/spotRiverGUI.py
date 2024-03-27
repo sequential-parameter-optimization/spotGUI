@@ -258,6 +258,12 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
 
+        # load images with light and dark mode image
+        # image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        image_path = os.path.join(current_path, "images")
+        self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "spotlogo.png")), size=(85, 37))
+
         self.rhd = RiverHyperDict()
         self.task_name = "regression_tab"
         self.task_dict = get_task_dict()
@@ -274,10 +280,12 @@ class App(customtkinter.CTk):
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
         # Inside the sidebar frame
         self.logo_label = customtkinter.CTkLabel(self.sidebar_frame,
-                                                 text="SpotRiver",
+                                                 text="    SPOTRiver",
+                                                 image=self.logo_image,
+                                                 compound="left",
                                                  font=customtkinter.CTkFont(size=20,
                                                                             weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=10, pady=2.5)
+        self.logo_label.grid(row=0, column=0, padx=10, pady=(7.5, 2.5), sticky="ew")
         #
         # create task frame inside sidebar frame
         self.task_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -316,12 +324,17 @@ class App(customtkinter.CTk):
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 width=500,
                                                 command=self.change_appearance_mode_event,
-                                                item_list=["Light", "Dark", "System"],
+                                                item_list=["System", "Light", "Dark"],
                                                 item_default="System",
                                                 title="Appearance Mode")
         self.appearance_frame.grid(row=6, column=0, padx=15, pady=15, sticky="nsew")
-        # self.appearance_frame.configure(width=500)
-
+        #
+        self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
+        self.scaling_label.grid(row=2, column=0, padx=20, pady=(10, 0))
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.appearance_frame,
+                                                               values=["100%", "80%", "90%", "110%", "120%"],
+                                                               command=self.change_scaling_event)
+        self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
         # ----------------- Experiment_Main Frame -------------------------------------- #
         # create experiment main frame with widgets in row 0 and column 1
         self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -679,7 +692,7 @@ class App(customtkinter.CTk):
         #
         # analysis_data frame title
         self.analysis_run_frame_title = customtkinter.CTkLabel(self.analysis_run_frame,
-                                                            text="Run Analyis",
+                                                            text="SPOT run",
                                                             font=customtkinter.CTkFont(weight="bold"),
                                                             corner_radius=6)
         self.analysis_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
@@ -688,6 +701,77 @@ class App(customtkinter.CTk):
                                                         text="Plot Progress",
                                                         command=self.plot_progress_button_event)
         self.plot_progress_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # ................. Comparison_Analysis Frame .......................................#
+        # create analysis_comparison_frame with widgets in analysis_main frame
+        self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_comparison_frame.grid(row=2, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_comparison_frame_title = customtkinter.CTkLabel(self.analysis_comparison_frame,
+                                                            text="Comparisons",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.analysis_comparison_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        # create tuned default button
+        self.compare_tuned_default_button = customtkinter.CTkButton(master=self.analysis_comparison_frame,
+                                                        text="Tuned vs. default",
+                                                        command=self.plot_tuned_default_button_event)
+        self.compare_tuned_default_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create actual prediction button
+        self.compare_actual_prediction_button = customtkinter.CTkButton(master=self.analysis_comparison_frame,
+                                                        text="Actual vs. prediction",
+                                                        command=self.plot_actual_prediction_button_event)
+        self.compare_actual_prediction_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # ................. Hyperparameter_Analysis Frame .......................................#
+        # create analysis_hyperparameter_frame with widgets in analysis_main frame
+        self.analysis_hyperparameter_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_hyperparameter_frame.grid(row=3, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_hyperparameter_frame_title = customtkinter.CTkLabel(self.analysis_hyperparameter_frame,
+                                                            text="Hyperparameter",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.analysis_hyperparameter_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # create contour plot  button
+        self.contour_button = customtkinter.CTkButton(master=self.analysis_hyperparameter_frame,
+                                                        text="Contour plots",
+                                                        command=self.plot_contour_button_event)
+        self.contour_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create importance button
+        self.importance_button = customtkinter.CTkButton(master=self.analysis_hyperparameter_frame,
+                                                        text="Importance",
+                                                        command=self.plot_importance_button_event)
+        self.importance_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # ................. Classification_Analysis Frame .......................................#
+        # create analysis_classification_frame with widgets in analysis_main frame
+        self.analysis_classification_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_classification_frame.grid(row=4, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_classification_frame_title = customtkinter.CTkLabel(self.analysis_classification_frame,
+                                                            text="Classification",
+                                                            font=customtkinter.CTkFont(weight="bold"),
+                                                            corner_radius=6)
+        self.analysis_classification_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # create confusion plot  button
+        self.confusion_button = customtkinter.CTkButton(master=self.analysis_classification_frame,
+                                                        text="Confusion matrix",
+                                                        command=self.plot_confusion_button_event)
+        self.confusion_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create roc button
+        self.roc_button = customtkinter.CTkButton(master=self.analysis_classification_frame,
+                                                        text="ROC",
+                                                        command=self.plot_roc_button_event)
+        self.roc_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         #
         # ------------------- Textbox Frame ------------------------------------ #
         # create textbox in row 1 and column 0
@@ -698,12 +782,40 @@ class App(customtkinter.CTk):
         if self.spot_tuner is not None:
             progress_plot(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
 
+    def plot_tuned_default_button_event(self):
+        if self.spot_tuner is not None:
+            compare_tuned_default(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+
+    def plot_actual_prediction_button_event(self):
+        if self.spot_tuner is not None:
+            actual_vs_prediction(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
+
+    def plot_contour_button_event(self):
+        if self.spot_tuner is not None:
+            contour_plot(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
+
+    def plot_importance_button_event(self):
+        if self.spot_tuner is not None:
+            importance_plot(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
+
+    def plot_confusion_button_event(self):
+        if self.spot_tuner is not None:
+            plot_confusion_matrices(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+
+    def plot_roc_button_event(self):
+        if self.spot_tuner is not None:
+            plot_rocs(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Mode changed to: {new_appearance_mode}")
         customtkinter.set_appearance_mode(new_appearance_mode)
+
+    def change_scaling_event(self, new_scaling: str):
+        new_scaling_float = int(new_scaling.replace("%", "")) / 100
+        customtkinter.set_widget_scaling(new_scaling_float)
 
     def select_data_frame_event(self, new_data: str):
         print(f"Data modified: {new_data}")

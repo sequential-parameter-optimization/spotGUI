@@ -335,13 +335,14 @@ def run_spot_python_experiment(
 
 
 def get_db_dict(SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) -> dict:
-    # get the time in seconds from 1.1.1970
-    t = time.time()
-    # convert the time to a string
-    t_str = str(t)
-    print(f"t_str = {t_str}")
+    # get the time in seconds from 1.1.1970 and convert the time to a string
+    t_str = str(time.time())
     ident = str(fun_control["PREFIX"]) + "_" + t_str
-    print(f"ident = {ident}")
+    fun_control = copy.deepcopy(fun_control)
+    design_control = copy.deepcopy(design_control)
+    surrogate_control = copy.deepcopy(surrogate_control)
+    optimizer_control = copy.deepcopy(optimizer_control)
+    spot_tuner = copy.deepcopy(spot_tuner)
     fun_control.pop("test", None)
     fun_control.pop("train", None)
     spot_tuner_control = vars(spot_tuner)
