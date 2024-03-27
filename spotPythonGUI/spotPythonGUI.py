@@ -394,7 +394,7 @@ def update_entries_from_dict(dict):
             # Factor_Levels
             pprint.pprint(dict)
             print(f"dict[key]['levels']: {dict[key]['levels']}")
-            levels_text = dict[key]['levels']
+            levels_text = dict[key]["levels"]
             factor_level_entry[i] = tk.Menubutton(
                 run_tab, text=levels_text, indicatoron=True, borderwidth=1, relief="raised"
             )

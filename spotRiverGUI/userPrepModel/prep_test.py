@@ -4,7 +4,7 @@ from river import feature_extraction
 from river import stats
 import numbers
 
-print('Prep model for bike sharing demand prediction')
+print("Prep model for bike sharing demand prediction")
 # season,year,month,hour,holiday,weekday,workingday,weather,temp,feel_temp,humidity,windspeed,count
 # x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,y
 # x1 = season
@@ -33,14 +33,14 @@ print('Prep model for bike sharing demand prediction')
 #     prepmodel = (num + cat)
 #     return prepmodel
 
+
 def set_prep_model():
     num = compose.Select("x11", "x9", "x10", "x12") | preprocessing.StandardScaler()
     cat = compose.SelectType(str) | preprocessing.OneHotEncoder()
-    prepmodel = (num + cat)
+    prepmodel = num + cat
     return prepmodel
 
 
 # def set_prep_model():
 #     prepmodel = preprocessing.MinMaxScaler()
 #     return prepmodel
-

@@ -273,12 +273,9 @@ def run_experiment(tab_task, save_only=False, show_data_only=False):
         data_set_name=data_set_name, n_total=n_total, river_datasets=task_dict[tab_task.name]["datasets"]
     )
     shuffle = bool(task_dict[tab_task.name]["shuffle"].get())
-    train, test, n_samples = split_df(dataset=dataset,
-                                      test_size=test_size,
-                                      target_type=target_type,
-                                      seed=seed,
-                                      shuffle=shuffle,
-                                      stratify=None)
+    train, test, n_samples = split_df(
+        dataset=dataset, test_size=test_size, target_type=target_type, seed=seed, shuffle=shuffle, stratify=None
+    )
 
     TENSORBOARD_CLEAN = bool(task_dict[tab_task.name]["tb_clean"].get())
     tensorboard_start = bool(task_dict[tab_task.name]["tb_start"].get())
@@ -653,9 +650,7 @@ def create_first_column(tab_task):
 
     task_dict[tab_task.name]["shuffle"] = tk.BooleanVar()
     task_dict[tab_task.name]["shuffle"].set(True)
-    shuffle_checkbutton = tk.Checkbutton(
-        tab_task, text="Shuffle data", variable=task_dict[tab_task.name]["shuffle"]
-    )
+    shuffle_checkbutton = tk.Checkbutton(tab_task, text="Shuffle data", variable=task_dict[tab_task.name]["shuffle"])
     shuffle_checkbutton.grid(row=9, column=1, sticky="W")
 
     # columns 0+1: Experiment
