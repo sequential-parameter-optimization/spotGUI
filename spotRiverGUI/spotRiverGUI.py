@@ -116,15 +116,15 @@ class NumHyperparameterFrame(customtkinter.CTkFrame):
 
     def add_header(self):
         header_hp = customtkinter.CTkLabel(self, text="Hyperparameter", corner_radius=6)
-        header_hp.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
+        header_hp.grid(row=0, column=0, padx=0, pady=(10, 0), sticky="w")
         header_hp = customtkinter.CTkLabel(self, text="Default", corner_radius=6)
-        header_hp.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ew")
+        header_hp.grid(row=0, column=1, padx=0, pady=(10, 0), sticky="w")
         header_hp = customtkinter.CTkLabel(self, text="Lower",  corner_radius=6)
-        header_hp.grid(row=0, column=2, padx=10, pady=(10, 0), sticky="ew")
+        header_hp.grid(row=0, column=2, padx=0, pady=(10, 0), sticky="w")
         header_hp = customtkinter.CTkLabel(self, text="Upper", corner_radius=6)
-        header_hp.grid(row=0, column=3, padx=10, pady=(10, 0), sticky="ew")
+        header_hp.grid(row=0, column=3, padx=0, pady=(10, 0), sticky="w")
         header_hp = customtkinter.CTkLabel(self, text="Transform",  corner_radius=6)
-        header_hp.grid(row=0, column=4, padx=10, pady=(10, 0), sticky="ew")
+        header_hp.grid(row=0, column=4, padx=0, pady=(10, 0), sticky="w")
 
     def add_num_item(self, hp, default, lower, upper, transform):
         self.hp_col = customtkinter.CTkLabel(self, text=hp, compound="left", padx=5, anchor="w")
@@ -143,7 +143,7 @@ class NumHyperparameterFrame(customtkinter.CTkFrame):
         self.default_col.grid(row=1+len(self.default_list), column=1, pady=(0, 10), sticky="w")
         self.lower_col.grid(row=1+len(self.lower_list), column=2, pady=(0, 10), sticky="w")
         self.upper_col.grid(row=1+len(self.upper_list), column=3, pady=(0, 10), sticky="w")
-        self.transform_col.grid(row=1+len(self.transform_list), column=4, pady=(0, 10), padx=5)
+        self.transform_col.grid(row=1+len(self.transform_list), column=4, pady=(0, 10), padx=5, sticky="w")
         self.hp_list.append(self.hp_col)
         self.default_list.append(self.default_col)
         self.lower_list.append(self.lower_col)
@@ -277,7 +277,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("spotRiver GUI")
-        self.geometry(f"{1720}x{800}")
+        self.geometry(f"{1600}x{900}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
@@ -299,6 +299,7 @@ class App(customtkinter.CTk):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
 
         # ---------------- Sidebar Frame --------------------------------------- #
+        # ---------------------------------------------------------------------- #
         # create sidebar frame with widgets in row 0 and column 0
         self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
@@ -313,6 +314,7 @@ class App(customtkinter.CTk):
                                                                             weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=10, pady=(7.5, 2.5), sticky="ew")
         #
+        # ................. Task Frame ....................................... #
         # create task frame inside sidebar frame
         self.task_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                 command=self.change_task_event,
@@ -323,8 +325,11 @@ class App(customtkinter.CTk):
         self.task_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
         self.task_frame.configure(width=500)
         #
+        # ................. Core Model Frame ....................................... #
         # create core model frame inside sidebar frame
         self.create_core_model_frame(row=2, column=0)
+        #
+        # ................. Prep Model Frame ....................................... #
         # create select prep model frame inside sidebar frame
         self.prep_model_values = self.task_dict[self.task_name]["prep_models"]
         self.prep_model_values.extend([f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")])
@@ -335,9 +340,12 @@ class App(customtkinter.CTk):
                                                            title="Select Prep Model")
         self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
         self.select_prep_model_frame.configure(width=500)
+        #
+        #  ................. Data Frame ....................................... #
         # select data frame in data main frame
         self.create_select_data_frame(row=4, column=0)
         #
+        # ................. Metric Frame ....................................... #
         # create select metric_sklearn levels frame inside sidebar frame
         self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
                                                            command=self.select_metric_sklearn_levels_frame_event,
@@ -346,6 +354,8 @@ class App(customtkinter.CTk):
                                                            title="Select sklearn metric")
         self.select_metric_sklearn_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
         self.select_metric_sklearn_levels_frame.configure(width=500)
+        #
+        # ................. Appearance Frame ....................................... #
         # create appearance mode frame
         customtkinter.set_appearance_mode("System")
         self.appearance_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -362,7 +372,9 @@ class App(customtkinter.CTk):
                                                                values=["100%", "80%", "90%", "110%", "120%"],
                                                                command=self.change_scaling_event)
         self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
+        #
         # ----------------- Experiment_Main Frame -------------------------------------- #
+        # ------------------------------------------------------------------------------ #
         # create experiment main frame with widgets in row 0 and column 1
         self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.experiment_main_frame.grid(row=0, column=1, sticky="nsew")
@@ -388,8 +400,9 @@ class App(customtkinter.CTk):
         #
         # n_total entry in experiment_data frame
         self.n_total_label = customtkinter.CTkLabel(self.experiment_data_frame,
-                                                    text="n_total", corner_radius=6)
-        self.n_total_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+                                                    text="n_total",
+                                                    corner_radius=6)
+        self.n_total_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
         self.n_total_var = customtkinter.StringVar(value="None")
         self.n_total_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
                                                           textvariable=self.n_total_var,
@@ -399,22 +412,23 @@ class App(customtkinter.CTk):
         # test_size entry in experiment_data frame
         self.test_size_label = customtkinter.CTkLabel(self.experiment_data_frame,
                                                     text="test_size", corner_radius=6)
-        self.test_size_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.test_size_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
         self.test_size_var = customtkinter.StringVar(value="0.3")
         self.test_size_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
-                                                          textvariable=self.test_size_var,
-                                                          width=self.entry_width)
+                                                            textvariable=self.test_size_var,
+                                                            width=self.entry_width)
         self.test_size_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
         #
         # shuffle data in experiment_data frame
         self.shuffle_var = customtkinter.StringVar(value="False")
         self.shuffle_checkbox = customtkinter.CTkCheckBox(self.experiment_data_frame,
-                                             text="ShuffleData",
-                                             command=None,
-                                             variable=self.shuffle_var,
-                                             onvalue="True",
-                                             offvalue="False")
+                                                          text="ShuffleData",
+                                                          command=None,
+                                                          variable=self.shuffle_var,
+                                                          onvalue="True",
+                                                          offvalue="False")
         self.shuffle_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
         # ................. Experiment_Model Frame .......................................#
         # create experiment_model frame with widgets in experiment_main frame
         self.experiment_model_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
@@ -430,7 +444,7 @@ class App(customtkinter.CTk):
         # max_time entry in experiment_model frame
         self.max_time_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="max_time", corner_radius=6)
-        self.max_time_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.max_time_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
         self.max_time_var = customtkinter.StringVar(value="1")
         self.max_time_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.max_time_var,
@@ -439,7 +453,7 @@ class App(customtkinter.CTk):
         #
         self.fun_evals_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="fun_evals", corner_radius=6)
-        self.fun_evals_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.fun_evals_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
         self.fun_evals_var = customtkinter.StringVar(value="30")
         self.fun_evals_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.fun_evals_var,
@@ -449,7 +463,7 @@ class App(customtkinter.CTk):
         # init_size entry in experiment_model frame
         self.init_size_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="init_size", corner_radius=6)
-        self.init_size_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.init_size_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
         self.init_size_var = customtkinter.StringVar(value="5")
         self.init_size_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.init_size_var,
@@ -458,7 +472,7 @@ class App(customtkinter.CTk):
         #
         self.lambda_min_max_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="lambda_min_max", corner_radius=6)
-        self.lambda_min_max_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.lambda_min_max_label.grid(row=4, column=0, padx=0, pady=(10, 0), sticky="w")
         self.lambda_min_max_var = customtkinter.StringVar(value="1e-3, 1e2")
         self.lambda_min_max_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.lambda_min_max_var,
@@ -467,7 +481,7 @@ class App(customtkinter.CTk):
         #
         self.max_sp_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="max_sp", corner_radius=6)
-        self.max_sp_label.grid(row=5, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.max_sp_label.grid(row=5, column=0, padx=0, pady=(10, 0), sticky="w")
         self.max_sp_var = customtkinter.StringVar(value="30")
         self.max_sp_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.max_sp_var,
@@ -476,7 +490,7 @@ class App(customtkinter.CTk):
         #
         self.seed_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="seed", corner_radius=6)
-        self.seed_label.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.seed_label.grid(row=6, column=0, padx=0, pady=(10, 0), sticky="w")
         self.seed_var = customtkinter.StringVar(value="123")
         self.seed_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.seed_var,
@@ -508,16 +522,16 @@ class App(customtkinter.CTk):
         # weights entry in experiment_model frame
         self.weights_label = customtkinter.CTkLabel(self.experiment_eval_frame,
                                                     text="weights", corner_radius=6)
-        self.weights_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.weights_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
         self.weights_var = customtkinter.StringVar(value="1000, 1, 1")
         self.weights_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.weights_var,
                                                           width=self.entry_width)
-        self.weights_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        self.weights_entry_frame.grid(row=1, column=1, padx=0, pady=10, sticky="w")
         # horizon entry in experiment_model frame
         self.horizon_label = customtkinter.CTkLabel(self.experiment_eval_frame,
                                                     text="horizon", corner_radius=6)
-        self.horizon_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.horizon_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
         self.horizon_var = customtkinter.StringVar(value="10")
         self.horizon_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.horizon_var,
@@ -526,18 +540,17 @@ class App(customtkinter.CTk):
         # oml_grace_periond entry in experiment_model frame
         self.oml_grace_period_label = customtkinter.CTkLabel(self.experiment_eval_frame,
                                                     text="oml_grace_period", corner_radius=6)
-        self.oml_grace_period_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.oml_grace_period_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
         self.oml_grace_period_var = customtkinter.StringVar(value="None")
         self.oml_grace_period_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.oml_grace_period_var,
                                                           width=self.entry_width)
         self.oml_grace_period_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-
+        #
         # ------------------ Hyperparameter Main Frame ------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
         self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
-        # self.hp_main_frame.grid_rowconfigure((0, 1, 2), weight=0)
         #
         # create hyperparameter title frame in hyperparameter main frame
         self.hp_main_frame_title = customtkinter.CTkLabel(self.hp_main_frame,
@@ -549,7 +562,7 @@ class App(customtkinter.CTk):
         self.create_num_hp_frame()
         #
         self.create_cat_hp_frame()
-
+        #
         # ----------------- Execution_Main Frame -------------------------------------- #
         # create execution_main frame with widgets in row 0 and column 4
         self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -803,7 +816,8 @@ class App(customtkinter.CTk):
         # ------------------- Textbox Frame ------------------------------------ #
         # create textbox in row 1 and column 0
         self.textbox = customtkinter.CTkTextbox(self)
-        self.textbox.grid(row=1, column=0, columnspan=5, padx=(20, 0), pady=(20, 0), sticky="nsew")
+        self.textbox.grid(row=1, column=0, columnspan=5, padx=(20, 20), pady=20, sticky="nsew")
+        self.textbox.configure(height=20, width=10)
 
     def plot_progress_button_event(self):
         if self.spot_tuner is not None:
@@ -904,10 +918,10 @@ class App(customtkinter.CTk):
         data_set_values = copy.deepcopy(self.task_dict[self.task_name]["datasets"])
         data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
         self.select_data_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
-                                                           command=self.select_data_frame_event,
-                                                           item_list=data_set_values,
-                                                           item_default=None,
-                                                           title="Select Data")
+                                                       command=self.select_data_frame_event,
+                                                       item_list=data_set_values,
+                                                       item_default=None,
+                                                       title="Select Data")
         self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
         self.select_data_frame.configure(width=500)
         self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
@@ -949,13 +963,11 @@ class App(customtkinter.CTk):
         self.run_experiment()
 
     def save_button_event(self):
-        print("Save button clicked")
         self.save_only = True
         self.show_data_only = False
         self.run_experiment()
 
     def load_button_event(self):
-        print("Load button clicked")
         filename = load_file_dialog()
         if filename:
             self.spot_tuner, self.fun_control, self.design_control, self.surrogate_control, self.optimizer_control = load_experiment_spot(filename)
@@ -1039,7 +1051,6 @@ class App(customtkinter.CTk):
             self.create_cat_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
 
     def plot_data_button_event(self):
-        print("Plot Data button clicked")
         self.save_only = False
         self.show_data_only = True
         self.run_experiment()
@@ -1236,20 +1247,6 @@ class App(customtkinter.CTk):
 # modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
 # set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
 # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
-
-# TODO:
-#  Enable user specific core models. An example is given below:
-# from spotPython.hyperparameters.values import add_core_model_to_fun_control
-# import sys
-# sys.path.insert(0, './userModel')
-# import river.tree
-# import river_hyper_dict
-# add_core_model_to_fun_control(fun_control=fun_control,
-#                             core_model=river.tree.HoeffdingTreeRegressor,
-#                             hyper_dict=river_hyper_dict.RiverHyperDict)
-
-
-
 
 if __name__ == "__main__":
     customtkinter.set_appearance_mode("light")
