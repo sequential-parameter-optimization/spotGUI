@@ -39,7 +39,6 @@ from spotGUI.tuner.spotRun import (
     get_weights,
     get_kriging_noise,
     get_task_dict,
-    get_db_dict,
 )
 from spotRiver.data.selector import get_river_dataset_from_name
 from spotPython.utils.convert import map_to_True_False
@@ -51,6 +50,7 @@ from spotPython.hyperparameters.values import (add_core_model_to_fun_control,
 from spotPython.utils.eda import gen_design_table
 from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.utils.file import load_experiment as load_experiment_spot
+from spotPython.utils.file import get_experiment_filename
 
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -281,6 +281,9 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
+        # dictionary name for the database
+        # similar for all spotRiver experiments
+        self.db_dict_name = "spotRiver_db.json"
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
@@ -364,14 +367,14 @@ class App(customtkinter.CTk):
                                                 item_list=["System", "Light", "Dark"],
                                                 item_default="System",
                                                 title="Appearance Mode")
-        self.appearance_frame.grid(row=6, column=0, padx=15, pady=15, sticky="nsew")
+        self.appearance_frame.grid(row=6, column=0, padx=15, pady=15, sticky="ew")
         #
         self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
         self.scaling_label.grid(row=2, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.appearance_frame,
                                                                values=["100%", "80%", "90%", "110%", "120%"],
                                                                command=self.change_scaling_event)
-        self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
+        self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="ew")
         #
         # ----------------- Experiment_Main Frame -------------------------------------- #
         # ------------------------------------------------------------------------------ #
@@ -1131,6 +1134,7 @@ class App(customtkinter.CTk):
             TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
             core_model_name=core_model_name,
             data_set_name=data_set_name,
+            db_dict_name=self.db_dict_name,
             fun_evals=fun_evals,
             fun_repeats=1,
             horizon=horizon,
@@ -1186,16 +1190,8 @@ class App(customtkinter.CTk):
         print("surrogate_control in run_experiment():")
         pprint.pprint(surrogate_control)
         optimizer_control = optimizer_control_init()
-        print(gen_design_table(fun_control))
-        (
-            self.SPOT_PKL_NAME,
-            self.spot_tuner,
-            self.fun_control,
-            self.design_control,
-            self.surrogate_control,
-            self.optimizer_control,
-            self.p_open,
-        ) = run_spot_python_experiment(
+        # call spot:
+        run_spot_python_experiment(
             save_only=self.save_only,
             show_data_only=self.show_data_only,
             fun_control=fun_control,
@@ -1206,22 +1202,10 @@ class App(customtkinter.CTk):
             tensorboard_start=tensorboard_start,
             tensorboard_stop=tensorboard_stop,
         )
-        if self.SPOT_PKL_NAME is not None and self.save_only:
-            print(f"\nExperiment successfully saved. Configuration saved as: {self.SPOT_PKL_NAME}")
-        elif self.SPOT_PKL_NAME is not None and not self.save_only:
-            print(f"\nExperiment successfully terminated. Result saved as: {self.SPOT_PKL_NAME}")
-            db_dict = get_db_dict(SPOT_PKL_NAME=self.SPOT_PKL_NAME,
-                                  spot_tuner=self.spot_tuner,
-                                  fun_control=self.fun_control,
-                                    design_control=self.design_control,
-                                    surrogate_control=self.surrogate_control,
-                                    optimizer_control=self.optimizer_control)
-            # write the db_dict to a json file. If the file already exists,
-            # the content will be appended to the existing file
-            pprint.pprint(db_dict)
-            with open("spotPython_db.json", "a") as f:
-                json.dump(db_dict, f, indent=4, cls=NumpyEncoder)
-            f.close()
+        if self.save_only:
+            print("\nExperiment saved.")
+        elif not self.save_only:
+            print("\nExperiment started.")
         elif self.show_data_only:
             print("\nData shown. No result saved.")
         else:

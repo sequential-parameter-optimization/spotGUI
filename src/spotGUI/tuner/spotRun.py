@@ -15,7 +15,6 @@ from spotPython.utils.file import save_experiment
 from spotPython.utils.file import load_experiment
 from spotPython.utils.metrics import get_metric_sign
 
-import time
 import river
 from river import compose
 import river.preprocessing
@@ -30,6 +29,7 @@ from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
 from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
 from spotGUI.eda.pairplot import generate_pairplot
+from spotPython.utils.file import get_experiment_filename
 
 
 def get_classification_core_model_names():
@@ -197,6 +197,83 @@ def get_result(spot_tuner, fun_control):
         return gen_design_table(fun_control=fun_control, spot=spot_tuner)
 
 
+def write_tuner_report(
+    fun_control: dict, design_control: dict, surrogate_control: dict, optimizer_control: dict
+) -> None:
+    """Writes the tuner report to a file in plain text.
+
+    Args:
+        fun_control (dict): A dictionary with the function control parameters.
+        design_control (dict): A dictionary with the design control parameters.
+        surrogate_control (dict): A dictionary with the surrogate control parameters.
+        optimizer_control (dict): A dictionary with the optimizer control parameters.
+
+    Returns:
+        None
+
+    """
+    REP_NAME = get_report_file_name(fun_control)
+    with open(REP_NAME, "w") as file:
+        file.write(gen_design_table(fun_control))
+        file.write("\n\n")
+        file.write(pprint.pformat(fun_control))
+        file.write("\n\n")
+        file.write(pprint.pformat(surrogate_control))
+        file.write("\n\n")
+        file.write(pprint.pformat(design_control))
+        file.write("\n\n")
+        file.write(pprint.pformat(optimizer_control))
+        file.write("\n\n")
+    print(f"Report written to {REP_NAME}.")
+    file.close()
+
+
+def show_data(fun_control, n_samples=1000) -> None:
+    """
+    Shows the data in a spot experiment.
+    If the data set has more than 1000 entries,
+    a subset of n_samples random samples are displayed.
+
+    Args:
+        fun_control (dict):
+            A dictionary with the function control parameters.
+        n_samples (int):
+            The number of samples to display. Default is 1000.
+
+    Returns:
+        None
+    """
+    train = fun_control["train"]
+    train_size = len(train)
+    test = fun_control["test"]
+    test_size = len(test)
+    target_column = fun_control["target_column"]
+    print(f"\nTrain data summary:\n {train.describe(include='all')}")
+    print(f"\nTest data summary:\n {test.describe(include='all')}")
+    # if the data set has more than 1000 entries,
+    # select 1000 random samples to display
+    train_sample = test_sample = False
+    if train_size > n_samples:
+        train = train.sample(n=n_samples)
+        train_sample = True
+    if test_size > n_samples:
+        test = test.sample(n=n_samples)
+        test_sample = True
+    # generate a histogram of the target column
+    plt.figure()
+    # Create the first subplot for the training data
+    plt.subplot(1, 2, 1)  # 1 row, 2 columns, index 1
+    train[target_column].hist()
+    plt.title("Train Data")
+    # Create the second subplot for the test data
+    plt.subplot(1, 2, 2)  # 1 row, 2 columns, index 2
+    test[target_column].hist()
+    plt.title("Test Data")
+    generate_pairplot(data=train, target_column=target_column, title="Train Data", sample=train_sample, size=train_size)
+    generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
+    plt.show()
+
+
 def run_spot_python_experiment(
     save_only,
     fun_control,
@@ -208,7 +285,7 @@ def run_spot_python_experiment(
     tensorboard_start=True,
     tensorboard_stop=True,
     tuner_report=True,
-) -> spot.Spot:
+) -> None:
     """Runs a spot experiment.
 
     Args:
@@ -232,145 +309,45 @@ def run_spot_python_experiment(
         tensorboard_stop (bool):
             If True, the tensorboard process will be stopped after the spot run.
             Default is True.
+        tuner_report (bool):
+            If True, a tuner report will be written to a file.
+            Default is True.
 
     Returns:
-        spot.Spot: The spot experiment.
+        None
 
     """
-    SPOT_PKL_NAME = None
     p_open = None
-
-    print("\nfun_control in spotRun():")
-    pprint.pprint(fun_control)
-
-    if tuner_report:
-        REP_NAME = get_report_file_name(fun_control)
-        # write the formatted fun_control to a file
-        with open(REP_NAME, "w") as file:
-            file.write(gen_design_table(fun_control))
-            file.write("\n\n")
-            file.write(pprint.pformat(fun_control))
-            file.write("\n\n")
-            file.write(pprint.pformat(surrogate_control))
-            file.write("\n\n")
-            file.write(pprint.pformat(design_control))
-            file.write("\n\n")
-            file.write(pprint.pformat(optimizer_control))
-            file.write("\n\n")
-        print("Control dicts written to SPOT report txt file.")
-        # close the file
-        file.close()
-
     print(gen_design_table(fun_control))
-
-    spot_tuner = spot.Spot(
-        fun=fun,
-        fun_control=fun_control,
-        design_control=design_control,
-        surrogate_control=surrogate_control,
-        optimizer_control=optimizer_control,
-    )
-
     if show_data_only:
-        train = fun_control["train"]
-        train_size = len(train)
-        test = fun_control["test"]
-        test_size = len(test)
-        target_column = fun_control["target_column"]
-        print(f"\nTrain data summary:\n {train.describe(include='all')}")
-        print(f"\nTest data summary:\n {test.describe(include='all')}")
-        # if the data set has more than 1000 entries,
-        # select 1000 random samples to display
-        train_sample = test_sample = False
-        if train_size > 1000:
-            train = train.sample(n=1000)
-            train_sample = True
-        if test_size > 1000:
-            test = test.sample(n=1000)
-            test_sample = True
-
-        # generate a histogram of the target column
-        plt.figure()
-        # Create the first subplot for the training data
-        plt.subplot(1, 2, 1)  # 1 row, 2 columns, index 1
-        train[target_column].hist()
-        plt.title("Train Data")
-        # Create the second subplot for the test data
-        plt.subplot(1, 2, 2)  # 1 row, 2 columns, index 2
-        test[target_column].hist()
-        plt.title("Test Data")
-
-        generate_pairplot(
-            data=train, target_column=target_column, title="Train Data", sample=train_sample, size=train_size
-        )
-        generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
-        plt.show()
-        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
-
-    if save_only:
-        if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
-            fun_control["spot_writer"].close()
-        SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
-        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
+        show_data(fun_control, n_samples=1000)
     else:
-        if tensorboard_start:
-            p_open = start_tensorboard()
-        # TODO: Implement X_Start handling
-        # X_start = get_default_hyperparameters_as_array(fun_control)
-        spot_tuner.run()
-        SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
-        # tensorboard --logdir="runs/"
-        if tuner_report:
-            REP_NAME = get_report_file_name(fun_control)
-            # write the formatted fun_control to a file
-            with open(REP_NAME, "a") as file:
-                file.write(gen_design_table(fun_control=fun_control, spot=spot_tuner))
-        # close the file
-        file.close()
-        print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
-        if tensorboard_stop:
-            stop_tensorboard(p_open)
-            p_open = None
-        return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
-
-
-def get_db_dict(SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) -> dict:
-    # get the time in seconds from 1.1.1970 and convert the time to a string
-    t_str = str(time.time())
-    ident = str(fun_control["PREFIX"]) + "_" + t_str
-    fun_control = copy.deepcopy(fun_control)
-    design_control = copy.deepcopy(design_control)
-    surrogate_control = copy.deepcopy(surrogate_control)
-    optimizer_control = copy.deepcopy(optimizer_control)
-    spot_tuner = copy.deepcopy(spot_tuner)
-    fun_control.pop("test", None)
-    fun_control.pop("train", None)
-    fun_control.pop("core_model", None)
-    fun_control.pop("prep_model", None)
-    fun_control.pop("metric_sklearn", None)
-    surrogate_control.pop("model_optimizer", None)
-    spot_tuner_control = vars(spot_tuner)
-    spot_tuner_control.pop("fun_control", None)
-    spot_tuner_control.pop("design", None)
-    spot_tuner_control.pop("fun", None)
-    spot_tuner_control.pop("optimizer", None)
-    spot_tuner_control.pop("rng", None)
-    spot_tuner_control.pop("surrogate", None)
-    spot_tuner_control.pop("surrogate_control", None)
-    spot_tuner_control.pop("design_control", None)
-    spot_tuner_control.pop("spot_writer", None)
-    spot_tuner_control.pop("surrogate", None)
-
-    db_dict = {
-        str(ident): {
-            "fun_control": fun_control,
-            "design_control": design_control,
-            "surrogate_control": surrogate_control,
-            "optimizer_control": optimizer_control,
-            "spot_tuner_control": spot_tuner_control,
-        }
-    }
-    return db_dict
+        spot_tuner = spot.Spot(
+            fun=fun,
+            fun_control=fun_control,
+            design_control=design_control,
+            surrogate_control=surrogate_control,
+            optimizer_control=optimizer_control,
+        )
+        filename = get_experiment_filename(fun_control["PREFIX"])
+        if save_only:
+            if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
+                fun_control["spot_writer"].close()
+            save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, filename)
+        else:
+            if tensorboard_start:
+                p_open = start_tensorboard()
+            # TODO: Implement X_Start handling
+            # X_start = get_default_hyperparameters_as_array(fun_control)
+            spot_tuner.run()
+            save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+            # tensorboard --logdir="runs/"
+            if tuner_report:
+                write_tuner_report(fun_control, design_control, surrogate_control, optimizer_control)
+            print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
+            if tensorboard_stop:
+                stop_tensorboard(p_open)
+                p_open = None
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
