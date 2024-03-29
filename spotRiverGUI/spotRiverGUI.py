@@ -1,5 +1,7 @@
 import tkinter as tk
+import time
 import json
+import threading
 import customtkinter
 import pprint
 import webbrowser
@@ -284,6 +286,11 @@ class App(customtkinter.CTk):
         # dictionary name for the database
         # similar for all spotRiver experiments
         self.db_dict_name = "spotRiver_db.json"
+        # name of the progress file
+        self.progress_file = "progress.txt"
+        # if the progress file exists, delete it
+        if os.path.exists(self.progress_file):
+            os.remove(self.progress_file)
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
@@ -407,20 +414,20 @@ class App(customtkinter.CTk):
                                                     corner_radius=6)
         self.n_total_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
         self.n_total_var = customtkinter.StringVar(value="None")
-        self.n_total_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
+        self.n_total_entry = customtkinter.CTkEntry(self.experiment_data_frame,
                                                           textvariable=self.n_total_var,
                                                           width=self.entry_width)
-        self.n_total_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        self.n_total_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
         #
         # test_size entry in experiment_data frame
         self.test_size_label = customtkinter.CTkLabel(self.experiment_data_frame,
                                                     text="test_size", corner_radius=6)
         self.test_size_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
         self.test_size_var = customtkinter.StringVar(value="0.3")
-        self.test_size_entry_frame = customtkinter.CTkEntry(self.experiment_data_frame,
+        self.test_size_entry = customtkinter.CTkEntry(self.experiment_data_frame,
                                                             textvariable=self.test_size_var,
                                                             width=self.entry_width)
-        self.test_size_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        self.test_size_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
         #
         # shuffle data in experiment_data frame
         self.shuffle_var = customtkinter.StringVar(value="False")
@@ -449,56 +456,56 @@ class App(customtkinter.CTk):
                                                     text="max_time", corner_radius=6)
         self.max_time_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
         self.max_time_var = customtkinter.StringVar(value="1")
-        self.max_time_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+        self.max_time_entry = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.max_time_var,
                                                           width=self.entry_width)
-        self.max_time_entry_frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        self.max_time_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
         #
         self.fun_evals_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="fun_evals", corner_radius=6)
         self.fun_evals_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
         self.fun_evals_var = customtkinter.StringVar(value="30")
-        self.fun_evals_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+        self.fun_evals_entry = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.fun_evals_var,
                                                           width=self.entry_width)
-        self.fun_evals_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        self.fun_evals_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
         #
         # init_size entry in experiment_model frame
         self.init_size_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="init_size", corner_radius=6)
         self.init_size_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
         self.init_size_var = customtkinter.StringVar(value="5")
-        self.init_size_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+        self.init_size_entry = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.init_size_var,
                                                           width=self.entry_width)
-        self.init_size_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+        self.init_size_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
         #
         self.lambda_min_max_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="lambda_min_max", corner_radius=6)
         self.lambda_min_max_label.grid(row=4, column=0, padx=0, pady=(10, 0), sticky="w")
         self.lambda_min_max_var = customtkinter.StringVar(value="1e-3, 1e2")
-        self.lambda_min_max_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+        self.lambda_min_max_entry = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.lambda_min_max_var,
                                                           width=self.entry_width)
-        self.lambda_min_max_entry_frame.grid(row=4, column=1, padx=10, pady=10, sticky="w")
+        self.lambda_min_max_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
         #
         self.max_sp_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="max_sp", corner_radius=6)
         self.max_sp_label.grid(row=5, column=0, padx=0, pady=(10, 0), sticky="w")
         self.max_sp_var = customtkinter.StringVar(value="30")
-        self.max_sp_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+        self.max_sp_entry = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.max_sp_var,
                                                           width=self.entry_width)
-        self.max_sp_entry_frame.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+        self.max_sp_entry.grid(row=5, column=1, padx=10, pady=10, sticky="w")
         #
         self.seed_label = customtkinter.CTkLabel(self.experiment_model_frame,
                                                     text="seed", corner_radius=6)
         self.seed_label.grid(row=6, column=0, padx=0, pady=(10, 0), sticky="w")
         self.seed_var = customtkinter.StringVar(value="123")
-        self.seed_entry_frame = customtkinter.CTkEntry(self.experiment_model_frame,
+        self.seed_entry = customtkinter.CTkEntry(self.experiment_model_frame,
                                                           textvariable=self.seed_var,
                                                           width=self.entry_width)
-        self.seed_entry_frame.grid(row=6, column=1, padx=10, pady=10, sticky="w")
+        self.seed_entry.grid(row=6, column=1, padx=10, pady=10, sticky="w")
         #
         # noise data in experiment_model frame
         self.noise_var = customtkinter.StringVar(value="True")
@@ -527,28 +534,28 @@ class App(customtkinter.CTk):
                                                     text="weights", corner_radius=6)
         self.weights_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
         self.weights_var = customtkinter.StringVar(value="1000, 1, 1")
-        self.weights_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
+        self.weights_entry = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.weights_var,
                                                           width=self.entry_width)
-        self.weights_entry_frame.grid(row=1, column=1, padx=0, pady=10, sticky="w")
+        self.weights_entry.grid(row=1, column=1, padx=0, pady=10, sticky="w")
         # horizon entry in experiment_model frame
         self.horizon_label = customtkinter.CTkLabel(self.experiment_eval_frame,
                                                     text="horizon", corner_radius=6)
         self.horizon_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
         self.horizon_var = customtkinter.StringVar(value="10")
-        self.horizon_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
+        self.horizon_entry = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.horizon_var,
                                                           width=self.entry_width)
-        self.horizon_entry_frame.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        self.horizon_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
         # oml_grace_periond entry in experiment_model frame
         self.oml_grace_period_label = customtkinter.CTkLabel(self.experiment_eval_frame,
                                                     text="oml_grace_period", corner_radius=6)
         self.oml_grace_period_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
         self.oml_grace_period_var = customtkinter.StringVar(value="None")
-        self.oml_grace_period_entry_frame = customtkinter.CTkEntry(self.experiment_eval_frame,
+        self.oml_grace_period_entry = customtkinter.CTkEntry(self.experiment_eval_frame,
                                                           textvariable=self.oml_grace_period_var,
                                                           width=self.entry_width)
-        self.oml_grace_period_entry_frame.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+        self.oml_grace_period_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
         #
         # ------------------ Hyperparameter Main Frame ------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
@@ -819,8 +826,35 @@ class App(customtkinter.CTk):
         # ------------------- Textbox Frame ------------------------------------ #
         # create textbox in row 1 and column 0
         self.textbox = customtkinter.CTkTextbox(self)
-        self.textbox.grid(row=1, column=0, columnspan=5, padx=(20, 20), pady=20, sticky="nsew")
+        self.textbox.grid(row=1, column=0, columnspan=5, padx=(10, 10), pady=10, sticky="nsew")
         self.textbox.configure(height=20, width=10)
+        self.textbox.insert(tk.END, "Welcome to SPOTRiver\n")
+        #
+        # Start the thread that will update the text area
+        update_thread = threading.Thread(target=self.update_text, daemon=True)
+        update_thread.start()
+
+    def print_tuned_design(self):
+        text = gen_design_table(self.fun_control)
+        self.textbox.delete('1.0', tk.END)
+        self.textbox.insert(tk.END, text)
+
+    def update_text(self):
+        # This method runs in a separate thread to update the text area
+        while True:  # Infinite loop to continuously update the textbox
+            try:
+                with open("progress.txt", "r") as file:
+                    lines = file.readlines()
+                    last_line = lines[-1] if lines else ''
+                    # Get the last line or an empty string if file is empty
+                    # text = file.read()  # Read the entire file
+                    self.textbox.delete('1.0', tk.END)
+                    self.textbox.insert(tk.END, last_line)
+            except FileNotFoundError:
+                # text = "File not found."
+                # self.textbox.insert(tk.END, text)
+                pass
+            time.sleep(1)  # Wait for 1 second before the next update
 
     def plot_progress_button_event(self):
         if self.spot_tuner is not None:
@@ -964,6 +998,7 @@ class App(customtkinter.CTk):
         self.save_only = False
         self.show_data_only = False
         self.run_experiment()
+        # self.print_tuned_design()
 
     def save_button_event(self):
         self.save_only = True
@@ -993,12 +1028,12 @@ class App(customtkinter.CTk):
             self.n_total = self.fun_control["n_total"]
             if self.n_total is None:
                 self.n_total = "None"
-            self.n_total_entry_frame.delete(0, "end")
-            self.n_total_entry_frame.insert(0, self.n_total)
+            self.n_total_entry.delete(0, "end")
+            self.n_total_entry.insert(0, self.n_total)
             #
             self.test_size = self.fun_control["test_size"]
-            self.test_size_entry_frame.delete(0, "end")
-            self.test_size_entry_frame.insert(0, self.test_size)
+            self.test_size_entry.delete(0, "end")
+            self.test_size_entry.insert(0, self.test_size)
             #
             self.shuffle = self.fun_control["shuffle"]
             self.shuffle_checkbox.deselect()
@@ -1006,28 +1041,30 @@ class App(customtkinter.CTk):
                 self.shuffle_checkbox.select()
             #
             self.max_time = self.fun_control["max_time"]
-            self.max_time_entry_frame.delete(0, "end")
-            self.max_time_entry_frame.insert(0, self.max_time)
+            self.max_time_entry.delete(0, "end")
+            self.max_time_entry.insert(0, self.max_time)
             #
             self.fun_evals = self.fun_control["fun_evals"]
-            self.fun_evals_entry_frame.delete(0, "end")
-            self.fun_evals_entry_frame.insert(0, self.fun_evals)
+            if not isinstance(self.fun_evals, int):
+                self.fun_evals = "inf"
+            self.fun_evals_entry.delete(0, "end")
+            self.fun_evals_entry.insert(0, self.fun_evals)
             #
             self.init_size = self.design_control["init_size"]
-            self.init_size_entry_frame.delete(0, "end")
-            self.init_size_entry_frame.insert(0, self.init_size)
+            self.init_size_entry.delete(0, "end")
+            self.init_size_entry.insert(0, self.init_size)
             #
             self.lambda_min_max = [self.surrogate_control["min_Lambda"], self.surrogate_control["max_Lambda"]]
-            self.lambda_min_max_entry_frame.delete(0, "end")
-            self.lambda_min_max_entry_frame.insert(0, f"{self.lambda_min_max[0]}, {self.lambda_min_max[1]}")
+            self.lambda_min_max_entry.delete(0, "end")
+            self.lambda_min_max_entry.insert(0, f"{self.lambda_min_max[0]}, {self.lambda_min_max[1]}")
             #
             self.max_sp = self.fun_control["max_surrogate_points"]
-            self.max_sp_entry_frame.delete(0, "end")
-            self.max_sp_entry_frame.insert(0, self.max_sp)
+            self.max_sp_entry.delete(0, "end")
+            self.max_sp_entry.insert(0, self.max_sp)
             #
             self.seed = self.fun_control["seed"]
-            self.seed_entry_frame.delete(0, "end")
-            self.seed_entry_frame.insert(0, self.seed)
+            self.seed_entry.delete(0, "end")
+            self.seed_entry.insert(0, self.seed)
             #
             self.noise = self.fun_control["noise"]
             self.noise_checkbox.deselect()
@@ -1035,23 +1072,29 @@ class App(customtkinter.CTk):
                 self.noise_checkbox.select()
             #
             self.weights = self.fun_control["weights_entry"]
-            self.weights_entry_frame.delete(0, "end")
-            self.weights_entry_frame.insert(0, self.weights)
+            self.weights_entry.delete(0, "end")
+            self.weights_entry.insert(0, self.weights)
             #
             self.horizon = self.fun_control["horizon"]
-            self.horizon_entry_frame.delete(0, "end")
-            self.horizon_entry_frame.insert(0, self.horizon)
+            self.horizon_entry.delete(0, "end")
+            self.horizon_entry.insert(0, self.horizon)
             #
             self.oml_grace_period = self.fun_control["oml_grace_period"]
             if self.oml_grace_period is None:
                 self.oml_grace_period = "None"
-            self.oml_grace_period_entry_frame.delete(0, "end")
-            self.oml_grace_period_entry_frame.insert(0, self.oml_grace_period)
+            self.oml_grace_period_entry.delete(0, "end")
+            self.oml_grace_period_entry.insert(0, self.oml_grace_period)
             #
             self.num_hp_frame.destroy()
             self.create_num_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
             self.cat_hp_frame.destroy()
             self.create_cat_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
+            #
+            self.experiment_name = self.fun_control["PREFIX"]
+            self.experiment_name_entry.delete(0, "end")
+            self.experiment_name_entry.insert(0, self.experiment_name)
+            #
+            # self.print_tuned_design()
 
     def plot_data_button_event(self):
         self.save_only = False
@@ -1149,6 +1192,7 @@ class App(customtkinter.CTk):
             oml_grace_period=oml_grace_period,
             prep_model=prepmodel,
             prep_model_name=prep_model_name,
+            progress_file=self.progress_file,
             seed=seed,
             shuffle=shuffle,
             task=task_name,

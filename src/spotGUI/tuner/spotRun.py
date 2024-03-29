@@ -1,3 +1,5 @@
+import subprocess
+from threading import Thread
 import copy
 import matplotlib.pyplot as plt
 import sklearn.metrics
@@ -11,7 +13,6 @@ from spotPython.spot import spot
 from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
-from spotPython.utils.file import save_experiment
 from spotPython.utils.file import load_experiment
 from spotPython.utils.metrics import get_metric_sign
 
@@ -333,21 +334,27 @@ def run_spot_python_experiment(
         if save_only:
             if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
                 fun_control["spot_writer"].close()
-            save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, filename)
+            spot_tuner.save_experiment(filename=filename)
         else:
             if tensorboard_start:
                 p_open = start_tensorboard()
             # TODO: Implement X_Start handling
             # X_start = get_default_hyperparameters_as_array(fun_control)
-            spot_tuner.run()
-            save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
-            # tensorboard --logdir="runs/"
-            if tuner_report:
-                write_tuner_report(fun_control, design_control, surrogate_control, optimizer_control)
-            print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
-            if tensorboard_stop:
-                stop_tensorboard(p_open)
-                p_open = None
+            run_thread = Thread(target=run_process, args=(spot_tuner, tensorboard_stop, p_open))
+            run_thread.start()
+
+
+def run_process(spot_tuner, tensorboard_stop=True, p_open=None):
+    spot_tuner.run()
+    if tensorboard_stop:
+        stop_tensorboard(p_open)
+    # if file progress.txt exists, delete it
+    if os.path.exists("progress.txt"):
+        os.remove("progress.txt")
+
+
+def show_data_process(fun_control, n_samples=1000):
+    show_data(fun_control, n_samples=n_samples)
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
@@ -367,10 +374,10 @@ def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
     print(gen_design_table(fun_control))
     p_open = start_tensorboard()
     spot_tuner.run()
-    SPOT_PKL_NAME = save_experiment(spot_tuner, fun_control, design_control, surrogate_control, optimizer_control)
+    spot_tuner.save_experiment()
     # tensorboard --logdir="runs/"
     stop_tensorboard(p_open)
-    return SPOT_PKL_NAME, spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
+    return spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
 
 
 def parallel_plot(spot_tuner, fun_control):

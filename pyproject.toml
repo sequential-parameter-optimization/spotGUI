@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spotGUI"
-version = "0.4.6"
+version = "0.4.7"
 authors = [
   { name="T. Bartz-Beielstein", email="tbb@bartzundbartz.de" }
 ]
@@ -45,7 +45,7 @@ dependencies = [
   "river>=0.21.0",
   "scikit-learn",
   "scipy",
-  "spotPython>=0.14.4",
+  "spotPython>=0.14.5",
   "spotRiver>=0.3.2",
   "seaborn",
   "tabulate",
