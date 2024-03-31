@@ -80,9 +80,8 @@ class SelectOptionMenuFrame(customtkinter.CTkFrame):
     def __init__(self, master, title, item_list, item_default, command=None, **kwargs):
         super().__init__(master, **kwargs)
         self.title = title
-
-        self.title = customtkinter.CTkLabel(self, text=self.title, corner_radius=6)
-        self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
+        self.title_label = customtkinter.CTkLabel(self, text=self.title, corner_radius=6)
+        self.title_label.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
         print(f"item_list: {item_list}")
 
         if item_default is None:
@@ -355,6 +354,12 @@ class App(customtkinter.CTk):
         # select data frame in data main frame
         self.create_select_data_frame(row=4, column=0)
         #
+        # create plot data button
+        self.plot_data_button = customtkinter.CTkButton(master=self.sidebar_frame,
+                                                        text="Plot Data",
+                                                        command=self.plot_data_button_event)
+        self.plot_data_button.grid(row=6, column=0, sticky="nsew", padx=10, pady=10)
+        #
         # ................. Metric Frame ....................................... #
         # create select metric_sklearn levels frame inside sidebar frame
         self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(master=self.sidebar_frame,
@@ -362,7 +367,7 @@ class App(customtkinter.CTk):
                                                            item_list=self.task_dict[self.task_name]["metric_sklearn_levels"],
                                                            item_default=None,
                                                            title="Select sklearn metric")
-        self.select_metric_sklearn_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
+        self.select_metric_sklearn_levels_frame.grid(row=7, column=0, padx=15, pady=15, sticky="nsew")
         self.select_metric_sklearn_levels_frame.configure(width=500)
         #
         # ................. Appearance Frame ....................................... #
@@ -374,7 +379,7 @@ class App(customtkinter.CTk):
                                                 item_list=["System", "Light", "Dark"],
                                                 item_default="System",
                                                 title="Appearance Mode")
-        self.appearance_frame.grid(row=6, column=0, padx=15, pady=15, sticky="ew")
+        self.appearance_frame.grid(row=8, column=0, padx=15, pady=15, sticky="ew")
         #
         self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
         self.scaling_label.grid(row=2, column=0, padx=20, pady=(10, 0))
@@ -702,26 +707,16 @@ class App(customtkinter.CTk):
                                                             corner_radius=6)
         self.experiment_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         #
-        # create plot data button
-        self.plot_data_button = customtkinter.CTkButton(master=self.experiment_run_frame,
-                                                        text="Plot Data",
-                                                        command=self.plot_data_button_event)
-        self.plot_data_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         # create save button
         self.save_button = customtkinter.CTkButton(master=self.experiment_run_frame,
                                                   text="Save",
                                                   command=self.save_button_event)
         self.save_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        # create load button
-        self.load_button = customtkinter.CTkButton(master=self.experiment_run_frame,
-                                                  text="Load",
-                                                  command=self.load_button_event)
-        self.load_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
         # create run button
         self.run_button = customtkinter.CTkButton(master=self.experiment_run_frame,
                                                   text="Run",
                                                   command=self.run_button_event)
-        self.run_button.grid(row=4, column=0, sticky="ew", padx=10, pady=10)
+        self.run_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
 
         # ----------------- Analysis_Main Frame -------------------------------------- #
         # create analysis_main frame with widgets in row 0 and column 3
@@ -746,16 +741,21 @@ class App(customtkinter.CTk):
                                                             font=customtkinter.CTkFont(weight="bold"),
                                                             corner_radius=6)
         self.analysis_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        # create load button
+        self.load_button = customtkinter.CTkButton(master=self.analysis_run_frame,
+                                                  text="Load",
+                                                  command=self.load_button_event)
+        self.load_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         # create plot progress button
         self.plot_progress_button = customtkinter.CTkButton(master=self.analysis_run_frame,
                                                         text="Plot Progress",
                                                         command=self.plot_progress_button_event)
-        self.plot_progress_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        self.plot_progress_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         #
         # ................. Comparison_Analysis Frame .......................................#
         # create analysis_comparison_frame with widgets in analysis_main frame
         self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_comparison_frame.grid(row=2, column=0, sticky="ew")
+        self.analysis_comparison_frame.grid(row=3, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_comparison_frame_title = customtkinter.CTkLabel(self.analysis_comparison_frame,
@@ -778,7 +778,7 @@ class App(customtkinter.CTk):
         # ................. Hyperparameter_Analysis Frame .......................................#
         # create analysis_hyperparameter_frame with widgets in analysis_main frame
         self.analysis_hyperparameter_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_hyperparameter_frame.grid(row=3, column=0, sticky="ew")
+        self.analysis_hyperparameter_frame.grid(row=4, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_hyperparameter_frame_title = customtkinter.CTkLabel(self.analysis_hyperparameter_frame,
@@ -802,7 +802,7 @@ class App(customtkinter.CTk):
         # ................. Classification_Analysis Frame .......................................#
         # create analysis_classification_frame with widgets in analysis_main frame
         self.analysis_classification_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_classification_frame.grid(row=4, column=0, sticky="ew")
+        self.analysis_classification_frame.grid(row=5, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_classification_frame_title = customtkinter.CTkLabel(self.analysis_classification_frame,

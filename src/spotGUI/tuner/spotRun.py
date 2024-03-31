@@ -1,4 +1,3 @@
-import subprocess
 from threading import Thread
 import copy
 import matplotlib.pyplot as plt
