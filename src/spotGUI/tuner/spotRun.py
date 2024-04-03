@@ -228,37 +228,20 @@ def write_tuner_report(
     file.close()
 
 
-def show_data(fun_control, n_samples=1000) -> None:
-    """
-    Shows the data in a spot experiment.
-    If the data set has more than 1000 entries,
-    a subset of n_samples random samples are displayed.
+def show_y_hist(train, test, target_column) -> None:
+    """Shows histograms of the target column in the training and test data sets.
 
     Args:
-        fun_control (dict):
-            A dictionary with the function control parameters.
-        n_samples (int):
-            The number of samples to display. Default is 1000.
+        train (pd.DataFrame):
+            The training data set.
+        test (pd.DataFrame):
+            The test data set.
+        target_column (str):
+            The name of the target column.
 
     Returns:
         None
     """
-    train = fun_control["train"]
-    train_size = len(train)
-    test = fun_control["test"]
-    test_size = len(test)
-    target_column = fun_control["target_column"]
-    print(f"\nTrain data summary:\n {train.describe(include='all')}")
-    print(f"\nTest data summary:\n {test.describe(include='all')}")
-    # if the data set has more than 1000 entries,
-    # select 1000 random samples to display
-    train_sample = test_sample = False
-    if train_size > n_samples:
-        train = train.sample(n=n_samples)
-        train_sample = True
-    if test_size > n_samples:
-        test = test.sample(n=n_samples)
-        test_sample = True
     # generate a histogram of the target column
     plt.figure()
     # Create the first subplot for the training data
@@ -269,8 +252,53 @@ def show_data(fun_control, n_samples=1000) -> None:
     plt.subplot(1, 2, 2)  # 1 row, 2 columns, index 2
     test[target_column].hist()
     plt.title("Test Data")
-    generate_pairplot(data=train, target_column=target_column, title="Train Data", sample=train_sample, size=train_size)
-    generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
+    plt.show()
+
+
+def show_data(train, test, target_column, n_samples=1000) -> None:
+    """
+    Shows the data in a spot experiment.
+    If the data set has more than 1000 entries,
+    a subset of n_samples random samples are displayed.
+
+    Args:
+        train (pd.DataFrame):
+            The training data set.
+        test (pd.DataFrame):
+            The test data set.
+        target_column (str):
+            The name of the target column.
+        n_samples (int):
+            The number of samples to display. Default is 1000.
+
+    Returns:
+        None
+    """
+    # print(f"\nTrain data summary:\n {train.describe(include='all')}")
+    # print(f"\nTest data summary:\n {test.describe(include='all')}")
+    # generate a histogram of the target column
+    plt.figure()
+    # Create the first subplot for the training data
+    plt.subplot(1, 2, 1)  # 1 row, 2 columns, index 1
+    train[target_column].hist()
+    plt.title("Train Data")
+    # Create the second subplot for the test data
+    plt.subplot(1, 2, 2)  # 1 row, 2 columns, index 2
+    test[target_column].hist()
+    plt.title("Test Data")
+    # train_size = len(train)
+    # test_size = len(test)
+    # # if the data set has more than 1000 entries,
+    # # select 1000 random samples to display
+    # train_sample = test_sample = False
+    # if train_size > n_samples:
+    #     train = train.sample(n=n_samples)
+    #     train_sample = True
+    # if test_size > n_samples:
+    #     test = test.sample(n=n_samples)
+    #     test_sample = True
+    # generate_pairplot(data=train, target_column=target_column, title="Train Data", sample=train_sample, size=train_size)
+    # generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
     plt.show()
 
 
@@ -281,7 +309,6 @@ def run_spot_python_experiment(
     surrogate_control,
     optimizer_control,
     fun=HyperLight(log_level=50).fun,
-    show_data_only=False,
     tensorboard_start=True,
     tensorboard_stop=True,
     tuner_report=True,
@@ -291,8 +318,6 @@ def run_spot_python_experiment(
     Args:
         save_only (bool):
             If True, the experiment will be saved and the spot run will not be executed.
-        show_data_only (bool):
-            If True, the data will be shown and the spot run will not be executed.
         fun_control (dict):
             A dictionary with the function control parameters.
         design_control (dict):
@@ -319,28 +344,25 @@ def run_spot_python_experiment(
     """
     p_open = None
     print(gen_design_table(fun_control))
-    if show_data_only:
-        show_data(fun_control, n_samples=1000)
+    spot_tuner = spot.Spot(
+        fun=fun,
+        fun_control=fun_control,
+        design_control=design_control,
+        surrogate_control=surrogate_control,
+        optimizer_control=optimizer_control,
+    )
+    filename = get_experiment_filename(fun_control["PREFIX"])
+    if save_only:
+        if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
+            fun_control["spot_writer"].close()
+        spot_tuner.save_experiment(filename=filename)
     else:
-        spot_tuner = spot.Spot(
-            fun=fun,
-            fun_control=fun_control,
-            design_control=design_control,
-            surrogate_control=surrogate_control,
-            optimizer_control=optimizer_control,
-        )
-        filename = get_experiment_filename(fun_control["PREFIX"])
-        if save_only:
-            if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
-                fun_control["spot_writer"].close()
-            spot_tuner.save_experiment(filename=filename)
-        else:
-            if tensorboard_start:
-                p_open = start_tensorboard()
-            # TODO: Implement X_Start handling
-            # X_start = get_default_hyperparameters_as_array(fun_control)
-            run_thread = Thread(target=run_process, args=(spot_tuner, tensorboard_stop, p_open))
-            run_thread.start()
+        if tensorboard_start:
+            p_open = start_tensorboard()
+        # TODO: Implement X_Start handling
+        # X_start = get_default_hyperparameters_as_array(fun_control)
+        run_thread = Thread(target=run_process, args=(spot_tuner, tensorboard_stop, p_open))
+        run_thread.start()
 
 
 def run_process(spot_tuner, tensorboard_stop=True, p_open=None):
@@ -350,10 +372,6 @@ def run_process(spot_tuner, tensorboard_stop=True, p_open=None):
     # if file progress.txt exists, delete it
     if os.path.exists("progress.txt"):
         os.remove("progress.txt")
-
-
-def show_data_process(fun_control, n_samples=1000):
-    show_data(fun_control, n_samples=n_samples)
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
