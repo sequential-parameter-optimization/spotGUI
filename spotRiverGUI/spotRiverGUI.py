@@ -42,7 +42,7 @@ from spotGUI.tuner.spotRun import (
     show_y_hist,
 )
 from spotRiver.data.selector import get_river_dataset_from_name
-from spotPython.utils.convert import map_to_True_False
+from spotPython.utils.convert import map_to_True_False, check_type
 from spotRiver.utils.data_conversion import split_df
 from spotPython.utils.numpy2json import NumpyEncoder
 from spotPython.hyperparameters.values import (
@@ -707,7 +707,7 @@ class App(customtkinter.CTk):
         # experiment_data frame title
         self.experiment_name_frame_title = customtkinter.CTkLabel(
             self.experiment_name_frame,
-            text="Experiment Name",
+            text="New experiment name",
             font=customtkinter.CTkFont(weight="bold"),
             corner_radius=6,
         )
@@ -762,24 +762,28 @@ class App(customtkinter.CTk):
         #
         # analysis_data frame title
         self.analysis_run_frame_title = customtkinter.CTkLabel(
-            self.analysis_run_frame, text="SPOT run", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
+            self.analysis_run_frame, text="Loaded experiment", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
         )
         self.analysis_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        # Create Loaded Experiment Entry
+        self.loaded_label = customtkinter.CTkLabel(self.analysis_run_frame, text="None", corner_radius=6)
+        self.loaded_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
+        # self.loaded_label.configure(text=self.experiment_name)
         # create load button
         self.load_button = customtkinter.CTkButton(
             master=self.analysis_run_frame, text="Load", command=self.load_button_event
         )
-        self.load_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        self.load_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         # create plot progress button
         self.plot_progress_button = customtkinter.CTkButton(
             master=self.analysis_run_frame, text="Plot Progress", command=self.plot_progress_button_event
         )
-        self.plot_progress_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        self.plot_progress_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
         #
         # ................. Comparison_Analysis Frame .......................................#
         # create analysis_comparison_frame with widgets in analysis_main frame
         self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_comparison_frame.grid(row=3, column=0, sticky="ew")
+        self.analysis_comparison_frame.grid(row=4, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_comparison_frame_title = customtkinter.CTkLabel(
@@ -808,7 +812,7 @@ class App(customtkinter.CTk):
         # ................. Hyperparameter_Analysis Frame .......................................#
         # create analysis_hyperparameter_frame with widgets in analysis_main frame
         self.analysis_hyperparameter_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_hyperparameter_frame.grid(row=4, column=0, sticky="ew")
+        self.analysis_hyperparameter_frame.grid(row=5, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_hyperparameter_frame_title = customtkinter.CTkLabel(
@@ -834,7 +838,7 @@ class App(customtkinter.CTk):
         # ................. Classification_Analysis Frame .......................................#
         # create analysis_classification_frame with widgets in analysis_main frame
         self.analysis_classification_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_classification_frame.grid(row=5, column=0, sticky="ew")
+        self.analysis_classification_frame.grid(row=6, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_classification_frame_title = customtkinter.CTkLabel(
@@ -1137,6 +1141,7 @@ class App(customtkinter.CTk):
             self.create_cat_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
             #
             self.experiment_name = self.fun_control["PREFIX"]
+            self.loaded_label.configure(text=self.experiment_name)
             self.experiment_name_entry.delete(0, "end")
             self.experiment_name_entry.insert(0, self.experiment_name)
             #
@@ -1152,18 +1157,6 @@ class App(customtkinter.CTk):
         #           n_samples=1000)
         print("\nData shown. No result saved.")
 
-    def check_type(self, value):
-        if isinstance(value, (int, np.integer)):
-            return "int"
-        elif isinstance(value, (float, np.floating)):
-            return "float"
-        elif isinstance(value, (str, np.str_)):
-            return "str"
-        elif isinstance(value, (bool, np.bool_)):
-            return "bool"
-        else:
-            return None
-
     def prepare_data(self):
         self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
         dataset, self.n_samples = get_river_dataset_from_name(
@@ -1172,7 +1165,7 @@ class App(customtkinter.CTk):
             river_datasets=self.task_dict[self.task_name]["datasets"],
         )
         val = copy.deepcopy(dataset.iloc[0, -1])
-        self.target_type = self.check_type(val)
+        self.target_type = check_type(val)
         if self.target_type == "bool" or self.target_type == "str":
             # convert the target column to 0 and 1
             dataset["y"] = dataset["y"].astype(int)
@@ -1240,7 +1233,7 @@ class App(customtkinter.CTk):
         PREFIX = self.experiment_name_entry.get()
         #
         # val = copy.deepcopy(dataset.iloc[0, -1])
-        # target_type = self.check_type(val)
+        # target_type = check_type(val)
         # if target_type == "bool" or target_type == "str":
         #     # convert the target column to 0 and 1
         #     dataset["y"] = dataset["y"].astype(int)

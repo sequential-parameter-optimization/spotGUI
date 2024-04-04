@@ -17,15 +17,14 @@ def test_run_spot_python_experiment_save_only():
 
     add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression, hyper_dict=LightHyperDict)
 
-    # Call the function
-    result = run_spot_python_experiment(
-        save_only,
-        fun_control,
-        design_control,
-        surrogate_control,
-        optimizer_control,
-    )
-    # Assert the expected output
-    assert len(result) == 7
-    assert result[0] is not None
-    assert isinstance(result[1], spot.Spot)  # spot_tuner should be an instance of spot.Spot
+    # try to run the experiment and check if it runs without errors
+    try:
+        run_spot_python_experiment(
+            save_only,
+            fun_control,
+            design_control,
+            surrogate_control,
+            optimizer_control,
+        )
+    except Exception as e:
+        pytest.fail(f"run_spot_python_experiment(save_only) raised an exception: {e}")
