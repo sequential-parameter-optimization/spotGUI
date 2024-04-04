@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+# from threading import Thread
 import tkinter as tk
 import time
 import json
@@ -265,7 +267,7 @@ class CatHyperparameterFrame(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-
+        
         self.title("spotRiver GUI")
         self.geometry(f"{1600}x{900}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
@@ -869,8 +871,11 @@ class App(customtkinter.CTk):
         self.textbox.insert(tk.END, "Welcome to SPOTRiver\n")
         #
         # Start the thread that will update the text area
-        update_thread = threading.Thread(target=self.update_text, daemon=True)
-        update_thread.start()
+        # update_thread = threading.Thread(target=self.update_text, daemon=True)
+        # update_thread.start()
+        # e = ThreadPoolExecutor(max_workers=1)
+        # e.submit(self.update_text)
+        # e.shutdown(wait=False)
 
     def print_tuned_design(self):
         text = gen_design_table(self.fun_control)

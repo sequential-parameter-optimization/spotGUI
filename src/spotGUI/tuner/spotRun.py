@@ -1,4 +1,5 @@
 from threading import Thread
+# from concurrent.futures import ThreadPoolExecutor
 import copy
 import matplotlib.pyplot as plt
 import sklearn.metrics
@@ -361,14 +362,24 @@ def run_spot_python_experiment(
             p_open = start_tensorboard()
         # TODO: Implement X_Start handling
         # X_start = get_default_hyperparameters_as_array(fun_control)
-        run_thread = Thread(target=run_process, args=(spot_tuner, tensorboard_stop, p_open))
-        run_thread.start()
+        #
+        # run_thread = Thread(target=run_process, args=(spot_tuner, fun_control, tensorboard_stop, p_open))
+        # run_thread.start()
+        # e = ThreadPoolExecutor()
+        # e.submit(run_process, spot_tuner, fun_control, tensorboard_stop, p_open)
+        # print("Spot experiment started. Please wait for the results.")
+        # e.shutdown(wait=False)
+        run_process(spot_tuner, fun_control, tensorboard_stop, p_open)
 
 
-def run_process(spot_tuner, tensorboard_stop=True, p_open=None):
+def run_process(spot_tuner, fun_control, tensorboard_stop=True, p_open=None):
     spot_tuner.run()
     if tensorboard_stop:
         stop_tensorboard(p_open)
+    if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
+        fun_control["spot_writer"].close()
+    filename = get_experiment_filename(fun_control["PREFIX"])
+    spot_tuner.save_experiment(filename=filename)
     # if file progress.txt exists, delete it
     if os.path.exists("progress.txt"):
         os.remove("progress.txt")
