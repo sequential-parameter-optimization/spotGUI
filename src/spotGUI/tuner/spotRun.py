@@ -1,4 +1,5 @@
 from threading import Thread
+
 # from concurrent.futures import ThreadPoolExecutor
 import copy
 import matplotlib.pyplot as plt
@@ -369,7 +370,17 @@ def run_spot_python_experiment(
         # e.submit(run_process, spot_tuner, fun_control, tensorboard_stop, p_open)
         # print("Spot experiment started. Please wait for the results.")
         # e.shutdown(wait=False)
-        run_process(spot_tuner, fun_control, tensorboard_stop, p_open)
+        # run_process(spot_tuner, fun_control, tensorboard_stop, p_open)
+        spot_tuner.run()
+        if tensorboard_stop:
+            stop_tensorboard(p_open)
+        if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
+            fun_control["spot_writer"].close()
+        filename = get_experiment_filename(fun_control["PREFIX"])
+        spot_tuner.save_experiment(filename=filename)
+        # if file progress.txt exists, delete it
+        if os.path.exists("progress.txt"):
+            os.remove("progress.txt")
 
 
 def run_process(spot_tuner, fun_control, tensorboard_stop=True, p_open=None):
