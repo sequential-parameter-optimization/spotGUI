@@ -13,6 +13,7 @@ import copy
 import sys
 from PIL import Image
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
+from spotGUI.ctk.CTk import CTkApp
 
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 from spotGUI.tuner.spotRun import (
@@ -264,10 +265,10 @@ class CatHyperparameterFrame(customtkinter.CTkFrame):
                 return
 
 
-class App(customtkinter.CTk):
+class RiverApp(CTkApp):
     def __init__(self):
         super().__init__()
-        
+
         self.title("spotRiver GUI")
         self.geometry(f"{1600}x{900}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
@@ -277,10 +278,10 @@ class App(customtkinter.CTk):
         # similar for all spotRiver experiments
         self.db_dict_name = "spotRiver_db.json"
         # name of the progress file
-        self.progress_file = "progress.txt"
+        # self.progress_file = "progress.txt"
         # if the progress file exists, delete it
-        if os.path.exists(self.progress_file):
-            os.remove(self.progress_file)
+        # if os.path.exists(self.progress_file):
+        #    os.remove(self.progress_file)
 
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
@@ -296,7 +297,8 @@ class App(customtkinter.CTk):
         #     if filename.endswith(".json"):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
 
-        # ---------------- Sidebar Frame --------------------------------------- #
+        # ---------------------------------------------------------------------- #
+        # ---------------- 0 Sidebar Frame --------------------------------------- #
         # ---------------------------------------------------------------------- #
         # create sidebar frame with widgets in row 0 and column 0
         self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
@@ -387,8 +389,9 @@ class App(customtkinter.CTk):
         )
         self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="ew")
         #
-        # ----------------- Experiment_Main Frame -------------------------------------- #
-        # ------------------------------------------------------------------------------ #
+        # ---------------------------------------------------------------------- #
+        # ----------------- 1 Experiment_Main Frame ------------------------------ #
+        # ---------------------------------------------------------------------- #
         # create experiment main frame with widgets in row 0 and column 1
         self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.experiment_main_frame.grid(row=0, column=1, sticky="nsew")
@@ -558,8 +561,10 @@ class App(customtkinter.CTk):
             self.experiment_eval_frame, textvariable=self.oml_grace_period_var, width=self.entry_width
         )
         self.oml_grace_period_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-        #
-        # ------------------ Hyperparameter Main Frame ------------------------------------- #
+
+        # ---------------------------------------------------------------------- #
+        # ------------------ 2 Hyperparameter Main Frame ----------------------- #
+        # ---------------------------------------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
         self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
@@ -577,10 +582,12 @@ class App(customtkinter.CTk):
         #
         self.create_cat_hp_frame()
         #
-        # ----------------- Execution_Main Frame -------------------------------------- #
+        # ---------------------------------------------------------------------- #
+        # ----------------- 3 Execution_Main Frame ----------------------------- #
+        # ---------------------------------------------------------------------- #
         # create execution_main frame with widgets in row 0 and column 4
         self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.execution_main_frame.grid(row=0, column=4, sticky="nsew")
+        self.execution_main_frame.grid(row=0, column=3, sticky="nsew")
         #
         # execution frame title in execution main frame
         self.execution_main_frame_title = customtkinter.CTkLabel(
@@ -743,10 +750,12 @@ class App(customtkinter.CTk):
         )
         self.run_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
 
-        # ----------------- Analysis_Main Frame -------------------------------------- #
+        # ---------------------------------------------------------------------- #
+        # ----------------- 4 Analysis_Main Frame ------------------------------ #
+        # ---------------------------------------------------------------------- #
         # create analysis_main frame with widgets in row 0 and column 3
         self.analysis_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.analysis_main_frame.grid(row=0, column=3, sticky="nsew")
+        self.analysis_main_frame.grid(row=0, column=4, sticky="nsew")
         #
         # analysis frame title in analysis main frame
         self.analysis_main_frame_title = customtkinter.CTkLabel(
@@ -862,8 +871,10 @@ class App(customtkinter.CTk):
             master=self.analysis_classification_frame, text="ROC", command=self.plot_roc_button_event
         )
         self.roc_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        #
+
+        # ---------------------------------------------------------------------- #
         # ------------------- Textbox Frame ------------------------------------ #
+        # ---------------------------------------------------------------------- #
         # create textbox in row 1 and column 0
         self.textbox = customtkinter.CTkTextbox(self)
         self.textbox.grid(row=1, column=0, columnspan=5, padx=(10, 10), pady=10, sticky="nsew")
@@ -876,6 +887,8 @@ class App(customtkinter.CTk):
         # e = ThreadPoolExecutor(max_workers=1)
         # e.submit(self.update_text)
         # e.shutdown(wait=False)
+
+        # ---------------------------------------------------------------------- #
 
     def print_tuned_design(self):
         text = gen_design_table(self.fun_control)
@@ -929,14 +942,6 @@ class App(customtkinter.CTk):
 
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
-
-    def change_appearance_mode_event(self, new_appearance_mode: str):
-        print(f"Appearance Mode changed to: {new_appearance_mode}")
-        customtkinter.set_appearance_mode(new_appearance_mode)
-
-    def change_scaling_event(self, new_scaling: str):
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        customtkinter.set_widget_scaling(new_scaling_float)
 
     def select_data_frame_event(self, new_data: str):
         print(f"Data modified: {new_data}")
@@ -1153,6 +1158,9 @@ class App(customtkinter.CTk):
             # self.print_tuned_design()
 
     def plot_data_button_event(self):
+        self.seed = int(self.seed_var.get())
+        self.test_size = float(self.test_size_var.get())
+        self.shuffle = map_to_True_False(self.shuffle_var.get())
         self.prepare_data()
         show_y_hist(train=self.train, test=self.test, target_column="y")
         # TODO: show_data
@@ -1162,23 +1170,26 @@ class App(customtkinter.CTk):
         #           n_samples=1000)
         print("\nData shown. No result saved.")
 
-    def prepare_data(self):
+    def get_dataset(self):
         self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-        dataset, self.n_samples = get_river_dataset_from_name(
+        self.dataset, self.n_samples = get_river_dataset_from_name(
             data_set_name=self.data_set_name,
             n_total=get_n_total(self.n_total_var.get()),
             river_datasets=self.task_dict[self.task_name]["datasets"],
         )
-        val = copy.deepcopy(dataset.iloc[0, -1])
+
+    def set_dataset_y_type(self):
+        val = copy.deepcopy(self.dataset.iloc[0, -1])
         self.target_type = check_type(val)
         if self.target_type == "bool" or self.target_type == "str":
             # convert the target column to 0 and 1
-            dataset["y"] = dataset["y"].astype(int)
-        self.test_size = float(self.test_size_var.get())
-        self.seed = int(self.seed_var.get())
-        self.shuffle = map_to_True_False(self.shuffle_var.get())
+            self.dataset["y"] = self.dataset["y"].astype(int)
+
+    def prepare_data(self):
+        self.get_dataset()
+        self.set_dataset_y_type()
         self.train, self.test, self.n_samples = split_df(
-            dataset=dataset,
+            dataset=self.dataset,
             test_size=self.test_size,
             target_type=self.target_type,
             seed=self.seed,
@@ -1194,12 +1205,10 @@ class App(customtkinter.CTk):
         prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
         prepmodel = self.check_user_prep_model(prep_model_name=prep_model_name)
         #
+        self.seed = int(self.seed_var.get())
+        self.test_size = float(self.test_size_var.get())
+        self.shuffle = map_to_True_False(self.shuffle_var.get())
         self.prepare_data()
-        # data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-        # dataset, n_samples = get_river_dataset_from_name(data_set_name=data_set_name,
-        #                                             n_total=get_n_total(self.n_total_var.get()),
-        #                                             river_datasets=self.task_dict[self.task_name]["datasets"])
-        #
         metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
         metric_sklearn = get_metric_sklearn(self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item())
         #
@@ -1216,6 +1225,7 @@ class App(customtkinter.CTk):
         init_size = int(self.init_size_var.get())
         #
         lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
+        kriging_noise = get_kriging_noise(lbd_min, lbd_max)
         #
         max_surrogate_points = int(self.max_sp_var.get())
         #
@@ -1237,17 +1247,6 @@ class App(customtkinter.CTk):
         tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         PREFIX = self.experiment_name_entry.get()
         #
-        # val = copy.deepcopy(dataset.iloc[0, -1])
-        # target_type = check_type(val)
-        # if target_type == "bool" or target_type == "str":
-        #     # convert the target column to 0 and 1
-        #     dataset["y"] = dataset["y"].astype(int)
-        # train, test, n_samples = split_df(dataset=dataset,
-        #                                   test_size=test_size,
-        #                                   target_type=target_type,
-        #                                   seed=seed,
-        #                                   shuffle=shuffle,
-        #                                   stratify=None)
         fun_control = fun_control_init(
             PREFIX=PREFIX,
             TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
@@ -1302,7 +1301,7 @@ class App(customtkinter.CTk):
         surrogate_control = surrogate_control_init(
             # If lambda is set to 0, no noise will be used in the surrogate
             # Otherwise use noise in the surrogate:
-            noise=get_kriging_noise(lbd_min, lbd_max),
+            noise=kriging_noise,
             n_theta=2,
             min_Lambda=lbd_min,
             max_Lambda=lbd_max,
@@ -1353,5 +1352,5 @@ class App(customtkinter.CTk):
 
 if __name__ == "__main__":
     customtkinter.set_appearance_mode("light")
-    app = App()
+    app = RiverApp()
     app.mainloop()

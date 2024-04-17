@@ -6,12 +6,12 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "spotGUI"
-version = "0.5.0"
+name = "spotgui"
+version = "0.5.1"
 authors = [
   { name="T. Bartz-Beielstein", email="tbb@bartzundbartz.de" }
 ]
-description = "spotGUI - GUI for the Sequential Parameter Optimization in Python"
+description = "spotgui - GUI for the Sequential Parameter Optimization in Python"
 readme = "README.md"
 license = { text="AGPL-3.0-or-later" }
 requires-python = ">=3.10"
@@ -59,8 +59,8 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://www.spotseven.de"
-Issues = "https://github.com/sequential-parameter-optimization/spotGUI/issues"
-Repository = "https://github.com/sequential-parameter-optimization/spotGUI"
+Issues = "https://github.com/sequential-parameter-optimization/spotgui/issues"
+Repository = "https://github.com/sequential-parameter-optimization/spotgui"
 
 [tool.setuptools]
 include-package-data = true
