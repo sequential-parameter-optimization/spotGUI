@@ -1,6 +1,3 @@
-from threading import Thread
-
-# from concurrent.futures import ThreadPoolExecutor
 import copy
 import matplotlib.pyplot as plt
 import sklearn.metrics
@@ -30,7 +27,6 @@ from spotPython.plot.validation import plot_roc_from_dataframes
 from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
 from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
-from spotGUI.eda.pairplot import generate_pairplot
 from spotPython.utils.file import get_experiment_filename
 
 
@@ -299,7 +295,9 @@ def show_data(train, test, target_column, n_samples=1000) -> None:
     # if test_size > n_samples:
     #     test = test.sample(n=n_samples)
     #     test_sample = True
-    # generate_pairplot(data=train, target_column=target_column, title="Train Data", sample=train_sample, size=train_size)
+    # generate_pairplot(data=train,
+    #                   target_column=target_column,
+    #                   title="Train Data", sample=train_sample, size=train_size)
     # generate_pairplot(data=test, target_column=target_column, title="Test Data", sample=test_sample, size=test_size)
     plt.show()
 
@@ -444,7 +442,7 @@ def progress_plot(spot_tuner, fun_control):
     plt.show()
 
 
-def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
+def plot_confusion_matrices_river(spot_tuner, fun_control, show=False) -> None:
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
     core_model_spot = get_one_core_model_from_X(X, fun_control)
@@ -504,7 +502,7 @@ def plot_confusion_matrices(spot_tuner, fun_control, show=False) -> None:
         plt.show()
 
 
-def plot_rocs(spot_tuner, fun_control, show=False) -> None:
+def plot_rocs_river(spot_tuner, fun_control, show=False) -> None:
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
     core_model_spot = get_one_core_model_from_X(X, fun_control)
@@ -545,7 +543,7 @@ def plot_rocs(spot_tuner, fun_control, show=False) -> None:
     )
 
 
-def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
+def compare_river_tuned_default(spot_tuner, fun_control, show=False) -> None:
     print(vars(spot_tuner))
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
@@ -592,7 +590,7 @@ def compare_tuned_default(spot_tuner, fun_control, show=False) -> None:
     )
 
 
-def actual_vs_prediction(spot_tuner, fun_control, show=False, length=50) -> None:
+def actual_vs_prediction_river(spot_tuner, fun_control, show=False, length=50) -> None:
     m = fun_control["test"].shape[0]
     a = int(m / 2) - length
     b = int(m / 2)

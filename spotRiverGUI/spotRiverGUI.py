@@ -1,268 +1,41 @@
-from concurrent.futures import ThreadPoolExecutor
-# from threading import Thread
 import tkinter as tk
-import time
-import json
-import threading
 import customtkinter
 import pprint
 import webbrowser
 import os
 import numpy as np
 import copy
-import sys
-from PIL import Image
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
-from spotGUI.ctk.CTk import CTkApp
+from spotGUI.ctk.CTk import CTkApp, SelectOptionMenuFrame
 
 from spotRiver.data.river_hyper_dict import RiverHyperDict
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
-    contour_plot,
-    parallel_plot,
-    importance_plot,
-    progress_plot,
-    actual_vs_prediction,
-    compare_tuned_default,
-    all_compare_tuned_default,
-    plot_confusion_matrices,
-    plot_rocs,
-    destroy_entries,
+    actual_vs_prediction_river,
+    compare_river_tuned_default,
+    plot_confusion_matrices_river,
+    plot_rocs_river,
     load_file_dialog,
-    get_report_file_name,
-    get_result,
     get_core_model_from_name,
     get_n_total,
     get_fun_evals,
     get_lambda_min_max,
     get_oml_grace_period,
-    get_prep_model,
     get_metric_sklearn,
     get_weights,
     get_kriging_noise,
     get_task_dict,
-    show_data,
     show_y_hist,
 )
 from spotRiver.data.selector import get_river_dataset_from_name
-from spotPython.utils.convert import map_to_True_False, check_type
+from spotPython.utils.convert import map_to_True_False, set_dataset_target_type, check_type
 from spotRiver.utils.data_conversion import split_df
-from spotPython.utils.numpy2json import NumpyEncoder
 from spotPython.hyperparameters.values import (
     add_core_model_to_fun_control,
-    set_control_hyperparameter_value,
     update_fun_control_with_hyper_num_cat_dicts,
 )
-from spotPython.utils.eda import gen_design_table
 from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.utils.file import load_experiment as load_experiment_spot
-from spotPython.utils.file import get_experiment_filename
-
-customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
-
-
-class SelectScrollableComboBoxFrame(customtkinter.CTkScrollableFrame):
-    def __init__(self, master, item_list, item_default, command=None, **kwargs):
-        super().__init__(master, **kwargs)
-
-        self.combobox_var = customtkinter.StringVar(value=item_default)
-        combobox = customtkinter.CTkComboBox(
-            self, values=item_list, command=self.combobox_callback, variable=self.combobox_var
-        )
-        combobox.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.combobox_var.set(item_default)
-
-    def combobox_callback(self, choice):
-        print("combobox dropdown selected:", choice)
-
-    def get_selected_item(self):
-        return self.combobox_var.get()
-
-
-class SelectOptionMenuFrame(customtkinter.CTkFrame):
-    def __init__(self, master, title, item_list, item_default, command=None, **kwargs):
-        super().__init__(master, **kwargs)
-        self.title = title
-        self.title_label = customtkinter.CTkLabel(self, text=self.title, corner_radius=6)
-        self.title_label.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-        print(f"item_list: {item_list}")
-
-        if item_default is None:
-            item_default = item_list[0]
-        self.optionmenu_var = customtkinter.StringVar(value=item_default)
-        optionmenu = customtkinter.CTkOptionMenu(self, values=item_list, command=command, variable=self.optionmenu_var)
-        optionmenu.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="ew")
-        self.optionmenu_var.set(item_default)
-
-    def get_selected_optionmenu_item(self):
-        return self.optionmenu_var.get()
-
-    def set_selected_optionmenu_item(self, item):
-        self.optionmenu_var.set(item)
-
-
-class NumHyperparameterFrame(customtkinter.CTkFrame):
-    def __init__(self, master, command=None, entry_width=120, **kwargs):
-        super().__init__(master, **kwargs)
-        self.grid_columnconfigure(0, weight=1)
-        self.entry_width = entry_width
-
-        self.command = command
-        self.hp_list = []
-        self.default_list = []
-        self.lower_list = []
-        self.upper_list = []
-        self.transform_list = []
-        self.level_list = []
-
-    def add_header(self):
-        header_hp = customtkinter.CTkLabel(self, text="Hyperparameter", corner_radius=6)
-        header_hp.grid(row=0, column=0, padx=0, pady=(10, 0), sticky="w")
-        header_hp = customtkinter.CTkLabel(self, text="Default", corner_radius=6)
-        header_hp.grid(row=0, column=1, padx=0, pady=(10, 0), sticky="w")
-        header_hp = customtkinter.CTkLabel(self, text="Lower", corner_radius=6)
-        header_hp.grid(row=0, column=2, padx=0, pady=(10, 0), sticky="w")
-        header_hp = customtkinter.CTkLabel(self, text="Upper", corner_radius=6)
-        header_hp.grid(row=0, column=3, padx=0, pady=(10, 0), sticky="w")
-        header_hp = customtkinter.CTkLabel(self, text="Transform", corner_radius=6)
-        header_hp.grid(row=0, column=4, padx=0, pady=(10, 0), sticky="w")
-
-    def add_num_item(self, hp, default, lower, upper, transform):
-        self.hp_col = customtkinter.CTkLabel(self, text=hp, compound="left", padx=5, anchor="w")
-        self.default_col = customtkinter.CTkLabel(self, text=default, compound="left", padx=5, anchor="w")
-        self.lower_col = customtkinter.CTkEntry(self, width=self.entry_width)
-        self.lower_col.insert(0, str(lower))
-        self.upper_col = customtkinter.CTkEntry(self, width=self.entry_width)
-        self.upper_col.insert(0, str(upper))
-        self.transform_col = customtkinter.CTkLabel(self, text=transform, compound="left", padx=5, anchor="w")
-
-        self.hp_col.grid(row=1 + len(self.hp_list), column=0, pady=(0, 10), sticky="w")
-        self.default_col.grid(row=1 + len(self.default_list), column=1, pady=(0, 10), sticky="w")
-        self.lower_col.grid(row=1 + len(self.lower_list), column=2, pady=(0, 10), sticky="w")
-        self.upper_col.grid(row=1 + len(self.upper_list), column=3, pady=(0, 10), sticky="w")
-        self.transform_col.grid(row=1 + len(self.transform_list), column=4, pady=(0, 10), padx=5, sticky="w")
-        self.hp_list.append(self.hp_col)
-        self.default_list.append(self.default_col)
-        self.lower_list.append(self.lower_col)
-        self.upper_list.append(self.upper_col)
-        self.transform_list.append(self.transform_col)
-
-    def get_num_item(self) -> dict:
-        """
-        Get the values from self.hp_list, self.default_list, self.lower_list, self.upper_list,
-        and self.transform_list and put lower and upper in a dictionary with the corresponding
-        hyperparameter (hp) as key.
-
-        Note:
-            Method is designed for numerical parameters.
-
-        Args:
-            None
-
-        Returns:
-            num_hp_dict (dict): dictionary with hyperparameter as key and values
-            as dictionary with lower and upper values.
-        """
-        num_hp_dict = {}
-        for label, default, lower, upper, transform in zip(
-            self.hp_list, self.default_list, self.lower_list, self.upper_list, self.transform_list
-        ):
-            num_hp_dict[label.cget("text")] = dict(
-                lower=lower.get(),
-                upper=upper.get(),
-            )
-        return num_hp_dict
-
-    def remove_num_item(self, item):
-        for label, default, lower, upper, transform in zip(
-            self.hp_list, self.default_list, self.lower_list, self.upper_list, self.transform_list
-        ):
-            if item == label.cget("text"):
-                label.destroy()
-                default.destroy()
-                lower.destroy()
-                upper.destroy()
-                transform.destroy()
-                self.hp_list.remove(label)
-                self.default_list.remove(default)
-                self.lower_list.remove(lower)
-                self.upper_list.remove(upper)
-                self.transform_list.remove(transform)
-                return
-
-
-class CatHyperparameterFrame(customtkinter.CTkFrame):
-    def __init__(self, master, command=None, **kwargs):
-        super().__init__(master, **kwargs)
-        self.grid_columnconfigure(0, weight=1)
-
-        self.command = command
-        self.hp_list = []
-        self.default_list = []
-        self.lower_list = []
-        self.upper_list = []
-        self.transform_list = []
-        self.levels_list = []
-
-    def add_header(self):
-        header_hp = customtkinter.CTkLabel(self, text="Hyperparameter", corner_radius=6)
-        header_hp.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-        header_hp = customtkinter.CTkLabel(self, text="Default", corner_radius=6)
-        header_hp.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ew")
-        header_hp = customtkinter.CTkLabel(self, text="Levels", corner_radius=6)
-        header_hp.grid(row=0, column=2, padx=10, pady=(10, 0), sticky="ew")
-
-    def add_cat_item(self, hp, default, levels, transform):
-        self.hp_col = customtkinter.CTkLabel(self, text=hp, compound="left", padx=5, anchor="w")
-        self.default_col = customtkinter.CTkLabel(self, text=default, compound="left", padx=5, anchor="w")
-        self.levels_col = customtkinter.CTkTextbox(self, width=400, height=1)
-        string_items = " ".join(levels)
-        self.levels_col.insert("0.0", string_items)
-
-        self.hp_col.grid(row=1 + len(self.hp_list), column=0, pady=(0, 10), sticky="w")
-        self.default_col.grid(row=1 + len(self.default_list), column=1, pady=(0, 10), sticky="w")
-        self.levels_col.grid(row=1 + len(self.levels_list), column=2, pady=(0, 10), sticky="w")
-        self.hp_list.append(self.hp_col)
-        self.default_list.append(self.default_col)
-        self.levels_list.append(self.levels_col)
-
-    def get_cat_item(self):
-        """
-        Get the values self.hp_list, self.default_list, self.levels_list,
-        and put lower and upper in a dictionary with the corresponding
-        hyperparameter (hp) as key.
-
-        Note:
-            Method is designed for categorical parameters.
-
-        Args:
-            None
-
-        Returns:
-            num_hp_dict (dict): dictionary with hyperparameter as key and values
-            as dictionary with lower and upper values.
-        """
-        cat_hp_dict = {}
-        for label, default, levels in zip(self.hp_list, self.default_list, self.levels_list):
-            cat_hp_dict[label.cget("text")] = dict(
-                levels=levels.get("0.0", "end-1c"),
-            )
-        return cat_hp_dict
-
-    def remove_cat_item(self, item):
-        for (
-            label,
-            default,
-            levels,
-        ) in zip(self.hp_list, self.default_list, self.level_list):
-            if item == label.cget("text"):
-                label.destroy()
-                default.destroy()
-                levels.destroy()
-                self.hp_list.remove(label)
-                self.default_list.remove(default)
-                self.lower_list.remove(levels)
-                return
 
 
 class RiverApp(CTkApp):
@@ -274,18 +47,6 @@ class RiverApp(CTkApp):
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
-        # dictionary name for the database
-        # similar for all spotRiver experiments
-        self.db_dict_name = "spotRiver_db.json"
-        # name of the progress file
-        # self.progress_file = "progress.txt"
-        # if the progress file exists, delete it
-        # if os.path.exists(self.progress_file):
-        #    os.remove(self.progress_file)
-
-        current_path = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(current_path, "images")
-        self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "spotlogo.png")), size=(85, 37))
 
         self.rhd = RiverHyperDict()
         self.task_name = "regression_tab"
@@ -805,12 +566,12 @@ class RiverApp(CTkApp):
         )
         self.analysis_comparison_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         # create tuned default button
-        self.compare_tuned_default_button = customtkinter.CTkButton(
+        self.compare_river_tuned_default_button = customtkinter.CTkButton(
             master=self.analysis_comparison_frame,
             text="Tuned vs. default",
             command=self.plot_tuned_default_button_event,
         )
-        self.compare_tuned_default_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        self.compare_river_tuned_default_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         #
         # create actual prediction button
         self.compare_actual_prediction_button = customtkinter.CTkButton(
@@ -890,172 +651,22 @@ class RiverApp(CTkApp):
 
         # ---------------------------------------------------------------------- #
 
-    def print_tuned_design(self):
-        text = gen_design_table(self.fun_control)
-        self.textbox.delete("1.0", tk.END)
-        self.textbox.insert(tk.END, text)
-
-    def update_text(self):
-        # This method runs in a separate thread to update the text area
-        while True:  # Infinite loop to continuously update the textbox
-            try:
-                with open("progress.txt", "r") as file:
-                    lines = file.readlines()
-                    last_line = lines[-1] if lines else ""
-                    # Get the last line or an empty string if file is empty
-                    # text = file.read()  # Read the entire file
-                    self.textbox.delete("1.0", tk.END)
-                    self.textbox.insert(tk.END, last_line)
-            except FileNotFoundError:
-                # text = "File not found."
-                # self.textbox.insert(tk.END, text)
-                pass
-            time.sleep(1)  # Wait for 1 second before the next update
-
-    def plot_progress_button_event(self):
-        if self.spot_tuner is not None:
-            progress_plot(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
-
+    # -------------- River specific plots ----------------- #
     def plot_tuned_default_button_event(self):
         if self.spot_tuner is not None:
-            compare_tuned_default(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+            compare_river_tuned_default(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
     def plot_actual_prediction_button_event(self):
         if self.spot_tuner is not None:
-            actual_vs_prediction(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
-
-    def plot_contour_button_event(self):
-        if self.spot_tuner is not None:
-            contour_plot(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
-
-    def plot_importance_button_event(self):
-        if self.spot_tuner is not None:
-            importance_plot(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
+            actual_vs_prediction_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
 
     def plot_confusion_button_event(self):
         if self.spot_tuner is not None:
-            plot_confusion_matrices(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+            plot_confusion_matrices_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
     def plot_roc_button_event(self):
         if self.spot_tuner is not None:
-            plot_rocs(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
-
-    def label_button_frame_event(self, item):
-        print(f"label button frame clicked: {item}")
-
-    def select_data_frame_event(self, new_data: str):
-        print(f"Data modified: {new_data}")
-        print(f"Data Selection modified: {self.select_data_frame.get_selected_optionmenu_item()}")
-
-    def create_num_hp_frame(self, dict=None):
-        # create new num_hp_frame
-        self.num_hp_frame = NumHyperparameterFrame(
-            master=self.hp_main_frame, width=640, command=self.label_button_frame_event, entry_width=self.entry_width
-        )
-
-        self.num_hp_frame.grid(row=1, column=0, padx=0, pady=0, sticky="nsew")
-        self.num_hp_frame.add_header()
-        print(f"self.core_model_name: {self.core_model_name}")
-        coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
-        if dict is None:
-            dict = self.rhd.hyper_dict[coremodel]
-        for i, (key, value) in enumerate(dict.items()):
-            if (
-                dict[key]["type"] == "int"
-                or dict[key]["type"] == "float"
-                or dict[key]["core_model_parameter_type"] == "bool"
-            ):
-                self.num_hp_frame.add_num_item(
-                    hp=key,
-                    default=value["default"],
-                    lower=value["lower"],
-                    upper=value["upper"],
-                    transform=value["transform"],
-                )
-
-    def create_cat_hp_frame(self, dict=None):
-        self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame, command=self.label_button_frame_event)
-        self.cat_hp_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
-        print(f"self.core_model_name: {self.core_model_name}")
-        coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
-        if dict is None:
-            dict = self.rhd.hyper_dict[coremodel]
-        empty = True
-        for i, (key, value) in enumerate(dict.items()):
-            if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":
-                if empty:
-                    self.cat_hp_frame.add_header()
-                    empty = False
-                self.cat_hp_frame.add_cat_item(
-                    hp=key, default=value["default"], levels=value["levels"], transform=value["transform"]
-                )
-
-    def create_core_model_frame(self, row, column):
-        # create new core model frame
-        self.select_core_model_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.select_core_model_frame_event,
-            item_list=self.task_dict[self.task_name]["core_model_names"],
-            item_default=None,
-            title="Select Core Model",
-        )
-        self.select_core_model_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nsew")
-        self.select_core_model_frame.configure(width=500)
-        self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-
-    def create_select_data_frame(self, row, column):
-        data_set_values = copy.deepcopy(self.task_dict[self.task_name]["datasets"])
-        data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
-        self.select_data_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.select_data_frame_event,
-            item_list=data_set_values,
-            item_default=None,
-            title="Select Data",
-        )
-        self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
-        self.select_data_frame.configure(width=500)
-        self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-
-    def select_core_model_frame_event(self, new_core_model: str):
-        self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-        self.num_hp_frame.destroy()
-        self.create_num_hp_frame()
-        self.cat_hp_frame.destroy()
-        self.create_cat_hp_frame()
-
-    def select_prep_model_frame_event(self, new_prep_model: str):
-        print(f"Prep Model modified: {self.select_prep_model_frame.get_selected_optionmenu_item()}")
-
-    def select_metric_sklearn_levels_frame_event(self, new_metric_sklearn_levels: str):
-        print(f"Metric sklearn modified: {self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()}")
-        self.metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
-
-    def change_task_event(self, new_task: str):
-        print(f"Task changed to: {new_task}")
-        if new_task == "Binary Classification":
-            self.task_name = "classification_tab"
-        elif new_task == "Regression":
-            self.task_name = "regression_tab"
-        else:
-            print("Error: Task not found")
-        self.select_core_model_frame.destroy()
-        self.create_core_model_frame(row=2, column=0)
-        self.num_hp_frame.destroy()
-        self.create_num_hp_frame()
-        self.cat_hp_frame.destroy()
-        self.create_cat_hp_frame()
-        self.select_data_frame.destroy()
-        self.create_select_data_frame(row=4, column=0)
-
-    def run_button_event(self):
-        self.save_only = False
-        self.run_experiment()
-        # self.print_tuned_design()
-
-    def save_button_event(self):
-        self.save_only = True
-        self.run_experiment()
+            plot_rocs_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
     def load_button_event(self):
         filename = load_file_dialog()
@@ -1158,11 +769,8 @@ class RiverApp(CTkApp):
             # self.print_tuned_design()
 
     def plot_data_button_event(self):
-        self.seed = int(self.seed_var.get())
-        self.test_size = float(self.test_size_var.get())
-        self.shuffle = map_to_True_False(self.shuffle_var.get())
-        self.prepare_data()
-        show_y_hist(train=self.train, test=self.test, target_column="y")
+        train, test, n_samples, target_type = self.prepare_data()
+        show_y_hist(train=train, test=test, target_column="y")
         # TODO: show_data
         # show_data(train=self.train,
         #           test=self.test,
@@ -1170,89 +778,79 @@ class RiverApp(CTkApp):
         #           n_samples=1000)
         print("\nData shown. No result saved.")
 
-    def get_dataset(self):
-        self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-        self.dataset, self.n_samples = get_river_dataset_from_name(
-            data_set_name=self.data_set_name,
+    def prepare_data(self):
+        seed = int(self.seed_var.get())
+        test_size = float(self.test_size_var.get())
+        shuffle = map_to_True_False(self.shuffle_var.get())
+        data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+        dataset, n_samples = get_river_dataset_from_name(
+            data_set_name=data_set_name,
             n_total=get_n_total(self.n_total_var.get()),
             river_datasets=self.task_dict[self.task_name]["datasets"],
         )
-
-    def set_dataset_y_type(self):
-        val = copy.deepcopy(self.dataset.iloc[0, -1])
-        self.target_type = check_type(val)
-        if self.target_type == "bool" or self.target_type == "str":
-            # convert the target column to 0 and 1
-            self.dataset["y"] = self.dataset["y"].astype(int)
-
-    def prepare_data(self):
-        self.get_dataset()
-        self.set_dataset_y_type()
-        self.train, self.test, self.n_samples = split_df(
-            dataset=self.dataset,
-            test_size=self.test_size,
-            target_type=self.target_type,
-            seed=self.seed,
-            shuffle=self.shuffle,
+        val = copy.deepcopy(dataset.iloc[0, -1])
+        target_type = check_type(val)
+        dataset = set_dataset_target_type(dataset=dataset, target="y")
+        train, test, n_samples = split_df(
+            dataset=dataset,
+            test_size=test_size,
+            target_type=target_type,
+            seed=seed,
+            shuffle=shuffle,
             stratify=None,
         )
+        return train, test, n_samples, target_type
 
     def run_experiment(self):
         task_name = self.task_frame.get_selected_optionmenu_item()
-        #
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
-        #
         prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
         prepmodel = self.check_user_prep_model(prep_model_name=prep_model_name)
-        #
-        self.seed = int(self.seed_var.get())
-        self.test_size = float(self.test_size_var.get())
-        self.shuffle = map_to_True_False(self.shuffle_var.get())
-        self.prepare_data()
+
+        data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+
+        seed = int(self.seed_var.get())
+        test_size = float(self.test_size_var.get())
+        shuffle = map_to_True_False(self.shuffle_var.get())
         metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
         metric_sklearn = get_metric_sklearn(self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item())
-        #
+
         n_total = get_n_total(self.n_total_var.get())
-        #
-        # test_size = float(self.test_size_var.get())
-        #
-        # shuffle = map_to_True_False(self.shuffle_var.get())
-        #
         max_time = float(self.max_time_var.get())
-        #
         fun_evals = get_fun_evals(self.fun_evals_var.get())
-        #
         init_size = int(self.init_size_var.get())
         #
         lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
         kriging_noise = get_kriging_noise(lbd_min, lbd_max)
-        #
         max_surrogate_points = int(self.max_sp_var.get())
         #
-        # seed = int(self.seed_var.get())
-        #
+
         noise = map_to_True_False(self.noise_var.get())
-        #
-        weights_entry = self.weights_var.get()
-        weights = get_weights(
-            self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item(), self.weights_var.get()
-        )
-        #
-        horizon = int(self.horizon_var.get())
-        #
-        oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
         #
         TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
         tensorboard_start = map_to_True_False(self.tb_start_var.get())
         tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         PREFIX = self.experiment_name_entry.get()
-        #
+
+        # ----------------- River specific ----------------- #
+        # dictionary name for the database
+        # similar for all spotRiver experiments
+        db_dict_name = "spotRiver_db.json"
+        train, test, n_samples, target_type = self.prepare_data()
+        weights_entry = self.weights_var.get()
+        weights = get_weights(
+            self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item(), self.weights_var.get()
+        )
+        horizon = int(self.horizon_var.get())
+        oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+
+        # ----------------- fun_control ----------------- #
         fun_control = fun_control_init(
             PREFIX=PREFIX,
             TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
             core_model_name=core_model_name,
-            data_set_name=self.data_set_name,
-            db_dict_name=self.db_dict_name,
+            data_set_name=data_set_name,
+            db_dict_name=db_dict_name,
             fun_evals=fun_evals,
             fun_repeats=1,
             horizon=horizon,
@@ -1261,21 +859,21 @@ class RiverApp(CTkApp):
             metric_sklearn=metric_sklearn,
             metric_sklearn_name=metric_sklearn_name,
             noise=noise,
-            n_samples=self.n_samples,
+            n_samples=n_samples,
             n_total=n_total,
             ocba_delta=0,
             oml_grace_period=oml_grace_period,
             prep_model=prepmodel,
             prep_model_name=prep_model_name,
             progress_file=self.progress_file,
-            seed=self.seed,
-            shuffle=self.shuffle,
+            seed=seed,
+            shuffle=shuffle,
             task=task_name,
             target_column="y",
-            target_type=self.target_type,
-            test=self.test,
-            test_size=self.test_size,
-            train=self.train,
+            target_type=target_type,
+            test=test,
+            test_size=test_size,
+            train=train,
             tolerance_x=np.sqrt(np.spacing(1)),
             verbosity=1,
             weights=weights,
@@ -1293,11 +891,14 @@ class RiverApp(CTkApp):
         num_dict = self.num_hp_frame.get_num_item()
         cat_dict = self.cat_hp_frame.get_cat_item()
         update_fun_control_with_hyper_num_cat_dicts(fun_control, num_dict, cat_dict, dict)
-        pprint.pprint(fun_control["core_model_hyper_dict"])
+
+        # ----------------- design_control ----------------- #
         design_control = design_control_init(
             init_size=init_size,
             repeats=1,
         )
+
+        # ----------------- surrogate_control ----------------- #
         surrogate_control = surrogate_control_init(
             # If lambda is set to 0, no noise will be used in the surrogate
             # Otherwise use noise in the surrogate:
@@ -1307,10 +908,11 @@ class RiverApp(CTkApp):
             max_Lambda=lbd_max,
             log_level=50,
         )
-        print("surrogate_control in run_experiment():")
-        pprint.pprint(surrogate_control)
+
+        # ----------------- optimizer_control ----------------- #
         optimizer_control = optimizer_control_init()
-        # call spot:
+
+        # ----------------- Run experiment ----------------- #
         run_spot_python_experiment(
             save_only=self.save_only,
             fun_control=fun_control,
@@ -1328,19 +930,6 @@ class RiverApp(CTkApp):
         else:
             print("\nExperiment failed. No result saved.")
 
-    def check_user_prep_model(self, prep_model_name):
-        if prep_model_name.endswith(".py"):
-            print(f"prep_model_name = {prep_model_name}")
-            sys.path.insert(0, "./userPrepModel")
-            # remove the file extension from the prep_model_name
-            prep_model_name = prep_model_name[:-3]
-            print(f"prep_model_name = {prep_model_name}")
-            __import__(prep_model_name)
-            prepmodel = sys.modules[prep_model_name].set_prep_model()
-        else:
-            prepmodel = get_prep_model(prep_model_name)
-        return prepmodel
-
 
 # TODO:
 # Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
@@ -1352,5 +941,6 @@ class RiverApp(CTkApp):
 
 if __name__ == "__main__":
     customtkinter.set_appearance_mode("light")
+    customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
     app = RiverApp()
     app.mainloop()

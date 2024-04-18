@@ -2,3 +2,4 @@ include src/spotGUI/data/*.csv
 include src/spotGUI/data/*.json
 include src/spotGUI/data/*.pkl
 include src/spotGUI/hyperdict/*.json
+include src/spotGUI/ctk/images/*.png
