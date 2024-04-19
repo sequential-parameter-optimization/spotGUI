@@ -78,10 +78,9 @@ class CTkApp(customtkinter.CTk):
 
         self.num_hp_frame.grid(row=1, column=0, padx=0, pady=0, sticky="nsew")
         self.num_hp_frame.add_header()
-        print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
         if dict is None:
-            dict = self.rhd.hyper_dict[coremodel]
+            dict = self.hyperdict().hyper_dict[coremodel]
         for i, (key, value) in enumerate(dict.items()):
             if (
                 dict[key]["type"] == "int"
@@ -99,10 +98,9 @@ class CTkApp(customtkinter.CTk):
     def create_cat_hp_frame(self, dict=None):
         self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame, command=self.label_button_frame_event)
         self.cat_hp_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
-        print(f"self.core_model_name: {self.core_model_name}")
         coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
         if dict is None:
-            dict = self.rhd.hyper_dict[coremodel]
+            dict = self.hyperdict().hyper_dict[coremodel]
         empty = True
         for i, (key, value) in enumerate(dict.items()):
             if dict[key]["type"] == "factor" and dict[key]["core_model_parameter_type"] != "bool":

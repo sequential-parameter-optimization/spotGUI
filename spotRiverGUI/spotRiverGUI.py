@@ -8,7 +8,7 @@ import copy
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotGUI.ctk.CTk import CTkApp, SelectOptionMenuFrame
 
-from spotRiver.data.river_hyper_dict import RiverHyperDict
+from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
 from spotGUI.tuner.spotRun import (
     run_spot_python_experiment,
     actual_vs_prediction_river,
@@ -42,13 +42,14 @@ class RiverApp(CTkApp):
     def __init__(self):
         super().__init__()
 
+        self.hyperdict = RiverHyperDict
+
         self.title("spotRiver GUI")
         self.geometry(f"{1600}x{900}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
 
-        self.rhd = RiverHyperDict()
         self.task_name = "regression_tab"
         self.task_dict = get_task_dict()
         pprint.pprint(self.task_dict)
@@ -802,6 +803,15 @@ class RiverApp(CTkApp):
         return train, test, n_samples, target_type
 
     def run_experiment(self):
+        log_level = 50
+        verbosity = 1
+        tolerance_x = np.sqrt(np.spacing(1))
+        ocba_delta = 0
+        repeats = 1
+        fun_repeats = 1
+        target_column = "y"
+        n_theta = 2
+
         task_name = self.task_frame.get_selected_optionmenu_item()
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
         prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
@@ -843,6 +853,7 @@ class RiverApp(CTkApp):
         )
         horizon = int(self.horizon_var.get())
         oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+        fun = HyperRiver(log_level=log_level).fun_oml_horizon
 
         # ----------------- fun_control ----------------- #
         fun_control = fun_control_init(
@@ -852,7 +863,7 @@ class RiverApp(CTkApp):
             data_set_name=data_set_name,
             db_dict_name=db_dict_name,
             fun_evals=fun_evals,
-            fun_repeats=1,
+            fun_repeats=fun_repeats,
             horizon=horizon,
             max_surrogate_points=max_surrogate_points,
             max_time=max_time,
@@ -861,7 +872,7 @@ class RiverApp(CTkApp):
             noise=noise,
             n_samples=n_samples,
             n_total=n_total,
-            ocba_delta=0,
+            ocba_delta=ocba_delta,
             oml_grace_period=oml_grace_period,
             prep_model=prepmodel,
             prep_model_name=prep_model_name,
@@ -869,25 +880,25 @@ class RiverApp(CTkApp):
             seed=seed,
             shuffle=shuffle,
             task=task_name,
-            target_column="y",
+            target_column=target_column,
             target_type=target_type,
             test=test,
             test_size=test_size,
             train=train,
-            tolerance_x=np.sqrt(np.spacing(1)),
-            verbosity=1,
+            tolerance_x=tolerance_x,
+            verbosity=verbosity,
             weights=weights,
             weights_entry=weights_entry,
-            log_level=50,
+            log_level=log_level,
         )
         coremodel, core_model_instance = get_core_model_from_name(core_model_name)
         add_core_model_to_fun_control(
             core_model=core_model_instance,
             fun_control=fun_control,
-            hyper_dict=RiverHyperDict,
+            hyper_dict=self.hyperdict,
             filename=None,
         )
-        dict = self.rhd.hyper_dict[coremodel]
+        dict = self.hyperdict().hyper_dict[coremodel]
         num_dict = self.num_hp_frame.get_num_item()
         cat_dict = self.cat_hp_frame.get_cat_item()
         update_fun_control_with_hyper_num_cat_dicts(fun_control, num_dict, cat_dict, dict)
@@ -895,7 +906,7 @@ class RiverApp(CTkApp):
         # ----------------- design_control ----------------- #
         design_control = design_control_init(
             init_size=init_size,
-            repeats=1,
+            repeats=repeats,
         )
 
         # ----------------- surrogate_control ----------------- #
@@ -903,10 +914,10 @@ class RiverApp(CTkApp):
             # If lambda is set to 0, no noise will be used in the surrogate
             # Otherwise use noise in the surrogate:
             noise=kriging_noise,
-            n_theta=2,
+            n_theta=n_theta,
             min_Lambda=lbd_min,
             max_Lambda=lbd_max,
-            log_level=50,
+            log_level=log_level,
         )
 
         # ----------------- optimizer_control ----------------- #
@@ -919,7 +930,7 @@ class RiverApp(CTkApp):
             design_control=design_control,
             surrogate_control=surrogate_control,
             optimizer_control=optimizer_control,
-            fun=HyperRiver(log_level=fun_control["log_level"]).fun_oml_horizon,
+            fun=fun,
             tensorboard_start=tensorboard_start,
             tensorboard_stop=tensorboard_stop,
         )
