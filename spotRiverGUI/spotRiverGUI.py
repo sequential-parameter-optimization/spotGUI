@@ -24,7 +24,7 @@ from spotGUI.tuner.spotRun import (
     get_metric_sklearn,
     get_weights,
     get_kriging_noise,
-    get_task_dict,
+    get_scenario_dict,
     show_y_hist,
 )
 from spotRiver.data.selector import get_river_dataset_from_name
@@ -51,9 +51,9 @@ class RiverApp(CTkApp):
         self.entry_width = 80
 
         self.task_name = "regression_tab"
-        self.task_dict = get_task_dict()
-        pprint.pprint(self.task_dict)
-        self.core_model_name = self.task_dict[self.task_name]["core_model_names"][0]
+        self.scenario_dict = get_scenario_dict(scenario="river")
+        pprint.pprint(self.scenario_dict)
+        self.core_model_name = self.scenario_dict[self.task_name]["core_model_names"][0]
         # Uncomment to get user defined core models (not useful for spotRiver):
         # for filename in os.listdir("userModel"):
         #     if filename.endswith(".json"):
@@ -95,7 +95,7 @@ class RiverApp(CTkApp):
         #
         # ................. Prep Model Frame ....................................... #
         # create select prep model frame inside sidebar frame
-        self.prep_model_values = self.task_dict[self.task_name]["prep_models"]
+        self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
         self.prep_model_values.extend(
             [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
         )
@@ -124,7 +124,7 @@ class RiverApp(CTkApp):
         self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.select_metric_sklearn_levels_frame_event,
-            item_list=self.task_dict[self.task_name]["metric_sklearn_levels"],
+            item_list=self.scenario_dict[self.task_name]["metric_sklearn_levels"],
             item_default=None,
             title="Select sklearn metric",
         )
@@ -787,7 +787,7 @@ class RiverApp(CTkApp):
         dataset, n_samples = get_river_dataset_from_name(
             data_set_name=data_set_name,
             n_total=get_n_total(self.n_total_var.get()),
-            river_datasets=self.task_dict[self.task_name]["datasets"],
+            river_datasets=self.scenario_dict[self.task_name]["datasets"],
         )
         val = copy.deepcopy(dataset.iloc[0, -1])
         target_type = check_type(val)
@@ -829,14 +829,12 @@ class RiverApp(CTkApp):
         max_time = float(self.max_time_var.get())
         fun_evals = get_fun_evals(self.fun_evals_var.get())
         init_size = int(self.init_size_var.get())
-        #
+        noise = map_to_True_False(self.noise_var.get())
+
         lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
         kriging_noise = get_kriging_noise(lbd_min, lbd_max)
         max_surrogate_points = int(self.max_sp_var.get())
-        #
 
-        noise = map_to_True_False(self.noise_var.get())
-        #
         TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
         tensorboard_start = map_to_True_False(self.tb_start_var.get())
         tensorboard_stop = map_to_True_False(self.tb_stop_var.get())

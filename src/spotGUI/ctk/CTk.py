@@ -116,7 +116,7 @@ class CTkApp(customtkinter.CTk):
         self.select_core_model_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.select_core_model_frame_event,
-            item_list=self.task_dict[self.task_name]["core_model_names"],
+            item_list=self.scenario_dict[self.task_name]["core_model_names"],
             item_default=None,
             title="Select Core Model",
         )
@@ -125,7 +125,7 @@ class CTkApp(customtkinter.CTk):
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
 
     def create_select_data_frame(self, row, column):
-        data_set_values = copy.deepcopy(self.task_dict[self.task_name]["datasets"])
+        data_set_values = copy.deepcopy(self.scenario_dict[self.task_name]["datasets"])
         data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
         self.select_data_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,

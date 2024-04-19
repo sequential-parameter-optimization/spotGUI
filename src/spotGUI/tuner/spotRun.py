@@ -30,7 +30,8 @@ from spotPython.hyperparameters.values import get_default_hyperparameters_as_arr
 from spotPython.utils.file import get_experiment_filename
 
 
-def get_classification_core_model_names():
+# ---------------- river entries ---------------- #
+def get_river_classification_core_model_names():
     classification_core_model_names = [
         "linear_model.LogisticRegression",
         "forest.AMFClassifier",
@@ -43,6 +44,46 @@ def get_classification_core_model_names():
     return classification_core_model_names
 
 
+def get_river_binary_classification_datasets():
+    river_binary_classification_datasets = [
+        "Phishing",
+        "Bananas",
+        "CreditCard",
+        "Elec2",
+        "Higgs",
+        "HTTP",
+    ]
+    return river_binary_classification_datasets
+
+
+def get_river_regression_core_model_names():
+    regression_core_model_names = [
+        "linear_model.LinearRegression",
+        "tree.HoeffdingTreeRegressor",
+        "forest.AMFRegressor",
+        "tree.HoeffdingAdaptiveTreeRegressor",
+        "tree.SGTRegressor",
+    ]
+    return regression_core_model_names
+
+
+def get_river_regression_datasets():
+    river_regression_datasets = ["ChickWeights", "Bikes", "Taxis", "TrumpApproval"]
+    return river_regression_datasets
+
+
+def get_river_prep_models():
+    prep_models = [
+        "AdaptiveStandardScaler",
+        "MaxAbsScaler",
+        "MinMaxScaler",
+        "StandardScaler",
+        "None",
+    ]
+    return prep_models
+
+
+# ---------------- sklearn entries ---------------- #
 def get_classification_metric_sklearn_levels():
     classification_metric_sklearn_levels = [
         "accuracy_score",
@@ -58,29 +99,6 @@ def get_classification_metric_sklearn_levels():
         "zero_one_loss",
     ]
     return classification_metric_sklearn_levels
-
-
-def get_river_binary_classification_datasets():
-    river_binary_classification_datasets = [
-        "Phishing",
-        "Bananas",
-        "CreditCard",
-        "Elec2",
-        "Higgs",
-        "HTTP",
-    ]
-    return river_binary_classification_datasets
-
-
-def get_regression_core_model_names():
-    regression_core_model_names = [
-        "linear_model.LinearRegression",
-        "tree.HoeffdingTreeRegressor",
-        "forest.AMFRegressor",
-        "tree.HoeffdingAdaptiveTreeRegressor",
-        "tree.SGTRegressor",
-    ]
-    return regression_core_model_names
 
 
 def get_regression_metric_sklearn_levels():
@@ -104,13 +122,9 @@ def get_regression_metric_sklearn_levels():
     return regression_metric_sklearn_levels
 
 
-def get_river_regression_datasets():
-    river_regression_datasets = ["ChickWeights", "Bikes", "Taxis", "TrumpApproval"]
-    return river_regression_datasets
-
-
-def get_task_entries():
-    task_entries = dict(
+# ---------------- common scenario entries ---------------- #
+def get_scenario_entries():
+    scenario_entries = dict(
         core_model_names=[],
         metric_sklearn_levels=[],
         datasets=[],
@@ -137,33 +151,28 @@ def get_task_entries():
         tb_start=None,
         tb_stop=None,
     )
-    return task_entries
+    return scenario_entries
 
 
-def get_task_dict():
-    task_entries = get_task_entries()
-    task_dict = {"classification_tab": copy.deepcopy(task_entries), "regression_tab": copy.deepcopy(task_entries)}
-    task_dict["classification_tab"]["core_model_names"] = get_classification_core_model_names()
-    task_dict["classification_tab"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
-    task_dict["classification_tab"]["datasets"] = get_river_binary_classification_datasets()
-    task_dict["regression_tab"]["core_model_names"] = get_regression_core_model_names()
-    task_dict["regression_tab"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
-    task_dict["regression_tab"]["datasets"] = get_river_regression_datasets()
-    prep_models = get_prep_models()
-    task_dict["classification_tab"]["prep_models"] = copy.deepcopy(prep_models)
-    task_dict["regression_tab"]["prep_models"] = copy.deepcopy(prep_models)
-    return task_dict
-
-
-def get_prep_models():
-    prep_models = [
-        "AdaptiveStandardScaler",
-        "MaxAbsScaler",
-        "MinMaxScaler",
-        "StandardScaler",
-        "None",
-    ]
-    return prep_models
+def get_scenario_dict(scenario):
+    if scenario == "river":
+        scenario_entries = get_scenario_entries()
+        scenario_dict = {
+            "classification_tab": copy.deepcopy(scenario_entries),
+            "regression_tab": copy.deepcopy(scenario_entries),
+        }
+        scenario_dict["classification_tab"]["core_model_names"] = get_river_classification_core_model_names()
+        scenario_dict["classification_tab"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
+        scenario_dict["classification_tab"]["datasets"] = get_river_binary_classification_datasets()
+        scenario_dict["regression_tab"]["core_model_names"] = get_river_regression_core_model_names()
+        scenario_dict["regression_tab"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
+        scenario_dict["regression_tab"]["datasets"] = get_river_regression_datasets()
+        prep_models = get_river_prep_models()
+        scenario_dict["classification_tab"]["prep_models"] = copy.deepcopy(prep_models)
+        scenario_dict["regression_tab"]["prep_models"] = copy.deepcopy(prep_models)
+        return scenario_dict
+    else:
+        return None
 
 
 def get_report_file_name(fun_control):
@@ -635,84 +644,6 @@ def actual_vs_prediction_river(spot_tuner, fun_control, show=False, length=50) -
         df_labels=df_labels,
         title=fun_control["PREFIX"],
     )
-
-
-def all_compare_tuned_default(spot_tuner, fun_control) -> None:
-    X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
-    print(f"X = {X}")
-    core_model_spot = get_one_core_model_from_X(X, fun_control)
-    if fun_control["prep_model"] is None:
-        model_spot = core_model_spot
-    else:
-        model_spot = compose.Pipeline(fun_control["prep_model"], core_model_spot)
-    df_eval_spot, df_true_spot = eval_oml_horizon(
-        model=model_spot,
-        train=fun_control["train"],
-        test=fun_control["test"],
-        target_column=fun_control["target_column"],
-        horizon=fun_control["horizon"],
-        oml_grace_period=fun_control["oml_grace_period"],
-        metric=fun_control["metric_sklearn"],
-    )
-    X_start = get_default_hyperparameters_as_array(fun_control)
-    core_model_default = get_one_core_model_from_X(X_start, fun_control, default=True)
-    if fun_control["prep_model"] is None:
-        model_default = core_model_default
-    else:
-        model_default = compose.Pipeline(fun_control["prep_model"], core_model_default)
-    df_eval_default, df_true_default = eval_oml_horizon(
-        model=model_default,
-        train=fun_control["train"],
-        test=fun_control["test"],
-        target_column=fun_control["target_column"],
-        horizon=fun_control["horizon"],
-        oml_grace_period=fun_control["oml_grace_period"],
-        metric=fun_control["metric_sklearn"],
-    )
-
-    df_labels = ["default", "spot"]
-    # Create a figure with 1 row and 2 columns of subplots
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-
-    # First Plot
-    plot_confusion_matrix(
-        df=df_true_default,
-        title="Default",
-        y_true_name=fun_control["target_column"],
-        y_pred_name="Prediction",
-        show=False,
-        ax=axs[0],
-    )
-    # plt.figure(1)
-    # Second Plot
-    plot_confusion_matrix(
-        df=df_true_spot,
-        title="Spot",
-        y_true_name=fun_control["target_column"],
-        y_pred_name="Prediction",
-        show=False,
-        ax=axs[1],
-    )
-    # plt.figure(2)
-    # Third Plot
-    plot_roc_from_dataframes(
-        [df_true_default, df_true_spot],
-        model_names=["default", "spot"],
-        target_column=fun_control["target_column"],
-        show=False,
-    )
-    plt.figure(1)
-    # Fourth Plot
-    plot_bml_oml_horizon_metrics(
-        df_eval=[df_eval_default, df_eval_spot],
-        log_y=False,
-        df_labels=df_labels,
-        metric=fun_control["metric_sklearn"],
-        filename=None,
-        show=False,
-    )
-    plt.figure(2)
-    plt.show()
 
 
 def destroy_entries(entries):
