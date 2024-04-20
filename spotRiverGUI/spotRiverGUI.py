@@ -1,7 +1,6 @@
 import tkinter as tk
 import customtkinter
 import pprint
-import webbrowser
 import os
 import numpy as np
 import copy
@@ -10,6 +9,7 @@ from spotGUI.ctk.CTk import CTkApp, SelectOptionMenuFrame
 
 from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
 from spotGUI.tuner.spotRun import (
+    save_spot_python_experiment,
     run_spot_python_experiment,
     actual_vs_prediction_river,
     compare_river_tuned_default,
@@ -43,249 +43,23 @@ class RiverApp(CTkApp):
         super().__init__()
 
         self.hyperdict = RiverHyperDict
-
         self.title("spotRiver GUI")
-        self.geometry(f"{1600}x{900}")
-        self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
-        self.grid_rowconfigure((0, 1), weight=1)
-        self.entry_width = 80
+        self.logo_text = "    SPOTRiver"
 
-        self.task_name = "regression_tab"
+        self.task_name = "regression_task"
         self.scenario_dict = get_scenario_dict(scenario="river")
         pprint.pprint(self.scenario_dict)
-        self.core_model_name = self.scenario_dict[self.task_name]["core_model_names"][0]
-        # Uncomment to get user defined core models (not useful for spotRiver):
-        # for filename in os.listdir("userModel"):
-        #     if filename.endswith(".json"):
-        #         self.core_model_name.append(os.path.splitext(filename)[0])
-
         # ---------------------------------------------------------------------- #
         # ---------------- 0 Sidebar Frame --------------------------------------- #
         # ---------------------------------------------------------------------- #
         # create sidebar frame with widgets in row 0 and column 0
-        self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(4, weight=1)
-        #
-        # Inside the sidebar frame
-        self.logo_label = customtkinter.CTkLabel(
-            self.sidebar_frame,
-            text="    SPOTRiver",
-            image=self.logo_image,
-            compound="left",
-            font=customtkinter.CTkFont(size=20, weight="bold"),
-        )
-        self.logo_label.grid(row=0, column=0, padx=10, pady=(7.5, 2.5), sticky="ew")
-        #
-        # ................. Task Frame ....................................... #
-        # create task frame inside sidebar frame
-        self.task_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.change_task_event,
-            item_list=["Binary Classification", "Regression"],
-            item_default="Regression",
-            title="Select Task",
-        )
-        self.task_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
-        self.task_frame.configure(width=500)
-        #
-        # ................. Core Model Frame ....................................... #
-        # create core model frame inside sidebar frame
-        self.create_core_model_frame(row=2, column=0)
-        #
-        # ................. Prep Model Frame ....................................... #
-        # create select prep model frame inside sidebar frame
-        self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
-        self.prep_model_values.extend(
-            [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
-        )
-        self.select_prep_model_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.select_prep_model_frame_event,
-            item_list=self.prep_model_values,
-            item_default=None,
-            title="Select Prep Model",
-        )
-        self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
-        self.select_prep_model_frame.configure(width=500)
-        #
-        #  ................. Data Frame ....................................... #
-        # select data frame in data main frame
-        self.create_select_data_frame(row=4, column=0)
-        #
-        # create plot data button
-        self.plot_data_button = customtkinter.CTkButton(
-            master=self.sidebar_frame, text="Plot Data", command=self.plot_data_button_event
-        )
-        self.plot_data_button.grid(row=6, column=0, sticky="nsew", padx=10, pady=10)
-        #
-        # ................. Metric Frame ....................................... #
-        # create select metric_sklearn levels frame inside sidebar frame
-        self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.select_metric_sklearn_levels_frame_event,
-            item_list=self.scenario_dict[self.task_name]["metric_sklearn_levels"],
-            item_default=None,
-            title="Select sklearn metric",
-        )
-        self.select_metric_sklearn_levels_frame.grid(row=7, column=0, padx=15, pady=15, sticky="nsew")
-        self.select_metric_sklearn_levels_frame.configure(width=500)
-        #
-        # ................. Appearance Frame ....................................... #
-        # create appearance mode frame
-        customtkinter.set_appearance_mode("System")
-        self.appearance_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            width=500,
-            command=self.change_appearance_mode_event,
-            item_list=["System", "Light", "Dark"],
-            item_default="System",
-            title="Appearance Mode",
-        )
-        self.appearance_frame.grid(row=8, column=0, padx=15, pady=15, sticky="ew")
-        #
-        self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
-        self.scaling_label.grid(row=2, column=0, padx=20, pady=(10, 0))
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(
-            self.appearance_frame, values=["100%", "80%", "90%", "110%", "120%"], command=self.change_scaling_event
-        )
-        self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="ew")
-        #
+        self.make_sidebar_frame()
         # ---------------------------------------------------------------------- #
         # ----------------- 1 Experiment_Main Frame ------------------------------ #
         # ---------------------------------------------------------------------- #
         # create experiment main frame with widgets in row 0 and column 1
-        self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.experiment_main_frame.grid(row=0, column=1, sticky="nsew")
         #
-        # experiment frame title in experiment main frame
-        self.experiment_main_frame_title = customtkinter.CTkLabel(
-            self.experiment_main_frame,
-            text="Experiment Options",
-            font=customtkinter.CTkFont(size=20, weight="bold"),
-            corner_radius=6,
-        )
-        self.experiment_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        #
-        # ................. Experiment_Data Frame .......................................#
-        # create experiment data_frame with widgets in experiment_main frame
-        self.experiment_data_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
-        self.experiment_data_frame.grid(row=1, column=0, sticky="ew")
-        #
-        # experiment_data frame title
-        self.experiment_data_frame_title = customtkinter.CTkLabel(
-            self.experiment_data_frame, text="Data Options", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
-        )
-        self.experiment_data_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
-        #
-        # n_total entry in experiment_data frame
-        self.n_total_label = customtkinter.CTkLabel(self.experiment_data_frame, text="n_total", corner_radius=6)
-        self.n_total_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.n_total_var = customtkinter.StringVar(value="None")
-        self.n_total_entry = customtkinter.CTkEntry(
-            self.experiment_data_frame, textvariable=self.n_total_var, width=self.entry_width
-        )
-        self.n_total_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-        #
-        # test_size entry in experiment_data frame
-        self.test_size_label = customtkinter.CTkLabel(self.experiment_data_frame, text="test_size", corner_radius=6)
-        self.test_size_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.test_size_var = customtkinter.StringVar(value="0.3")
-        self.test_size_entry = customtkinter.CTkEntry(
-            self.experiment_data_frame, textvariable=self.test_size_var, width=self.entry_width
-        )
-        self.test_size_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
-        #
-        # shuffle data in experiment_data frame
-        self.shuffle_var = customtkinter.StringVar(value="False")
-        self.shuffle_checkbox = customtkinter.CTkCheckBox(
-            self.experiment_data_frame,
-            text="ShuffleData",
-            command=None,
-            variable=self.shuffle_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.shuffle_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # ................. Experiment_Model Frame .......................................#
-        # create experiment_model frame with widgets in experiment_main frame
-        self.experiment_model_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
-        self.experiment_model_frame.grid(row=3, column=0, sticky="ew")
-        #
-        # experiment_model frame title
-        self.experiment_model_frame_title = customtkinter.CTkLabel(
-            self.experiment_model_frame,
-            text="Model Options",
-            font=customtkinter.CTkFont(weight="bold"),
-            corner_radius=6,
-        )
-        self.experiment_model_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
-        #
-        # max_time entry in experiment_model frame
-        self.max_time_label = customtkinter.CTkLabel(self.experiment_model_frame, text="max_time", corner_radius=6)
-        self.max_time_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.max_time_var = customtkinter.StringVar(value="1")
-        self.max_time_entry = customtkinter.CTkEntry(
-            self.experiment_model_frame, textvariable=self.max_time_var, width=self.entry_width
-        )
-        self.max_time_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.fun_evals_label = customtkinter.CTkLabel(self.experiment_model_frame, text="fun_evals", corner_radius=6)
-        self.fun_evals_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.fun_evals_var = customtkinter.StringVar(value="30")
-        self.fun_evals_entry = customtkinter.CTkEntry(
-            self.experiment_model_frame, textvariable=self.fun_evals_var, width=self.entry_width
-        )
-        self.fun_evals_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
-        #
-        # init_size entry in experiment_model frame
-        self.init_size_label = customtkinter.CTkLabel(self.experiment_model_frame, text="init_size", corner_radius=6)
-        self.init_size_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.init_size_var = customtkinter.StringVar(value="5")
-        self.init_size_entry = customtkinter.CTkEntry(
-            self.experiment_model_frame, textvariable=self.init_size_var, width=self.entry_width
-        )
-        self.init_size_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.lambda_min_max_label = customtkinter.CTkLabel(
-            self.experiment_model_frame, text="lambda_min_max", corner_radius=6
-        )
-        self.lambda_min_max_label.grid(row=4, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.lambda_min_max_var = customtkinter.StringVar(value="1e-3, 1e2")
-        self.lambda_min_max_entry = customtkinter.CTkEntry(
-            self.experiment_model_frame, textvariable=self.lambda_min_max_var, width=self.entry_width
-        )
-        self.lambda_min_max_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.max_sp_label = customtkinter.CTkLabel(self.experiment_model_frame, text="max_sp", corner_radius=6)
-        self.max_sp_label.grid(row=5, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.max_sp_var = customtkinter.StringVar(value="30")
-        self.max_sp_entry = customtkinter.CTkEntry(
-            self.experiment_model_frame, textvariable=self.max_sp_var, width=self.entry_width
-        )
-        self.max_sp_entry.grid(row=5, column=1, padx=10, pady=10, sticky="w")
-        #
-        self.seed_label = customtkinter.CTkLabel(self.experiment_model_frame, text="seed", corner_radius=6)
-        self.seed_label.grid(row=6, column=0, padx=0, pady=(10, 0), sticky="w")
-        self.seed_var = customtkinter.StringVar(value="123")
-        self.seed_entry = customtkinter.CTkEntry(
-            self.experiment_model_frame, textvariable=self.seed_var, width=self.entry_width
-        )
-        self.seed_entry.grid(row=6, column=1, padx=10, pady=10, sticky="w")
-        #
-        # noise data in experiment_model frame
-        self.noise_var = customtkinter.StringVar(value="True")
-        self.noise_checkbox = customtkinter.CTkCheckBox(
-            self.experiment_model_frame,
-            text="noise",
-            command=None,
-            variable=self.noise_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.noise_checkbox.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
+        self.make_experiment_frame()
         # ................. Experiment_Eval Frame .......................................#
         # create experiment_eval frame with widgets in experiment_main frame
         self.experiment_eval_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
@@ -328,235 +102,24 @@ class RiverApp(CTkApp):
         # ------------------ 2 Hyperparameter Main Frame ----------------------- #
         # ---------------------------------------------------------------------- #
         # create hyperparameter main frame with widgets in row 0 and column 2
-        self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.hp_main_frame.grid(row=0, column=2, sticky="nsew")
-        #
-        # create hyperparameter title frame in hyperparameter main frame
-        self.hp_main_frame_title = customtkinter.CTkLabel(
-            self.hp_main_frame,
-            text="Hyperparameter",
-            font=customtkinter.CTkFont(size=20, weight="bold"),
-            corner_radius=6,
-        )
-        self.hp_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        #
-        self.create_num_hp_frame()
-        #
-        self.create_cat_hp_frame()
+        self.make_hyperparameter_frame()
         #
         # ---------------------------------------------------------------------- #
         # ----------------- 3 Execution_Main Frame ----------------------------- #
         # ---------------------------------------------------------------------- #
         # create execution_main frame with widgets in row 0 and column 4
-        self.execution_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.execution_main_frame.grid(row=0, column=3, sticky="nsew")
-        #
-        # execution frame title in execution main frame
-        self.execution_main_frame_title = customtkinter.CTkLabel(
-            self.execution_main_frame,
-            text="Run Options",
-            font=customtkinter.CTkFont(size=20, weight="bold"),
-            corner_radius=6,
-        )
-        self.execution_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        #
-        # ................. execution_tb Frame .......................................#
-        # create execution_tb frame with widgets in execution_main frame
-        self.execution_tb_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
-        self.execution_tb_frame.grid(row=1, column=0, sticky="ew")
-        #
-        # execution_tb frame title
-        self.execution_tb_frame_title = customtkinter.CTkLabel(
-            self.execution_tb_frame,
-            text="Tensorboard Options",
-            font=customtkinter.CTkFont(weight="bold"),
-            corner_radius=6,
-        )
-        self.execution_tb_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # tb_clean in execution_tb frame
-        self.tb_clean_var = customtkinter.StringVar(value="True")
-        self.tb_clean_checkbox = customtkinter.CTkCheckBox(
-            self.execution_tb_frame,
-            text="TENSORBOARD_CLEAN",
-            command=None,
-            variable=self.tb_clean_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.tb_clean_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
-        # tb_start in execution_tb frame
-        self.tb_start_var = customtkinter.StringVar(value="True")
-        self.tb_start_checkbox = customtkinter.CTkCheckBox(
-            self.execution_tb_frame,
-            text="Start Tensorboard",
-            command=None,
-            variable=self.tb_start_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.tb_start_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
-        # tb_stop in execution_tb frame
-        self.tb_stop_var = customtkinter.StringVar(value="True")
-        self.tb_stop_checkbox = customtkinter.CTkCheckBox(
-            self.execution_tb_frame,
-            text="Stop Tensorboard",
-            command=None,
-            variable=self.tb_stop_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        self.browser_link_label = customtkinter.CTkLabel(
-            self.execution_tb_frame,
-            text="Open http://localhost:6006",
-            text_color=("blue", "orange"),
-            cursor="hand2",
-            corner_radius=6,
-        )
-        self.browser_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
-        self.browser_link_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # ................. execution_docs Frame .......................................#
-        # create execution_docs frame with widgets in execution_main frame
-        self.execution_docs_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
-        self.execution_docs_frame.grid(row=2, column=0, sticky="ew")
-        #
-        # execution_model frame title
-        self.execution_docs_frame_title = customtkinter.CTkLabel(
-            self.execution_docs_frame, text="Documentation", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
-        )
-        self.execution_docs_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
-        # spot_doc entry in execution_model frame
-        self.spot_link_label = customtkinter.CTkLabel(
-            self.execution_docs_frame,
-            text="spotPython documentation",
-            text_color=("blue", "orange"),
-            cursor="hand2",
-            corner_radius=6,
-        )
-        self.spot_link_label.bind(
-            "<Button-1>",
-            lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/"),
-        )
-        self.spot_link_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # spotriver_doc entry in execution_model frame
-        self.spotriver_link_label = customtkinter.CTkLabel(
-            self.execution_docs_frame,
-            text="spotRiver documentation",
-            text_color=("blue", "orange"),
-            cursor="hand2",
-            corner_radius=6,
-        )
-        self.spotriver_link_label.bind(
-            "<Button-1>",
-            lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/"),
-        )
-        self.spotriver_link_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # river_link entry in execution_model frame
-        self.river_link_label = customtkinter.CTkLabel(
-            self.execution_docs_frame,
-            text="River documentation",
-            text_color=("blue", "orange"),
-            cursor="hand2",
-            corner_radius=6,
-        )
-        self.river_link_label.bind(
-            "<Button-1>", lambda e: webbrowser.open_new("https://riverml.xyz/latest/api/overview/")
-        )
-        self.river_link_label.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
-
-        #
-        # ................. Execution_Experiment_Name Frame .......................................#
-        # create experiment data_frame with widgets in experiment_main frame
-        self.experiment_name_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
-        self.experiment_name_frame.grid(row=3, column=0, sticky="ew")
-        #
-        # experiment_data frame title
-        self.experiment_name_frame_title = customtkinter.CTkLabel(
-            self.experiment_name_frame,
-            text="New experiment name",
-            font=customtkinter.CTkFont(weight="bold"),
-            corner_radius=6,
-        )
-        self.experiment_name_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
-        #
-        # experiment_name entry in experiment_name frame
-        self.experiment_name_var = customtkinter.StringVar(value="000")
-        self.experiment_name_entry = customtkinter.CTkEntry(
-            self.experiment_name_frame, textvariable=self.experiment_name_var, width=self.entry_width
-        )
-        self.experiment_name_entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
-        # ................. Run_Experiment_Name Frame .......................................#
-        # create experiment_run_frame with widgets in experiment_main frame
-        self.experiment_run_frame = customtkinter.CTkFrame(self.execution_main_frame, corner_radius=6)
-        self.experiment_run_frame.grid(row=4, column=0, sticky="ew")
-        #
-        # experiment_data frame title
-        self.experiment_run_frame_title = customtkinter.CTkLabel(
-            self.experiment_run_frame, text="Execute", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
-        )
-        self.experiment_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # create save button
-        self.save_button = customtkinter.CTkButton(
-            master=self.experiment_run_frame, text="Save", command=self.save_button_event
-        )
-        self.save_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        # create run button
-        self.run_button = customtkinter.CTkButton(
-            master=self.experiment_run_frame, text="Run", command=self.run_button_event
-        )
-        self.run_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        self.make_execution_frame()
 
         # ---------------------------------------------------------------------- #
         # ----------------- 4 Analysis_Main Frame ------------------------------ #
         # ---------------------------------------------------------------------- #
         # create analysis_main frame with widgets in row 0 and column 3
-        self.analysis_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.analysis_main_frame.grid(row=0, column=4, sticky="nsew")
-        #
-        # analysis frame title in analysis main frame
-        self.analysis_main_frame_title = customtkinter.CTkLabel(
-            self.analysis_main_frame,
-            text="Analysis",
-            font=customtkinter.CTkFont(size=20, weight="bold"),
-            corner_radius=6,
-        )
-        self.analysis_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        #
-        # ................. Run_Analysis Frame .......................................#
-        # create analysis_run_frame with widgets in analysis_main frame
-        self.analysis_run_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_run_frame.grid(row=1, column=0, sticky="ew")
-        #
-        # analysis_data frame title
-        self.analysis_run_frame_title = customtkinter.CTkLabel(
-            self.analysis_run_frame, text="Loaded experiment", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
-        )
-        self.analysis_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
-        # Create Loaded Experiment Entry
-        self.loaded_label = customtkinter.CTkLabel(self.analysis_run_frame, text="None", corner_radius=6)
-        self.loaded_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
-        # self.loaded_label.configure(text=self.experiment_name)
-        # create load button
-        self.load_button = customtkinter.CTkButton(
-            master=self.analysis_run_frame, text="Load", command=self.load_button_event
-        )
-        self.load_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        # create plot progress button
-        self.plot_progress_button = customtkinter.CTkButton(
-            master=self.analysis_run_frame, text="Plot Progress", command=self.plot_progress_button_event
-        )
-        self.plot_progress_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        self.make_analysis_frame()
         #
         # ................. Comparison_Analysis Frame .......................................#
         # create analysis_comparison_frame with widgets in analysis_main frame
         self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_comparison_frame.grid(row=4, column=0, sticky="ew")
+        self.analysis_comparison_frame.grid(row=5, column=0, sticky="ew")
         #
         # analysis_data frame title
         self.analysis_comparison_frame_title = customtkinter.CTkLabel(
@@ -581,32 +144,6 @@ class RiverApp(CTkApp):
             command=self.plot_actual_prediction_button_event,
         )
         self.compare_actual_prediction_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        #
-        # ................. Hyperparameter_Analysis Frame .......................................#
-        # create analysis_hyperparameter_frame with widgets in analysis_main frame
-        self.analysis_hyperparameter_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
-        self.analysis_hyperparameter_frame.grid(row=5, column=0, sticky="ew")
-        #
-        # analysis_data frame title
-        self.analysis_hyperparameter_frame_title = customtkinter.CTkLabel(
-            self.analysis_hyperparameter_frame,
-            text="Hyperparameter",
-            font=customtkinter.CTkFont(weight="bold"),
-            corner_radius=6,
-        )
-        self.analysis_hyperparameter_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
-        #
-        # create contour plot  button
-        self.contour_button = customtkinter.CTkButton(
-            master=self.analysis_hyperparameter_frame, text="Contour plots", command=self.plot_contour_button_event
-        )
-        self.contour_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
-        #
-        # create importance button
-        self.importance_button = customtkinter.CTkButton(
-            master=self.analysis_hyperparameter_frame, text="Importance", command=self.plot_importance_button_event
-        )
-        self.importance_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         #
         # ................. Classification_Analysis Frame .......................................#
         # create analysis_classification_frame with widgets in analysis_main frame
@@ -802,7 +339,7 @@ class RiverApp(CTkApp):
         )
         return train, test, n_samples, target_type
 
-    def run_experiment(self):
+    def prepare_experiment(self):
         log_level = 50
         verbosity = 1
         tolerance_x = np.sqrt(np.spacing(1))
@@ -836,8 +373,8 @@ class RiverApp(CTkApp):
         max_surrogate_points = int(self.max_sp_var.get())
 
         TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
-        tensorboard_start = map_to_True_False(self.tb_start_var.get())
-        tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
+        self.tensorboard_start = map_to_True_False(self.tb_start_var.get())
+        self.tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         PREFIX = self.experiment_name_entry.get()
 
         # ----------------- River specific ----------------- #
@@ -851,10 +388,10 @@ class RiverApp(CTkApp):
         )
         horizon = int(self.horizon_var.get())
         oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
-        fun = HyperRiver(log_level=log_level).fun_oml_horizon
+        self.fun = HyperRiver(log_level=log_level).fun_oml_horizon
 
         # ----------------- fun_control ----------------- #
-        fun_control = fun_control_init(
+        self.fun_control = fun_control_init(
             PREFIX=PREFIX,
             TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
             core_model_name=core_model_name,
@@ -892,23 +429,23 @@ class RiverApp(CTkApp):
         coremodel, core_model_instance = get_core_model_from_name(core_model_name)
         add_core_model_to_fun_control(
             core_model=core_model_instance,
-            fun_control=fun_control,
+            fun_control=self.fun_control,
             hyper_dict=self.hyperdict,
             filename=None,
         )
         dict = self.hyperdict().hyper_dict[coremodel]
         num_dict = self.num_hp_frame.get_num_item()
         cat_dict = self.cat_hp_frame.get_cat_item()
-        update_fun_control_with_hyper_num_cat_dicts(fun_control, num_dict, cat_dict, dict)
+        update_fun_control_with_hyper_num_cat_dicts(self.fun_control, num_dict, cat_dict, dict)
 
         # ----------------- design_control ----------------- #
-        design_control = design_control_init(
+        self.design_control = design_control_init(
             init_size=init_size,
             repeats=repeats,
         )
 
         # ----------------- surrogate_control ----------------- #
-        surrogate_control = surrogate_control_init(
+        self.surrogate_control = surrogate_control_init(
             # If lambda is set to 0, no noise will be used in the surrogate
             # Otherwise use noise in the surrogate:
             noise=kriging_noise,
@@ -919,25 +456,31 @@ class RiverApp(CTkApp):
         )
 
         # ----------------- optimizer_control ----------------- #
-        optimizer_control = optimizer_control_init()
+        self.optimizer_control = optimizer_control_init()
 
-        # ----------------- Run experiment ----------------- #
-        run_spot_python_experiment(
-            save_only=self.save_only,
-            fun_control=fun_control,
-            design_control=design_control,
-            surrogate_control=surrogate_control,
-            optimizer_control=optimizer_control,
-            fun=fun,
-            tensorboard_start=tensorboard_start,
-            tensorboard_stop=tensorboard_stop,
+    def save_experiment(self):
+        self.prepare_experiment()
+        save_spot_python_experiment(
+            fun_control=self.fun_control,
+            design_control=self.design_control,
+            surrogate_control=self.surrogate_control,
+            optimizer_control=self.optimizer_control,
+            fun=self.fun
         )
-        if self.save_only:
-            print("\nExperiment saved.")
-        elif not self.save_only:
-            print("\nExperiment started.")
-        else:
-            print("\nExperiment failed. No result saved.")
+        print("\nExperiment saved.")
+
+    def run_experiment(self):
+        self.prepare_experiment()
+        run_spot_python_experiment(
+            fun_control=self.fun_control,
+            design_control=self.design_control,
+            surrogate_control=self.surrogate_control,
+            optimizer_control=self.optimizer_control,
+            fun=self.fun,
+            tensorboard_start=self.tensorboard_start,
+            tensorboard_stop=self.tensorboard_stop,
+        )
+        print("\nExperiment finished.")
 
 
 # TODO:

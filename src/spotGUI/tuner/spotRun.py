@@ -158,18 +158,18 @@ def get_scenario_dict(scenario):
     if scenario == "river":
         scenario_entries = get_scenario_entries()
         scenario_dict = {
-            "classification_tab": copy.deepcopy(scenario_entries),
-            "regression_tab": copy.deepcopy(scenario_entries),
+            "classification_task": copy.deepcopy(scenario_entries),
+            "regression_task": copy.deepcopy(scenario_entries),
         }
-        scenario_dict["classification_tab"]["core_model_names"] = get_river_classification_core_model_names()
-        scenario_dict["classification_tab"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
-        scenario_dict["classification_tab"]["datasets"] = get_river_binary_classification_datasets()
-        scenario_dict["regression_tab"]["core_model_names"] = get_river_regression_core_model_names()
-        scenario_dict["regression_tab"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
-        scenario_dict["regression_tab"]["datasets"] = get_river_regression_datasets()
+        scenario_dict["classification_task"]["core_model_names"] = get_river_classification_core_model_names()
+        scenario_dict["classification_task"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
+        scenario_dict["classification_task"]["datasets"] = get_river_binary_classification_datasets()
+        scenario_dict["regression_task"]["core_model_names"] = get_river_regression_core_model_names()
+        scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
+        scenario_dict["regression_task"]["datasets"] = get_river_regression_datasets()
         prep_models = get_river_prep_models()
-        scenario_dict["classification_tab"]["prep_models"] = copy.deepcopy(prep_models)
-        scenario_dict["regression_tab"]["prep_models"] = copy.deepcopy(prep_models)
+        scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
+        scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
         return scenario_dict
     else:
         return None
@@ -311,22 +311,51 @@ def show_data(train, test, target_column, n_samples=1000) -> None:
     plt.show()
 
 
+def save_spot_python_experiment(fun_control, design_control, surrogate_control, optimizer_control, fun) -> None:
+    """Saves a spot experiment.
+
+    Args:
+        fun_control (dict):
+            A dictionary with the function control parameters.
+        design_control (dict):
+            A dictionary with the design control parameters.
+        surrogate_control (dict):
+            A dictionary with the surrogate control parameters.
+        optimizer_control (dict):
+            A dictionary with the optimizer control parameters.
+        fun (function):
+            The function to be optimized.
+
+    Returns:
+        None
+
+    """
+    print(gen_design_table(fun_control))
+    spot_tuner = spot.Spot(
+        fun=fun,
+        fun_control=fun_control,
+        design_control=design_control,
+        surrogate_control=surrogate_control,
+        optimizer_control=optimizer_control,
+    )
+    filename = get_experiment_filename(fun_control["PREFIX"])
+    if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
+        fun_control["spot_writer"].close()
+    spot_tuner.save_experiment(filename=filename)
+
+
 def run_spot_python_experiment(
-    save_only,
     fun_control,
     design_control,
     surrogate_control,
     optimizer_control,
-    fun=HyperLight(log_level=50).fun,
+    fun,
     tensorboard_start=True,
     tensorboard_stop=True,
-    tuner_report=True,
 ) -> None:
     """Runs a spot experiment.
 
     Args:
-        save_only (bool):
-            If True, the experiment will be saved and the spot run will not be executed.
         fun_control (dict):
             A dictionary with the function control parameters.
         design_control (dict):
@@ -343,9 +372,6 @@ def run_spot_python_experiment(
         tensorboard_stop (bool):
             If True, the tensorboard process will be stopped after the spot run.
             Default is True.
-        tuner_report (bool):
-            If True, a tuner report will be written to a file.
-            Default is True.
 
     Returns:
         None
@@ -361,36 +387,10 @@ def run_spot_python_experiment(
         optimizer_control=optimizer_control,
     )
     filename = get_experiment_filename(fun_control["PREFIX"])
-    if save_only:
-        if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
-            fun_control["spot_writer"].close()
-        spot_tuner.save_experiment(filename=filename)
-    else:
-        if tensorboard_start:
-            p_open = start_tensorboard()
-        # TODO: Implement X_Start handling
-        # X_start = get_default_hyperparameters_as_array(fun_control)
-        #
-        # run_thread = Thread(target=run_process, args=(spot_tuner, fun_control, tensorboard_stop, p_open))
-        # run_thread.start()
-        # e = ThreadPoolExecutor()
-        # e.submit(run_process, spot_tuner, fun_control, tensorboard_stop, p_open)
-        # print("Spot experiment started. Please wait for the results.")
-        # e.shutdown(wait=False)
-        # run_process(spot_tuner, fun_control, tensorboard_stop, p_open)
-        spot_tuner.run()
-        if tensorboard_stop:
-            stop_tensorboard(p_open)
-        if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
-            fun_control["spot_writer"].close()
-        filename = get_experiment_filename(fun_control["PREFIX"])
-        spot_tuner.save_experiment(filename=filename)
-        # if file progress.txt exists, delete it
-        if os.path.exists("progress.txt"):
-            os.remove("progress.txt")
-
-
-def run_process(spot_tuner, fun_control, tensorboard_stop=True, p_open=None):
+    if tensorboard_start:
+        p_open = start_tensorboard()
+    # TODO: Implement X_Start handling
+    # X_start = get_default_hyperparameters_as_array(fun_control)
     spot_tuner.run()
     if tensorboard_stop:
         stop_tensorboard(p_open)
