@@ -15,7 +15,6 @@ from spotGUI.tuner.spotRun import (
     compare_river_tuned_default,
     plot_confusion_matrices_river,
     plot_rocs_river,
-    load_file_dialog,
     get_core_model_from_name,
     get_n_total,
     get_fun_evals,
@@ -35,19 +34,19 @@ from spotPython.hyperparameters.values import (
     update_fun_control_with_hyper_num_cat_dicts,
 )
 from spotRiver.fun.hyperriver import HyperRiver
-from spotPython.utils.file import load_experiment as load_experiment_spot
 
 
 class RiverApp(CTkApp):
     def __init__(self):
         super().__init__()
 
+        self.scenario = "river"
         self.hyperdict = RiverHyperDict
         self.title("spotRiver GUI")
         self.logo_text = "    SPOTRiver"
 
         self.task_name = "regression_task"
-        self.scenario_dict = get_scenario_dict(scenario="river")
+        self.scenario_dict = get_scenario_dict(scenario=self.scenario)
         pprint.pprint(self.scenario_dict)
         # ---------------------------------------------------------------------- #
         # ---------------- 0 Sidebar Frame --------------------------------------- #
@@ -206,106 +205,6 @@ class RiverApp(CTkApp):
         if self.spot_tuner is not None:
             plot_rocs_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
-    def load_button_event(self):
-        filename = load_file_dialog()
-        if filename:
-            (
-                self.spot_tuner,
-                self.fun_control,
-                self.design_control,
-                self.surrogate_control,
-                self.optimizer_control,
-            ) = load_experiment_spot(filename)
-            #
-            self.task_frame.set_selected_optionmenu_item(self.fun_control["task"])
-            self.change_task_event(self.fun_control["task"])
-            #
-            self.select_core_model_frame.set_selected_optionmenu_item(self.fun_control["core_model_name"])
-            self.core_model_name = self.fun_control["core_model_name"]
-            #
-            self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
-            self.prep_model_name = self.fun_control["prep_model_name"]
-            #
-            self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
-            self.data_set_name = self.fun_control["data_set_name"]
-            #
-            self.select_metric_sklearn_levels_frame.set_selected_optionmenu_item(
-                self.fun_control["metric_sklearn_name"]
-            )
-            self.metric_sklearn_name = self.fun_control["metric_sklearn_name"]
-            #
-            self.n_total = self.fun_control["n_total"]
-            if self.n_total is None:
-                self.n_total = "None"
-            self.n_total_entry.delete(0, "end")
-            self.n_total_entry.insert(0, self.n_total)
-            #
-            self.test_size = self.fun_control["test_size"]
-            self.test_size_entry.delete(0, "end")
-            self.test_size_entry.insert(0, self.test_size)
-            #
-            self.shuffle = self.fun_control["shuffle"]
-            self.shuffle_checkbox.deselect()
-            if self.shuffle:
-                self.shuffle_checkbox.select()
-            #
-            self.max_time = self.fun_control["max_time"]
-            self.max_time_entry.delete(0, "end")
-            self.max_time_entry.insert(0, self.max_time)
-            #
-            self.fun_evals = self.fun_control["fun_evals"]
-            if not isinstance(self.fun_evals, int):
-                self.fun_evals = "inf"
-            self.fun_evals_entry.delete(0, "end")
-            self.fun_evals_entry.insert(0, self.fun_evals)
-            #
-            self.init_size = self.design_control["init_size"]
-            self.init_size_entry.delete(0, "end")
-            self.init_size_entry.insert(0, self.init_size)
-            #
-            self.lambda_min_max = [self.surrogate_control["min_Lambda"], self.surrogate_control["max_Lambda"]]
-            self.lambda_min_max_entry.delete(0, "end")
-            self.lambda_min_max_entry.insert(0, f"{self.lambda_min_max[0]}, {self.lambda_min_max[1]}")
-            #
-            self.max_sp = self.fun_control["max_surrogate_points"]
-            self.max_sp_entry.delete(0, "end")
-            self.max_sp_entry.insert(0, self.max_sp)
-            #
-            self.seed = self.fun_control["seed"]
-            self.seed_entry.delete(0, "end")
-            self.seed_entry.insert(0, self.seed)
-            #
-            self.noise = self.fun_control["noise"]
-            self.noise_checkbox.deselect()
-            if self.noise:
-                self.noise_checkbox.select()
-            #
-            self.weights = self.fun_control["weights_entry"]
-            self.weights_entry.delete(0, "end")
-            self.weights_entry.insert(0, self.weights)
-            #
-            self.horizon = self.fun_control["horizon"]
-            self.horizon_entry.delete(0, "end")
-            self.horizon_entry.insert(0, self.horizon)
-            #
-            self.oml_grace_period = self.fun_control["oml_grace_period"]
-            if self.oml_grace_period is None:
-                self.oml_grace_period = "None"
-            self.oml_grace_period_entry.delete(0, "end")
-            self.oml_grace_period_entry.insert(0, self.oml_grace_period)
-            #
-            self.num_hp_frame.destroy()
-            self.create_num_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
-            self.cat_hp_frame.destroy()
-            self.create_cat_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
-            #
-            self.experiment_name = self.fun_control["PREFIX"]
-            self.loaded_label.configure(text=self.experiment_name)
-            self.experiment_name_entry.delete(0, "end")
-            self.experiment_name_entry.insert(0, self.experiment_name)
-            #
-            # self.print_tuned_design()
-
     def plot_data_button_event(self):
         train, test, n_samples, target_type = self.prepare_data()
         show_y_hist(train=train, test=test, target_column="y")
@@ -412,6 +311,7 @@ class RiverApp(CTkApp):
             prep_model=prepmodel,
             prep_model_name=prep_model_name,
             progress_file=self.progress_file,
+            scenario=self.scenario,
             seed=seed,
             shuffle=shuffle,
             task=task_name,

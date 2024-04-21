@@ -2,7 +2,14 @@ import customtkinter
 import os
 import webbrowser
 import copy
-from spotGUI.tuner.spotRun import progress_plot, contour_plot, importance_plot, get_core_model_from_name, get_prep_model
+from spotGUI.tuner.spotRun import (
+    progress_plot,
+    contour_plot,
+    importance_plot,
+    get_core_model_from_name,
+    get_prep_model,
+    load_file_dialog,
+)
 from PIL import Image
 import time
 from spotPython.utils.eda import gen_design_table
@@ -10,6 +17,7 @@ import tkinter as tk
 import sys
 from spotGUI.ctk.SelectOptions import SelectOptionMenuFrame
 from spotGUI.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
+from spotPython.utils.file import load_experiment as load_experiment_spot
 
 
 class CTkApp(customtkinter.CTk):
@@ -671,3 +679,93 @@ class CTkApp(customtkinter.CTk):
             master=self.analysis_hyperparameter_frame, text="Importance", command=self.plot_importance_button_event
         )
         self.importance_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+
+    def load_button_event(self):
+        filename = load_file_dialog()
+        if filename:
+            (
+                self.spot_tuner,
+                self.fun_control,
+                self.design_control,
+                self.surrogate_control,
+                self.optimizer_control,
+            ) = load_experiment_spot(filename)
+            #
+            self.task_frame.set_selected_optionmenu_item(self.fun_control["task"])
+            self.change_task_event(self.fun_control["task"])
+            #
+            self.select_core_model_frame.set_selected_optionmenu_item(self.fun_control["core_model_name"])
+            self.core_model_name = self.fun_control["core_model_name"]
+            #
+            self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
+            self.prep_model_name = self.fun_control["prep_model_name"]
+            #
+            self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
+            self.data_set_name = self.fun_control["data_set_name"]
+            #
+            self.select_metric_sklearn_levels_frame.set_selected_optionmenu_item(
+                self.fun_control["metric_sklearn_name"]
+            )
+            self.metric_sklearn_name = self.fun_control["metric_sklearn_name"]
+            #
+            self.n_total = self.fun_control["n_total"]
+            if self.n_total is None:
+                self.n_total = "None"
+            self.n_total_entry.delete(0, "end")
+            self.n_total_entry.insert(0, self.n_total)
+            #
+            self.test_size = self.fun_control["test_size"]
+            self.test_size_entry.delete(0, "end")
+            self.test_size_entry.insert(0, self.test_size)
+            #
+            self.shuffle = self.fun_control["shuffle"]
+            self.shuffle_checkbox.deselect()
+            if self.shuffle:
+                self.shuffle_checkbox.select()
+            #
+            self.max_time = self.fun_control["max_time"]
+            self.max_time_entry.delete(0, "end")
+            self.max_time_entry.insert(0, self.max_time)
+            #
+            self.fun_evals = self.fun_control["fun_evals"]
+            if not isinstance(self.fun_evals, int):
+                self.fun_evals = "inf"
+            self.fun_evals_entry.delete(0, "end")
+            self.fun_evals_entry.insert(0, self.fun_evals)
+            #
+            self.init_size = self.design_control["init_size"]
+            self.init_size_entry.delete(0, "end")
+            self.init_size_entry.insert(0, self.init_size)
+            #
+            self.lambda_min_max = [self.surrogate_control["min_Lambda"], self.surrogate_control["max_Lambda"]]
+            self.lambda_min_max_entry.delete(0, "end")
+            self.lambda_min_max_entry.insert(0, f"{self.lambda_min_max[0]}, {self.lambda_min_max[1]}")
+            #
+            self.max_sp = self.fun_control["max_surrogate_points"]
+            self.max_sp_entry.delete(0, "end")
+            self.max_sp_entry.insert(0, self.max_sp)
+            #
+            self.seed = self.fun_control["seed"]
+            self.seed_entry.delete(0, "end")
+            self.seed_entry.insert(0, self.seed)
+            #
+            self.noise = self.fun_control["noise"]
+            self.noise_checkbox.deselect()
+            if self.noise:
+                self.noise_checkbox.select()
+            #
+            # ----------------- River specific ----------------- #
+            if self.fun_control["scenario"] == "river":
+                self.weights = self.fun_control["weights_entry"]
+                self.weights_entry.delete(0, "end")
+                self.weights_entry.insert(0, self.weights)
+                #
+                self.horizon = self.fun_control["horizon"]
+                self.horizon_entry.delete(0, "end")
+                self.horizon_entry.insert(0, self.horizon)
+                #
+                self.oml_grace_period = self.fun_control["oml_grace_period"]
+                if self.oml_grace_period is None:
+                    self.oml_grace_period = "None"
+                self.oml_grace_period_entry.delete(0, "end")
+                self.oml_grace_period_entry.insert(0, self.oml_grace_period)
