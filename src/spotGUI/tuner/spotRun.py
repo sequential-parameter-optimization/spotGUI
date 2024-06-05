@@ -18,7 +18,7 @@ import river
 from river import compose
 import river.preprocessing
 import river
-from river import forest, tree, linear_model
+from river import forest, tree, linear_model, rules
 from river import preprocessing
 
 from spotRiver.evaluation.eval_bml import eval_oml_horizon
@@ -42,6 +42,13 @@ def get_river_classification_core_model_names():
         "tree.SGTClassifier",
     ]
     return classification_core_model_names
+
+
+def get_river_rules_core_model_names():
+    rules_core_model_names = [
+        "rules.AMRules",
+    ]
+    return rules_core_model_names
 
 
 def get_river_binary_classification_datasets():
@@ -160,6 +167,7 @@ def get_scenario_dict(scenario):
         scenario_dict = {
             "classification_task": copy.deepcopy(scenario_entries),
             "regression_task": copy.deepcopy(scenario_entries),
+            "rules_task": copy.deepcopy(scenario_entries),
         }
         scenario_dict["classification_task"]["core_model_names"] = get_river_classification_core_model_names()
         scenario_dict["classification_task"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
@@ -167,9 +175,13 @@ def get_scenario_dict(scenario):
         scenario_dict["regression_task"]["core_model_names"] = get_river_regression_core_model_names()
         scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
         scenario_dict["regression_task"]["datasets"] = get_river_regression_datasets()
+        scenario_dict["rules_task"]["core_model_names"] = get_river_rules_core_model_names()
+        scenario_dict["rules_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
+        scenario_dict["rules_task"]["datasets"] = get_river_regression_datasets()
         prep_models = get_river_prep_models()
         scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
+        scenario_dict["rules_task"]["prep_models"] = copy.deepcopy(prep_models)
         return scenario_dict
     else:
         return None

@@ -186,6 +186,8 @@ class CTkApp(customtkinter.CTk):
             self.task_name = "classification_task"
         elif new_task == "Regression":
             self.task_name = "regression_task"
+        elif new_task == "Rules":
+            self.task_name = "rules_task"
         else:
             print("Error: Task not found")
         self.select_core_model_frame.destroy()
@@ -224,7 +226,7 @@ class CTkApp(customtkinter.CTk):
         self.task_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.change_task_event,
-            item_list=["Binary Classification", "Regression"],
+            item_list=["Binary Classification", "Regression", "Rules"],
             item_default="Regression",
             title="Select Task",
         )
