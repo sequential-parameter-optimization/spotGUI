@@ -769,10 +769,12 @@ def get_oml_grace_period(oml_grace_period):
     Returns the grace period for the online machine learning evaluation.
 
     Args:
-        oml_grace_period (str): The grace period for the online machine learning evaluation.
+        oml_grace_period (str): The grace period for the online machine learning evaluation. Can be a number as a
+        string or "None".
 
     Returns:
         int: The grace period for the online machine learning evaluation.
+        If the grace period is "None", it is set to None.
     """
     if oml_grace_period == "None":
         oml_grace_period = None
