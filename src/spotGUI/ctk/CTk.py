@@ -6,8 +6,6 @@ from spotGUI.tuner.spotRun import (
     progress_plot,
     contour_plot,
     importance_plot,
-    get_core_model_from_name,
-    get_prep_model,
     load_file_dialog,
 )
 from PIL import Image
@@ -18,6 +16,7 @@ import sys
 from spotGUI.ctk.SelectOptions import SelectOptionMenuFrame
 from spotGUI.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
 from spotPython.utils.file import load_experiment as load_experiment_spot
+from spotPython.hyperparameters.values import get_prep_model, get_core_model_from_name
 
 
 class CTkApp(customtkinter.CTk):

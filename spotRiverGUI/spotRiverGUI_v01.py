@@ -29,13 +29,10 @@ from spotGUI.tuner.spotRun import (
     load_file_dialog,
     get_report_file_name,
     get_result,
-    get_core_model_from_name,
     get_n_total,
     get_fun_evals,
     get_lambda_min_max,
     get_oml_grace_period,
-    get_prep_model,
-    get_metric_sklearn,
     get_weights,
     get_kriging_noise,
 )
@@ -46,6 +43,8 @@ from spotRiver.fun.hyperriver import HyperRiver
 from spotRiver.data.selector import get_river_dataset_from_name
 from spotRiver.utils.data_conversion import split_df
 from spotPython.utils.file import load_experiment as load_experiment_spot
+from spotPython.hyperparameters.values import (get_prep_model,
+                                               get_metric_sklearn, get_core_model_from_name)
 
 classification_core_model_names = [
     "linear_model.LogisticRegression",

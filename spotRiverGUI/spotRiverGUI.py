@@ -15,12 +15,10 @@ from spotGUI.tuner.spotRun import (
     compare_river_tuned_default,
     plot_confusion_matrices_river,
     plot_rocs_river,
-    get_core_model_from_name,
     get_n_total,
     get_fun_evals,
     get_lambda_min_max,
     get_oml_grace_period,
-    get_metric_sklearn,
     get_weights,
     get_kriging_noise,
     get_scenario_dict,
@@ -31,6 +29,8 @@ from spotPython.utils.convert import map_to_True_False, set_dataset_target_type,
 from spotRiver.utils.data_conversion import split_df
 from spotPython.hyperparameters.values import (
     add_core_model_to_fun_control,
+    get_core_model_from_name,
+    get_metric_sklearn,
     update_fun_control_with_hyper_num_cat_dicts,
 )
 from spotRiver.fun.hyperriver import HyperRiver

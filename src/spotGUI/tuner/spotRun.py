@@ -1,6 +1,5 @@
 import copy
 import matplotlib.pyplot as plt
-import sklearn.metrics
 import pylab
 import pprint
 import numpy as np
@@ -18,8 +17,7 @@ import river
 from river import compose
 import river.preprocessing
 import river
-from river import forest, tree, linear_model, rules
-from river import preprocessing
+
 
 from spotRiver.evaluation.eval_bml import eval_oml_horizon
 from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics, plot_bml_oml_horizon_predictions
@@ -691,22 +689,6 @@ def load_file_dialog():
     return filename
 
 
-def get_core_model_from_name(core_model_name):
-    """
-    Returns the core model name and instance from a core model name.
-
-    Args:
-        core_model_name (str): The name of the core model.
-
-    Returns:
-        Tuple: The core model name and instance.
-    """
-    core_model_module = core_model_name.split(".")[0]
-    coremodel = core_model_name.split(".")[1]
-    core_model_instance = getattr(getattr(river, core_model_module), coremodel)
-    return coremodel, core_model_instance
-
-
 def get_n_total(n_total):
     """
     Returns the number of total iterations.
@@ -781,38 +763,6 @@ def get_oml_grace_period(oml_grace_period):
     else:
         oml_grace_period = int(oml_grace_period)
     return oml_grace_period
-
-
-def get_prep_model(prepmodel_name):
-    """
-    Get the preprocessing model from the name.
-
-    Args:
-        prepmodel_name (str): The name of the preprocessing model.
-
-    Returns:
-        river.preprocessing: The preprocessing model.
-
-    """
-    if prepmodel_name == "None":
-        prepmodel = None
-    else:
-        prepmodel = getattr(river.preprocessing, prepmodel_name)
-    return prepmodel
-
-
-def get_metric_sklearn(metric_name):
-    """
-    Returns the metric from the metric name.
-
-    Args:
-        metric_name (str): The name of the metric.
-
-    Returns:
-        sklearn.metrics: The metric from the metric name.
-    """
-    metric_sklearn = getattr(sklearn.metrics, metric_name)
-    return metric_sklearn
 
 
 def get_weights(metric_name, metric_weights, default_weights=["1000,1,1"]):
