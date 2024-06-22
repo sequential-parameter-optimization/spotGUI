@@ -217,7 +217,12 @@ class RiverApp(CTkApp):
 
     def prepare_data(self):
         seed = int(self.seed_var.get())
-        test_size = float(self.test_size_var.get())
+        test_size = self.test_size_var.get()
+        # if test_size contains a point, it is a float, otherwise an integer:
+        if "." in test_size:
+            test_size = float(test_size)
+        else:
+            test_size = int(test_size)
         shuffle = map_to_True_False(self.shuffle_var.get())
         data_set_name = self.select_data_frame.get_selected_optionmenu_item()
         dataset, n_samples = get_river_dataset_from_name(
@@ -256,7 +261,12 @@ class RiverApp(CTkApp):
         data_set_name = self.select_data_frame.get_selected_optionmenu_item()
 
         seed = int(self.seed_var.get())
-        test_size = float(self.test_size_var.get())
+        test_size = self.test_size_var.get()
+        # if test_size contains a point, it is a float, otherwise an integer:
+        if "." in test_size:
+            test_size = float(test_size)
+        else:
+            test_size = int(test_size)
         shuffle = map_to_True_False(self.shuffle_var.get())
         metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
         metric_sklearn = get_metric_sklearn(self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item())
