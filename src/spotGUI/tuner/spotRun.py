@@ -160,6 +160,20 @@ def get_scenario_entries():
 
 
 def get_scenario_dict(scenario):
+    """
+    Returns a dictionary with the scenario entries.
+
+    Args:
+        scenario (str): The scenario name.
+
+    Returns:
+        dict: A dictionary with the scenario entries.
+
+    Examples:
+        >>> from spotGUI.tuner.spotRun import get_scenario_dict
+            get_scenario_dict("river")
+
+    """
     if scenario == "river":
         scenario_entries = get_scenario_entries()
         scenario_dict = {
