@@ -693,20 +693,25 @@ class CTkApp(customtkinter.CTk):
             ) = load_experiment_spot(filename)
             #
             self.task_frame.set_selected_optionmenu_item(self.fun_control["task"])
+            print(f'Task set to loaded tast:{self.fun_control["task"]}')
             self.change_task_event(self.fun_control["task"])
             #
             self.select_core_model_frame.set_selected_optionmenu_item(self.fun_control["core_model_name"])
+            print(f'Core model set to loaded core model:{self.fun_control["core_model_name"]}')
             self.core_model_name = self.fun_control["core_model_name"]
             #
             self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
+            print(f'Prep model set to loaded prep model:{self.fun_control["prep_model_name"]}')
             self.prep_model_name = self.fun_control["prep_model_name"]
             #
             self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
+            print(f'Data set set to loaded data set:{self.fun_control["data_set_name"]}')
             self.data_set_name = self.fun_control["data_set_name"]
             #
             self.select_metric_sklearn_levels_frame.set_selected_optionmenu_item(
                 self.fun_control["metric_sklearn_name"]
             )
+            print(f'Metric set to loaded metric:{self.fun_control["metric_sklearn_name"]}')
             self.metric_sklearn_name = self.fun_control["metric_sklearn_name"]
             #
             self.n_total = self.fun_control["n_total"]
@@ -770,3 +775,15 @@ class CTkApp(customtkinter.CTk):
                     self.oml_grace_period = "None"
                 self.oml_grace_period_entry.delete(0, "end")
                 self.oml_grace_period_entry.insert(0, self.oml_grace_period)
+            #
+            # ----------------- Hyperparameter ----------------- #
+            self.num_hp_frame.destroy()
+            self.create_num_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
+            self.cat_hp_frame.destroy()
+            self.create_cat_hp_frame(dict=self.fun_control["core_model_hyper_dict"])
+            #
+            # ----------------- Run Options ----------------- #
+            self.experiment_name = self.fun_control["PREFIX"]
+            self.loaded_label.configure(text=self.experiment_name)
+            self.experiment_name_entry.delete(0, "end")
+            self.experiment_name_entry.insert(0, self.experiment_name)
