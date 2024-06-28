@@ -56,9 +56,6 @@ class NumHyperparameterFrame(customtkinter.CTkFrame):
         Note:
             Method is designed for numerical parameters.
 
-        Args:
-            None
-
         Returns:
             num_hp_dict (dict): dictionary with hyperparameter as key and values
             as dictionary with lower and upper values.
@@ -126,7 +123,7 @@ class CatHyperparameterFrame(customtkinter.CTkFrame):
         self.default_list.append(self.default_col)
         self.levels_list.append(self.levels_col)
 
-    def get_cat_item(self):
+    def get_cat_item(self) -> dict:
         """
         Get the values self.hp_list, self.default_list, self.levels_list,
         and put lower and upper in a dictionary with the corresponding
@@ -135,12 +132,10 @@ class CatHyperparameterFrame(customtkinter.CTkFrame):
         Note:
             Method is designed for categorical parameters.
 
-        Args:
-            None
-
         Returns:
-            num_hp_dict (dict): dictionary with hyperparameter as key and values
-            as dictionary with lower and upper values.
+            num_hp_dict (dict):
+                dictionary with hyperparameter as key and values
+                as dictionary with lower and upper values.
         """
         cat_hp_dict = {}
         for label, default, levels in zip(self.hp_list, self.default_list, self.levels_list):

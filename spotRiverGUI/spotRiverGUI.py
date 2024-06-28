@@ -269,7 +269,7 @@ class RiverApp(CTkApp):
             test_size = int(test_size)
         shuffle = map_to_True_False(self.shuffle_var.get())
         metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
-        metric_sklearn = get_metric_sklearn(self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item())
+        metric_sklearn = get_metric_sklearn(metric_sklearn_name)
 
         n_total = get_n_total(self.n_total_var.get())
         max_time = float(self.max_time_var.get())

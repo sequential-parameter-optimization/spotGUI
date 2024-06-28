@@ -159,7 +159,7 @@ def get_scenario_entries():
     return scenario_entries
 
 
-def get_scenario_dict(scenario):
+def get_scenario_dict(scenario) -> dict:
     """
     Returns a dictionary with the scenario entries.
 
@@ -199,7 +199,7 @@ def get_scenario_dict(scenario):
         return None
 
 
-def get_report_file_name(fun_control):
+def get_report_file_name(fun_control) -> str:
     """Returns the name of the report file.
 
     Args:
@@ -213,7 +213,7 @@ def get_report_file_name(fun_control):
     return REP_NAME
 
 
-def get_result(spot_tuner, fun_control):
+def get_result(spot_tuner, fun_control) -> str:
     """Gets the result of the spot experiment.
 
     Args:
@@ -670,15 +670,16 @@ def actual_vs_prediction_river(spot_tuner, fun_control, show=False, length=50) -
     )
 
 
-def destroy_entries(entries):
+def destroy_entries(entries) -> None:
     """
     Destroys all non-None entries in the provided list of entries.
 
     Args:
-        entries: A list of entries to be destroyed.
+        entries (list):
+            A list of entries to be destroyed.
 
     Returns:
-        None
+        None (NoneType)
     """
     if entries is not None:
         for entry in entries:
@@ -686,12 +687,9 @@ def destroy_entries(entries):
                 entry.destroy()
 
 
-def load_file_dialog():
+def load_file_dialog() -> str:
     """
     Opens a file dialog to select a file.
-
-    Args:
-        None
 
     Returns:
         str: The name of the selected file.
@@ -703,7 +701,7 @@ def load_file_dialog():
     return filename
 
 
-def get_n_total(n_total):
+def get_n_total(n_total) -> int:
     """
     Returns the number of total iterations.
 
@@ -720,7 +718,7 @@ def get_n_total(n_total):
     return n_total
 
 
-def get_fun_evals(fun_evals):
+def get_fun_evals(fun_evals) -> int:
     """
     Returns the number of function evaluations.
 
@@ -728,7 +726,7 @@ def get_fun_evals(fun_evals):
         fun_evals (str): The number of function evaluations.
 
     Returns:
-        int: The number of function evaluations.
+        (int): The number of function evaluations.
     """
     if fun_evals == "None" or fun_evals == "inf":
         fun_evals_val = inf
@@ -737,7 +735,7 @@ def get_fun_evals(fun_evals):
     return fun_evals_val
 
 
-def get_lambda_min_max(lambda_min_max):
+def get_lambda_min_max(lambda_min_max) -> tuple:
     """
     Returns the minimum and maximum lambda values.
 
@@ -760,13 +758,14 @@ def get_lambda_min_max(lambda_min_max):
     return lbd_min, lbd_max
 
 
-def get_oml_grace_period(oml_grace_period):
+def get_oml_grace_period(oml_grace_period) -> int:
     """
     Returns the grace period for the online machine learning evaluation.
 
     Args:
-        oml_grace_period (str): The grace period for the online machine learning evaluation. Can be a number as a
-        string or "None".
+        oml_grace_period (str):
+            The grace period for the online machine learning evaluation.
+            Can be a number as a string or "None".
 
     Returns:
         int: The grace period for the online machine learning evaluation.
@@ -779,7 +778,7 @@ def get_oml_grace_period(oml_grace_period):
     return oml_grace_period
 
 
-def get_weights(metric_name, metric_weights, default_weights=["1000,1,1"]):
+def get_weights(metric_name, metric_weights, default_weights=["1000,1,1"]) -> np.array:
     """
     Returns the weights for the metric.
 
@@ -799,7 +798,7 @@ def get_weights(metric_name, metric_weights, default_weights=["1000,1,1"]):
     return weights
 
 
-def get_kriging_noise(lbd_min, lbd_max):
+def get_kriging_noise(lbd_min, lbd_max) -> bool:
     """Get the kriging noise based on the lambda values.
     If the lambda values are both 0, the kriging noise is False.
     Otherwise, the kriging noise is True.
@@ -809,7 +808,8 @@ def get_kriging_noise(lbd_min, lbd_max):
         lbd_max (float): The maximum lambda value.
 
     Returns:
-        bool: The kriging noise.
+        (bool):
+            The kriging noise.
 
     """
     if lbd_min == 0.0 and lbd_max == 0.0:

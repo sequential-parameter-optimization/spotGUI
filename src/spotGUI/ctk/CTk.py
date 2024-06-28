@@ -162,7 +162,18 @@ class CTkApp(customtkinter.CTk):
     def select_prep_model_frame_event(self, new_prep_model: str):
         print(f"Prep Model modified: {self.select_prep_model_frame.get_selected_optionmenu_item()}")
 
-    def check_user_prep_model(self, prep_model_name):
+    def check_user_prep_model(self, prep_model_name) -> object:
+        """Check if the prep model is a user defined prep model.
+        If it is a user defined prep model, import the prep model from the userPrepModel directory.
+        Otherwise, get the prep model from the river.preprocessing module.
+
+        Args:
+            prep_model_name (str): The name of the prep model.
+
+        Returns:
+            prepmodel: The prep model object.
+
+        """
         if prep_model_name.endswith(".py"):
             print(f"prep_model_name = {prep_model_name}")
             sys.path.insert(0, "./userPrepModel")
@@ -172,6 +183,7 @@ class CTkApp(customtkinter.CTk):
             __import__(prep_model_name)
             prepmodel = sys.modules[prep_model_name].set_prep_model()
         else:
+            # get the river prep model from river.preprocessing
             prepmodel = get_prep_model(prep_model_name)
         return prepmodel
 
