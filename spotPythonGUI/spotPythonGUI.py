@@ -1,632 +1,461 @@
-import os
-import pprint
-import numpy as np
+from spotPython.data.csvdataset import CSVDataset as spotPythonCSVDataset
+from spotPython.data.pkldataset import PKLDataset as spotPythonPKLDataset
 import tkinter as tk
-from tkinter import ttk, StringVar
-import math
-from spotPython.hyperdict.light_hyper_dict import LightHyperDict
+import customtkinter
+import pprint
+import os
+import numpy as np
+import copy
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
-from spotPython.hyperparameters.values import add_core_model_to_fun_control
-from spotPython.hyperparameters.values import (
-    set_control_hyperparameter_value,
-    get_var_type,
-    get_var_name,
-    get_bound_values,
-)
+from spotGUI.ctk.CTk import CTkApp, SelectOptionMenuFrame
+
+from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
+from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotGUI.tuner.spotRun import (
+    save_spot_python_experiment,
     run_spot_python_experiment,
-    contour_plot,
-    parallel_plot,
-    importance_plot,
-    progress_plot,
+    actual_vs_prediction_river,
+    compare_river_tuned_default,
+    plot_confusion_matrices_river,
+    plot_rocs_river,
+    get_n_total,
+    get_fun_evals,
+    get_lambda_min_max,
+    get_oml_grace_period,
+    get_weights,
+    get_kriging_noise,
+    get_scenario_dict,
+    show_y_hist,
 )
-from spotPython.light.regression.netlightregression import NetLightRegression
-from spotPython.light.regression.transformerlightregression import TransformerLightRegression
-from spotPython.utils.eda import gen_design_table
-from spotPython.data.diabetes import Diabetes
-import torch
-from spotPython.data.csvdataset import CSVDataset
-from spotPython.data.pkldataset import PKLDataset
-from spotPython.utils.file import load_dict_from_file, load_core_model_from_file
-from spotPython.utils.file import load_experiment as load_experiment_spot
-from tkinter import filedialog as fd
-
-spot_tuner = None
-lhd = LightHyperDict()
-#
-n_keys = 25
-label = [None] * n_keys
-default_entry = [None] * n_keys
-lower_bound_entry = [None] * n_keys
-upper_bound_entry = [None] * n_keys
-factor_level_entry = [None] * n_keys
-transform_entry = [None] * n_keys
-select = [None] * n_keys
+from spotRiver.data.selector import get_river_dataset_from_name
+from spotPython.utils.convert import map_to_True_False, set_dataset_target_type, check_type
+from spotRiver.utils.data_conversion import split_df
+from spotPython.hyperparameters.values import (
+    add_core_model_to_fun_control,
+    get_core_model_from_name,
+    get_metric_sklearn,
+    update_fun_control_with_hyper_num_cat_dicts,
+)
+from spotRiver.fun.hyperriver import HyperRiver
+from spotPython.fun.hyperlight import HyperLight
 
 
-def str_to_bool(s):
-    if s.lower() == "true":
-        return True
-    elif s.lower() == "false":
-        return False
-    else:
-        raise ValueError("Cannot convert string to boolean value")
+class spotPythonApp(CTkApp):
+    def __init__(self):
+        super().__init__()
 
+        self.scenario = "spotPython"
+        self.hyperdict = LightHyperDict
+        self.title("spotRiver GUI")
+        self.logo_text = "    SPOTPython"
 
-def run_experiment(save_only=False):
-    global spot_tuner, fun_control, label, default_entry, lower_bound_entry, upper_bound_entry, factor_level_entry
+        self.task_name = "regression_task"
+        self.scenario_dict = get_scenario_dict(scenario=self.scenario)
+        pprint.pprint(self.scenario_dict)
+        # ---------------------------------------------------------------------- #
+        # ---------------- 0 Sidebar Frame --------------------------------------- #
+        # ---------------------------------------------------------------------- #
+        # create sidebar frame with widgets in row 0 and column 0
+        self.make_sidebar_frame()
+        # ---------------------------------------------------------------------- #
+        # ----------------- 1 Experiment_Main Frame ------------------------------ #
+        # ---------------------------------------------------------------------- #
+        # create experiment main frame with widgets in row 0 and column 1
+        #
+        self.make_experiment_frame()
+        # # ................. Experiment_Eval Frame .......................................#
+        # # create experiment_eval frame with widgets in experiment_main frame
+        # self.experiment_eval_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
+        # self.experiment_eval_frame.grid(row=4, column=0, sticky="ew")
+        # #
+        # # experiment_eval frame title
+        # self.experiment_eval_frame_title = customtkinter.CTkLabel(
+        #     self.experiment_eval_frame, text="Eval Options", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
+        # )
+        # self.experiment_eval_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+        # #
+        # # weights entry in experiment_model frame
+        # self.weights_label = customtkinter.CTkLabel(self.experiment_eval_frame, text="weights", corner_radius=6)
+        # self.weights_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
+        # self.weights_var = customtkinter.StringVar(value="1000, 1, 1")
+        # self.weights_entry = customtkinter.CTkEntry(
+        #     self.experiment_eval_frame, textvariable=self.weights_var, width=self.entry_width
+        # )
+        # self.weights_entry.grid(row=1, column=1, padx=0, pady=10, sticky="w")
+        # # horizon entry in experiment_model frame
+        # self.horizon_label = customtkinter.CTkLabel(self.experiment_eval_frame, text="horizon", corner_radius=6)
+        # self.horizon_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
+        # self.horizon_var = customtkinter.StringVar(value="10")
+        # self.horizon_entry = customtkinter.CTkEntry(
+        #     self.experiment_eval_frame, textvariable=self.horizon_var, width=self.entry_width
+        # )
+        # self.horizon_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+        # # oml_grace_periond entry in experiment_model frame
+        # self.oml_grace_period_label = customtkinter.CTkLabel(
+        #     self.experiment_eval_frame, text="oml_grace_period", corner_radius=6
+        # )
+        # self.oml_grace_period_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
+        # self.oml_grace_period_var = customtkinter.StringVar(value="None")
+        # self.oml_grace_period_entry = customtkinter.CTkEntry(
+        #     self.experiment_eval_frame, textvariable=self.oml_grace_period_var, width=self.entry_width
+        # )
+        # self.oml_grace_period_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
 
-    n_total = n_total_entry.get()
-    if n_total == "None" or n_total == "All":
-        n_total = None
-    else:
-        n_total = int(n_total)
+        # ---------------------------------------------------------------------- #
+        # ------------------ 2 Hyperparameter Main Frame ----------------------- #
+        # ---------------------------------------------------------------------- #
+        # create hyperparameter main frame with widgets in row 0 and column 2
+        self.make_hyperparameter_frame()
+        #
+        # ---------------------------------------------------------------------- #
+        # ----------------- 3 Execution_Main Frame ----------------------------- #
+        # ---------------------------------------------------------------------- #
+        # create execution_main frame with widgets in row 0 and column 4
+        self.make_execution_frame()
 
-    fun_evals = fun_evals_entry.get()
-    if fun_evals == "None" or fun_evals == "inf":
-        fun_evals_val = math.inf
-    else:
-        fun_evals_val = int(fun_evals)
-
-    # check if data_set provided by spotPython as a DataSet object
-    data_set = data_set_combo.get()
-    if data_set == "Diabetes":
-        dataset = Diabetes(feature_type=torch.float32, target_type=torch.float32)
-        print(f"Diabetes data set: {len(dataset)}")
-    # check if data_set is available as .csv
-    elif data_set.endswith(".csv"):
-        dataset = CSVDataset(
-            directory="./userData/",
-            filename=data_set,
-            target_column=target_column_entry.get(),
-            feature_type=getattr(torch, feature_type_entry.get()),
-            target_type=getattr(torch, target_type_entry.get()),
+        # ---------------------------------------------------------------------- #
+        # ----------------- 4 Analysis_Main Frame ------------------------------ #
+        # ---------------------------------------------------------------------- #
+        # create analysis_main frame with widgets in row 0 and column 3
+        self.make_analysis_frame()
+        #
+        # ................. Comparison_Analysis Frame .......................................#
+        # create analysis_comparison_frame with widgets in analysis_main frame
+        self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_comparison_frame.grid(row=5, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_comparison_frame_title = customtkinter.CTkLabel(
+            self.analysis_comparison_frame,
+            text="Comparisons",
+            font=customtkinter.CTkFont(weight="bold"),
+            corner_radius=6,
         )
-        print(len(dataset))
-    #  check if data_set is available as .pkl
-    elif data_set.endswith(".pkl"):
-        dataset = PKLDataset(
-            directory="./userData/",
-            filename=data_set,
-            target_column=target_column_entry.get(),
-            feature_type=getattr(torch, feature_type_entry.get()),
-            target_type=getattr(torch, target_type_entry.get()),
+        self.analysis_comparison_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        # create tuned default button
+        self.compare_river_tuned_default_button = customtkinter.CTkButton(
+            master=self.analysis_comparison_frame,
+            text="Tuned vs. default",
+            command=self.plot_tuned_default_button_event,
         )
-        print(len(dataset))
-    else:
-        print(f"Error: Data set {data_set} not available.")
-        return
-
-    # Initialize the fun_control dictionary with the static parameters,
-    # i.e., the parameters that are not hyperparameters (depending on the core model)
-    fun_control = fun_control_init(
-        _L_in=int(lin_entry.get()),
-        _L_out=int(lout_entry.get()),
-        PREFIX=prefix_entry.get(),
-        TENSORBOARD_CLEAN=True,
-        fun_evals=fun_evals_val,
-        fun_repeats=1,
-        max_time=float(max_time_entry.get()),
-        noise=str_to_bool(noise_entry.get()),
-        ocba_delta=0,
-        data_set=dataset,
-        test_size=float(test_size_entry.get()),
-        tolerance_x=np.sqrt(np.spacing(1)),
-        verbosity=1,
-        log_level=50,
-        n_total=n_total,
-    )
-
-    # Get the selected core model and add it to the fun_control dictionary
-    coremodel = core_model_combo.get()
-    if coremodel == "NetLightRegression":
-        add_core_model_to_fun_control(fun_control=fun_control, core_model=NetLightRegression, hyper_dict=LightHyperDict)
-        dict = lhd.hyper_dict[coremodel]
-    elif coremodel == "TransformerLightRegression":
-        add_core_model_to_fun_control(
-            fun_control=fun_control, core_model=TransformerLightRegression, hyper_dict=LightHyperDict
+        self.compare_river_tuned_default_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create actual prediction button
+        self.compare_actual_prediction_button = customtkinter.CTkButton(
+            master=self.analysis_comparison_frame,
+            text="Actual vs. prediction",
+            command=self.plot_actual_prediction_button_event,
         )
-        dict = lhd.hyper_dict[coremodel]
-    else:
-        core_model = load_core_model_from_file(coremodel, dirname="userModel")
-        dict = load_dict_from_file(coremodel, dirname="userModel")
-        fun_control.update({"core_model": core_model})
-        fun_control.update({"core_model_hyper_dict": dict})
-        var_type = get_var_type(fun_control)
-        var_name = get_var_name(fun_control)
-        lower = get_bound_values(fun_control, "lower", as_list=False)
-        upper = get_bound_values(fun_control, "upper", as_list=False)
-        fun_control.update({"var_type": var_type, "var_name": var_name, "lower": lower, "upper": upper})
+        self.compare_actual_prediction_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # ................. Classification_Analysis Frame .......................................#
+        # create analysis_classification_frame with widgets in analysis_main frame
+        self.analysis_classification_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_classification_frame.grid(row=6, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_classification_frame_title = customtkinter.CTkLabel(
+            self.analysis_classification_frame,
+            text="Classification",
+            font=customtkinter.CTkFont(weight="bold"),
+            corner_radius=6,
+        )
+        self.analysis_classification_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # create confusion plot  button
+        self.confusion_button = customtkinter.CTkButton(
+            master=self.analysis_classification_frame, text="Confusion matrix", command=self.plot_confusion_button_event
+        )
+        self.confusion_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create roc button
+        self.roc_button = customtkinter.CTkButton(
+            master=self.analysis_classification_frame, text="ROC", command=self.plot_roc_button_event
+        )
+        self.roc_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
 
-    for i, (key, value) in enumerate(dict.items()):
-        if dict[key]["type"] == "int":
-            set_control_hyperparameter_value(
-                fun_control, key, [int(lower_bound_entry[i].get()), int(upper_bound_entry[i].get())]
-            )
-        if dict[key]["type"] == "float":
-            set_control_hyperparameter_value(
-                fun_control, key, [float(lower_bound_entry[i].get()), float(upper_bound_entry[i].get())]
-            )
-        if dict[key]["type"] == "factor":
-            # load from combo box and add to empty list
-            fle = []
-            for name, var in choices[i].items():
-                if var.get() == 1:
-                    fle.append(name)
+        # ---------------------------------------------------------------------- #
+        # ------------------- Textbox Frame ------------------------------------ #
+        # ---------------------------------------------------------------------- #
+        # create textbox in row 1 and column 0
+        self.textbox = customtkinter.CTkTextbox(self)
+        self.textbox.grid(row=1, column=0, columnspan=5, padx=(10, 10), pady=10, sticky="nsew")
+        self.textbox.configure(height=20, width=10)
+        self.textbox.insert(tk.END, "Welcome to SPOTPython\n")
+        #
+        # Start the thread that will update the text area
+        # update_thread = threading.Thread(target=self.update_text, daemon=True)
+        # update_thread.start()
+        # e = ThreadPoolExecutor(max_workers=1)
+        # e.submit(self.update_text)
+        # e.shutdown(wait=False)
 
-            set_control_hyperparameter_value(fun_control, key, fle)
-            fun_control["core_model_hyper_dict"][key].update({"upper": len(fle) - 1})
+        # ---------------------------------------------------------------------- #
 
-    print(gen_design_table(fun_control))
+    # -------------- River specific plots ----------------- #
+    def plot_tuned_default_button_event(self):
+        if self.spot_tuner is not None:
+            compare_river_tuned_default(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
-    design_control = design_control_init(
-        init_size=int(init_size_entry.get()),
-        repeats=1,
-    )
+    def plot_actual_prediction_button_event(self):
+        if self.spot_tuner is not None:
+            actual_vs_prediction_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
 
-    surrogate_control = surrogate_control_init(
-        noise=True,
-        n_theta=2,
-        min_Lambda=1e-6,
-        max_Lambda=10,
-        log_level=50,
-    )
+    def plot_confusion_button_event(self):
+        if self.spot_tuner is not None:
+            plot_confusion_matrices_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
-    optimizer_control = optimizer_control_init()
+    def plot_roc_button_event(self):
+        if self.spot_tuner is not None:
+            plot_rocs_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
 
-    (
-        SPOT_PKL_NAME,
-        spot_tuner,
-        fun_control,
-        design_control,
-        surrogate_control,
-        optimizer_control,
-    ) = run_spot_python_experiment(
-        save_only=save_only,
-        fun_control=fun_control,
-        design_control=design_control,
-        surrogate_control=surrogate_control,
-        optimizer_control=optimizer_control,
-    )
-    if SPOT_PKL_NAME is not None and save_only:
-        print(f"\nExperiment successfully saved. Configuration saved as: {SPOT_PKL_NAME}")
-    elif SPOT_PKL_NAME is not None and not save_only:
-        print(f"\nExperiment successfully terminated. Result saved as: {SPOT_PKL_NAME}")
-    else:
-        print("\nExperiment failed. No result saved.")
+    def plot_data_button_event(self):
+        train, test, n_samples, target_type = self.prepare_data()
+        show_y_hist(train=train, test=test, target_column="y")
+        # TODO: show_data
+        # show_data(train=self.train,
+        #           test=self.test,
+        #           target_column=self.target_column,
+        #           n_samples=1000)
+        print("\nData shown. No result saved.")
 
-
-def load_experiment():
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
-    filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
-    if filename:
-        spot_tuner, fun_control, design_control, surrogate_control, optimizer_control = load_experiment_spot(filename)
-
-        # TODO spottuner = -> laden aus der Pickle datei. Damit dann analysis nachträglich gestartet werden kann
-        feature_type_entry.delete(0, tk.END)
-        feature_type_entry.insert(0, str(vars(fun_control["data_set"])["feature_type"]).replace("torch.", ""))
-        target_type_entry.delete(0, tk.END)
-        target_type_entry.insert(0, str(vars(fun_control["data_set"])["target_type"]).replace("torch.", ""))
-        data_set_combo.delete(0, tk.END)
-        target_column_entry.delete(0, tk.END)
-
-        data_set_name = fun_control["data_set"].__class__.__name__
-        print(f"\ndata_set_name: {data_set_name}\n")
-
-        if data_set_name == "CSVDataset" or data_set_name == "PKLDataset":
-            target_column_entry.insert(0, str(vars(fun_control["data_set"])["target_column"]))
-            filename = vars(fun_control["data_set"])["filename"]
-            print("filename: ", filename)
-            # TODO nicht neuen EIntrag hginzufügen sondern einen asuwählen. Ist sicherlich anders. Soinst müssten einträge doppelt sein.
-            data_set_combo.set(filename)
+    def prepare_data(self):
+        seed = int(self.seed_var.get())
+        test_size = self.test_size_var.get()
+        # if test_size contains a point, it is a float, otherwise an integer:
+        if "." in test_size:
+            test_size = float(test_size)
         else:
-            target_column_entry.insert(0, "target")
-            data_set_combo.set(data_set_name)
-        # static parameters, that are not hyperparameters (depending on the core model)
-        n_total_entry.delete(0, tk.END)
-        n_total_entry.insert(0, str(fun_control["n_total"]))
+            test_size = int(test_size)
+        shuffle = map_to_True_False(self.shuffle_var.get())
+        if self.scenario == "river":
+            data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+            dataset, n_samples = get_river_dataset_from_name(
+                data_set_name=data_set_name,
+                n_total=get_n_total(self.n_total_var.get()),
+                river_datasets=self.scenario_dict[self.task_name]["datasets"],
+            )
+        val = copy.deepcopy(dataset.iloc[0, -1])
+        target_type = check_type(val)
+        dataset = set_dataset_target_type(dataset=dataset, target="y")
+        train, test, n_samples = split_df(
+            dataset=dataset,
+            test_size=test_size,
+            target_type=target_type,
+            seed=seed,
+            shuffle=shuffle,
+            stratify=None,
+        )
+        return train, test, n_samples, target_type
 
-        fun_evals_entry.delete(0, tk.END)
-        fun_evals_entry.insert(0, str(fun_control["fun_evals"]))
+    def prepare_experiment(self):
+        log_level = 50
+        verbosity = 1
+        tolerance_x = np.sqrt(np.spacing(1))
+        ocba_delta = 0
+        repeats = 1
+        fun_repeats = 1
+        target_column = "y"
+        n_theta = 2
 
-        lin_entry.delete(0, tk.END)
-        lin_entry.insert(0, str(fun_control["_L_in"]))
+        task_name = self.task_frame.get_selected_optionmenu_item()
+        core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
+        # if self has the attribute select_prep_model_frame, get the selected optionmenu item
+        if hasattr(self, "select_prep_model_frame"):
+            prep_model_name = self.select_prep_model_frame.get_selected_optionmenu_item()
+            prepmodel = self.check_user_prep_model(prep_model_name=prep_model_name)
+        else:
+            prep_model_name = None
+            prepmodel = None
 
-        lout_entry.delete(0, tk.END)
-        lout_entry.insert(0, str(fun_control["_L_out"]))
+        data_set_name = self.select_data_frame.get_selected_optionmenu_item()
 
-        prefix_entry.delete(0, tk.END)
-        prefix_entry.insert(0, str(fun_control["PREFIX"]))
+        seed = int(self.seed_var.get())
+        test_size = self.test_size_var.get()
+        # if test_size contains a point, it is a float, otherwise an integer:
+        if "." in test_size:
+            test_size = float(test_size)
+        else:
+            test_size = int(test_size)
+        shuffle = map_to_True_False(self.shuffle_var.get())
+        if hasattr(self, "select_metric_sklearn_levels_frame"):
+            metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
+            metric_sklearn = get_metric_sklearn(metric_sklearn_name)
+        else:
+            metric_sklearn_name = None
+            metric_sklearn = None
 
-        max_time_entry.delete(0, tk.END)
-        max_time_entry.insert(0, str(fun_control["max_time"]))
+        n_total = get_n_total(self.n_total_var.get())
+        max_time = float(self.max_time_var.get())
+        fun_evals = get_fun_evals(self.fun_evals_var.get())
+        init_size = int(self.init_size_var.get())
+        noise = map_to_True_False(self.noise_var.get())
 
-        noise_entry.delete(0, tk.END)
-        noise_entry.insert(0, str(fun_control["noise"]))
+        lbd_min, lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
+        kriging_noise = get_kriging_noise(lbd_min, lbd_max)
+        max_surrogate_points = int(self.max_sp_var.get())
 
-        test_size_entry.delete(0, tk.END)
-        test_size_entry.insert(0, str(fun_control["test_size"]))
+        TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
+        self.tensorboard_start = map_to_True_False(self.tb_start_var.get())
+        self.tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
+        PREFIX = self.experiment_name_entry.get()
 
-        init_size_entry.delete(0, tk.END)
-        init_size_entry.insert(0, str(design_control["init_size"]))
-
-        destroy_entries(label)
-        destroy_entries(default_entry)
-        destroy_entries(lower_bound_entry)
-        destroy_entries(upper_bound_entry)
-        destroy_entries(transform_entry)
-        destroy_entries(select)
-
-        if factor_level_entry is not None:
-            for i in range(len(factor_level_entry)):
-                if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                    factor_level_entry[i].destroy()
-
-        update_entries_from_dict(fun_control["core_model_hyper_dict"])
-        # Modeloptions
-        core_model_combo.delete(0, tk.END)
-        # hier direkt über name zugreifen, da kein Objekt, sondern eine Klasse übergeben wird
-        core_model_combo.set(fun_control["core_model"].__name__)
-
-
-def call_parallel_plot():
-    if spot_tuner is not None:
-        parallel_plot(spot_tuner)
-
-
-def call_contour_plot():
-    if spot_tuner is not None:
-        contour_plot(spot_tuner)
-
-
-def call_progress_plot():
-    if spot_tuner is not None:
-        progress_plot(spot_tuner)
-
-
-def call_importance_plot():
-    if spot_tuner is not None:
-        importance_plot(spot_tuner)
-
-
-def selection_changed(i):
-    if factor_level_entry[i]["text"] == "":
-        factor_level_entry[i]["text"] = "Select something"
-
-
-def show_selection(choices, i):
-    global selectValue
-    factor_level_entry[i]["text"] = ""
-    first_element = True
-    all_selected = True  # Flag to check if all choices are selected
-    for j, (name, var) in enumerate(choices.items()):
-        if var.get() == 1:
-            if first_element:
-                factor_level_entry[i]["text"] = name
-                first_element = False
+        # ----------------- River specific ----------------- #
+        # dictionary name for the database
+        # similar for all spotRiver experiments
+        if self.scenario == "river":
+            db_dict_name = "spotRiver_db.json"
+            train, test, n_samples, target_type = self.prepare_data()
+            weights_entry = self.weights_var.get()
+            weights = get_weights(
+                self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item(), self.weights_var.get()
+            )
+            horizon = int(self.horizon_var.get())
+            oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+            self.fun = HyperRiver(log_level=log_level).fun_oml_horizon
+        elif self.scenario == "spotPython":
+            db_dict_name = None  # experimental, do not use
+            train = None
+            test = None
+            n_samples = None
+            target_type = None
+            weights = 1.0
+            weights_entry = None
+            horizon = None
+            oml_grace_period = None
+            self.fun = HyperLight(log_level=log_level).fun
+            if data_set_name.endswith(".csv"):
+                data_set = spotPythonCSVDataset(filename=data_set_name, directory="./userData/")
+            elif data_set_name.endswith(".pkl"):
+                data_set = spotPythonPKLDataset(filename=data_set_name, directory="./userData/")
             else:
-                factor_level_entry[i]["text"] += ", " + name
-        else:
-            all_selected = False  # Set flag to False if any choice is not selected
-    if all_selected:
-        selectValue[i].set(1)  # Check the checkbox if all choices are selected
-    else:
-        selectValue[i].set(0)  # Uncheck the checkbox if not all choices are selected
-    selection_changed(i)
+                raise ValueError("Invalid data set format. Check userData directory.")
+            n_samples = len(data_set)
+            print(f"Data set number of columns: {data_set.__ncols__()}")
+            # Set batch size for DataLoader
+            batch_size = 5
+            # Create DataLoader
+            from torch.utils.data import DataLoader
+            dataloader = DataLoader(data_set, batch_size=batch_size, shuffle=False)
+            # Iterate over the data in the DataLoader
+            for batch in dataloader:
+                inputs, targets = batch
+                print(f"Batch Size: {inputs.size(0)}")
+                print(f"Inputs Shape: {inputs.shape}")
+                print(f"Targets Shape: {targets.shape}")
+                print("---------------")
+                print(f"Inputs: {inputs}")
+                print(f"Targets: {targets}")
+                break
+
+        # ----------------- fun_control ----------------- #
+        self.fun_control = fun_control_init(
+            _L_in=data_set.__ncols__(),
+            _L_out=1,
+            _torchmetric=None,
+            PREFIX=PREFIX,
+            TENSORBOARD_CLEAN=TENSORBOARD_CLEAN,
+            core_model_name=core_model_name,
+            data_set_name=data_set_name,
+            data_set=data_set,
+            db_dict_name=db_dict_name,
+            fun_evals=fun_evals,
+            fun_repeats=fun_repeats,
+            horizon=horizon,
+            max_surrogate_points=max_surrogate_points,
+            max_time=max_time,
+            metric_sklearn=metric_sklearn,
+            metric_sklearn_name=metric_sklearn_name,
+            noise=noise,
+            n_samples=n_samples,
+            n_total=n_total,
+            ocba_delta=ocba_delta,
+            oml_grace_period=oml_grace_period,
+            prep_model=prepmodel,
+            prep_model_name=prep_model_name,
+            progress_file=self.progress_file,
+            scenario=self.scenario,
+            seed=seed,
+            shuffle=shuffle,
+            task=task_name,
+            target_column=target_column,
+            target_type=target_type,
+            test=test,
+            test_size=test_size,
+            train=train,
+            tolerance_x=tolerance_x,
+            verbosity=verbosity,
+            weights=weights,
+            weights_entry=weights_entry,
+            log_level=log_level,
+        )
+        coremodel, core_model_instance = get_core_model_from_name(core_model_name)
+        add_core_model_to_fun_control(
+            core_model=core_model_instance,
+            fun_control=self.fun_control,
+            hyper_dict=self.hyperdict,
+            filename=None,
+        )
+        dict = self.hyperdict().hyper_dict[coremodel]
+        num_dict = self.num_hp_frame.get_num_item()
+        cat_dict = self.cat_hp_frame.get_cat_item()
+        update_fun_control_with_hyper_num_cat_dicts(self.fun_control, num_dict, cat_dict, dict)
+
+        # ----------------- design_control ----------------- #
+        self.design_control = design_control_init(
+            init_size=init_size,
+            repeats=repeats,
+        )
+
+        # ----------------- surrogate_control ----------------- #
+        self.surrogate_control = surrogate_control_init(
+            # If lambda is set to 0, no noise will be used in the surrogate
+            # Otherwise use noise in the surrogate:
+            noise=kriging_noise,
+            n_theta=n_theta,
+            min_Lambda=lbd_min,
+            max_Lambda=lbd_max,
+            log_level=log_level,
+        )
+
+        # ----------------- optimizer_control ----------------- #
+        self.optimizer_control = optimizer_control_init()
+
+    def save_experiment(self):
+        self.prepare_experiment()
+        save_spot_python_experiment(
+            fun_control=self.fun_control,
+            design_control=self.design_control,
+            surrogate_control=self.surrogate_control,
+            optimizer_control=self.optimizer_control,
+            fun=self.fun
+        )
+        print("\nExperiment saved.")
+
+    def run_experiment(self):
+        self.prepare_experiment()
+        run_spot_python_experiment(
+            fun_control=self.fun_control,
+            design_control=self.design_control,
+            surrogate_control=self.surrogate_control,
+            optimizer_control=self.optimizer_control,
+            fun=self.fun,
+            tensorboard_start=self.tensorboard_start,
+            tensorboard_stop=self.tensorboard_stop,
+        )
+        print("\nExperiment finished.")
 
 
-def selectAll(choices, i):
-    global selectValue
-    if selectValue[i].get() == 1:
-        for name, var in choices.items():
-            var.set(1)
-    elif selectValue[i].get() == 0:
-        for name, var in choices.items():
-            var.set(0)
-    show_selection(choices, i)
+# TODO:
+# Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
+# > For now, only one type of penalty can be used. The joint use of L1 and L2 is not explicitly supported.
+# Therefore, we set l1 bounds to 0.0:
+# modify_hyper_parameter_bounds(fun_control, "l1", bounds=[0.0, 0.0])
+# set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
+# modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
 
-
-def destroy_entries(entries):
-    """
-    Destroys all non-None entries in the provided list of entries.
-
-    Args:
-        entries: A list of entries to be destroyed.
-
-    Returns:
-        None
-    """
-    if entries is not None:
-        for entry in entries:
-            if entry is not None:
-                entry.destroy()
-
-
-def update_entries_from_dict(dict):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
-    n_keys = len(dict)
-    # Create a list of labels and entries with the same length as the number of keys in the dictionary
-    label = [None] * n_keys
-    default_entry = [None] * n_keys
-    lower_bound_entry = [None] * n_keys
-    upper_bound_entry = [None] * n_keys
-    transform_entry = [None] * n_keys
-    factor_level_entry = [None] * n_keys
-    choices = [None] * n_keys
-    menu = [None] * n_keys
-    selectValue = [tk.IntVar(value=0) for _ in range(n_keys)]
-    select = [None] * n_keys
-    for i, (key, value) in enumerate(dict.items()):
-        if dict[key]["type"] == "int" or dict[key]["type"] == "float":
-            # Create a label with the key as text
-            label[i] = tk.Label(run_tab, text=key)
-            label[i].grid(row=i + 2, column=2, sticky="W")
-            label[i].update()
-            # Create an entry with the default value as the default text
-            default_entry[i] = tk.Entry(run_tab)
-            default_entry[i].insert(0, dict[key]["default"])
-            default_entry[i].grid(row=i + 2, column=3, sticky="W")
-            default_entry[i].update()
-            # add the lower bound values in column 2
-            lower_bound_entry[i] = tk.Entry(run_tab)
-            lower_bound_entry[i].insert(0, dict[key]["lower"])
-            lower_bound_entry[i].grid(row=i + 2, column=4, sticky="W")
-            # add the upper bound values in column 3
-            upper_bound_entry[i] = tk.Entry(run_tab)
-            upper_bound_entry[i].insert(0, dict[key]["upper"])
-            upper_bound_entry[i].grid(row=i + 2, column=5, sticky="W")
-            print(f"GUI: Insert hyperparam val: {key}, {lower_bound_entry[i].get()}, {upper_bound_entry[i].get()}")
-            # add the transformation values in column 6
-            transform_entry[i] = tk.Entry(run_tab)
-            transform_entry[i].insert(0, dict[key]["transform"])
-            transform_entry[i].grid(row=i + 2, column=6, sticky="W")
-        if dict[key]["type"] == "factor":
-            # Create a label with the key as text
-            label[i] = tk.Label(run_tab, text=key)
-            label[i].grid(row=i + 2, column=2, sticky="W")
-            label[i].update()
-            # Create an entry with the default value as the default text
-            default_entry[i] = tk.Entry(run_tab)
-            default_entry[i].insert(0, dict[key]["default"])
-            default_entry[i].grid(row=i + 2, column=3, sticky="W")
-            # Factor_Levels
-            pprint.pprint(dict)
-            print(f"dict[key]['levels']: {dict[key]['levels']}")
-            levels_text = dict[key]["levels"]
-            factor_level_entry[i] = tk.Menubutton(
-                run_tab, text=levels_text, indicatoron=True, borderwidth=1, relief="raised"
-            )
-            menu[i] = tk.Menu(factor_level_entry[i], tearoff=False)
-            print(f"menu[i]: {menu[i]}")
-            factor_level_entry[i].configure(menu=menu[i])
-            factor_level_entry[i].grid(row=i + 2, column=4, columnspan=2, sticky=tk.W + tk.E)
-            print(f"factor_level_entry[{i}]: {factor_level_entry[i]}")
-
-            choices[i] = {}
-            for choice in dict[key]["levels"]:
-                choices[i][choice] = tk.IntVar(value=0)
-                menu[i].add_checkbutton(
-                    label=choice,
-                    variable=choices[i][choice],
-                    onvalue=1,
-                    offvalue=0,
-                    command=lambda i=i, choices=choices[i]: show_selection(choices, i),
-                )
-
-            select[i] = tk.Checkbutton(
-                run_tab,
-                text="Select all",
-                variable=selectValue[i],
-                onvalue=1,
-                offvalue=0,
-                command=lambda i=i, choices=choices[i]: selectAll(choices, i),
-            )
-            select[i].grid(row=i + 2, column=6, sticky=tk.W)
-
-
-def update_hyperparams(event):
-    global label, default_entry, lower_bound_entry, upper_bound_entry, transform_entry, factor_level_entry, menu, choices, select, selectValue
-
-    destroy_entries(label)
-    destroy_entries(default_entry)
-    destroy_entries(lower_bound_entry)
-    destroy_entries(upper_bound_entry)
-    destroy_entries(transform_entry)
-    destroy_entries(select)
-
-    if factor_level_entry is not None:
-        for i in range(len(factor_level_entry)):
-            if factor_level_entry[i] is not None and not isinstance(factor_level_entry[i], StringVar):
-                factor_level_entry[i].destroy()
-
-    coremodel = core_model_combo.get()
-    # if model is a key in lhd.hyper_dict set dict = lhd.hyper_dict[model]
-    if coremodel in lhd.hyper_dict:
-        dict = lhd.hyper_dict[coremodel]
-    else:
-        dict = load_dict_from_file(coremodel, dirname="userModel")
-    update_entries_from_dict(dict)
-
-
-# Create the main application window
-app = tk.Tk()
-app.title("Spot Python Hyperparameter Tuning GUI")
-
-# generate a list of StringVar() objects of size n_keys
-for i in range(n_keys):
-    factor_level_entry.append(StringVar())
-    print(f"factor_level_entry[{i}]: {factor_level_entry[i]}")
-
-# Create a notebook (tabbed interface)
-notebook = ttk.Notebook(app)
-# notebook.pack(fill='both', expand=True)
-
-# Create and pack entry fields for the "Run" tab
-run_tab = ttk.Frame(notebook)
-notebook.add(run_tab, text="Pytorch Lightning")
-
-# colummns 0+1: Data
-
-data_label = tk.Label(run_tab, text="Data options:")
-data_label.grid(row=0, column=0, sticky="W")
-
-data_set_label = tk.Label(run_tab, text="Select data_set:")
-data_set_label.grid(row=1, column=0, sticky="W")
-data_set_values = ["Diabetes"]
-# get all *.csv files in the data directory "userData" and append them to the list of data_set_values
-data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
-data_set_combo = ttk.Combobox(run_tab, values=data_set_values)
-data_set_combo.set("Diabetes")  # Default selection
-data_set_combo.grid(row=1, column=1)
-
-feature_type_label = tk.Label(run_tab, text="torch feature_type:")
-feature_type_label.grid(row=2, column=0, sticky="W")
-feature_type_entry = tk.Entry(run_tab)
-feature_type_entry.insert(0, "float32")
-feature_type_entry.grid(row=2, column=1, sticky="W")
-
-target_type_label = tk.Label(run_tab, text="torch target_type:")
-target_type_label.grid(row=3, column=0, sticky="W")
-target_type_entry = tk.Entry(run_tab)
-target_type_entry.insert(0, "float32")
-target_type_entry.grid(row=3, column=1, sticky="W")
-
-target_column_label = tk.Label(run_tab, text="target_column:")
-target_column_label.grid(row=4, column=0, sticky="W")
-target_column_entry = tk.Entry(run_tab)
-target_column_entry.insert(0, "target")
-target_column_entry.grid(row=4, column=1, sticky="W")
-
-n_total_label = tk.Label(run_tab, text="n_total:")
-n_total_label.grid(row=5, column=0, sticky="W")
-n_total_entry = tk.Entry(run_tab)
-n_total_entry.insert(0, "All")
-n_total_entry.grid(row=5, column=1, sticky="W")
-
-test_size_label = tk.Label(run_tab, text="test_size:")
-test_size_label.grid(row=6, column=0, sticky="W")
-test_size_entry = tk.Entry(run_tab)
-test_size_entry.insert(0, "0.10")
-test_size_entry.grid(row=6, column=1, sticky="W")
-
-lin_label = tk.Label(run_tab, text="_L_in:")
-lin_label.grid(row=7, column=0, sticky="W")
-lin_entry = tk.Entry(run_tab)
-lin_entry.insert(0, "10")
-lin_entry.grid(row=7, column=1, sticky="W")
-
-lout_label = tk.Label(run_tab, text="_L_out:")
-lout_label.grid(row=8, column=0, sticky="W")
-lout_entry = tk.Entry(run_tab)
-lout_entry.insert(0, "1")
-lout_entry.grid(row=8, column=1, sticky="W")
-
-
-# columns 0+1: Experiment
-experiment_label = tk.Label(run_tab, text="Experiment options:")
-experiment_label.grid(row=9, column=0, sticky="W")
-
-max_time_label = tk.Label(run_tab, text="MAX_TIME:")
-max_time_label.grid(row=10, column=0, sticky="W")
-max_time_entry = tk.Entry(run_tab)
-max_time_entry.insert(0, "1")
-max_time_entry.grid(row=10, column=1)
-
-fun_evals_label = tk.Label(run_tab, text="FUN_EVALS:")
-fun_evals_label.grid(row=11, column=0, sticky="W")
-fun_evals_entry = tk.Entry(run_tab)
-fun_evals_entry.insert(0, "inf")
-fun_evals_entry.grid(row=11, column=1)
-
-init_size_label = tk.Label(run_tab, text="INIT_SIZE:")
-init_size_label.grid(row=12, column=0, sticky="W")
-init_size_entry = tk.Entry(run_tab)
-init_size_entry.insert(0, "6")
-init_size_entry.grid(row=12, column=1)
-
-prefix_label = tk.Label(run_tab, text="PREFIX:")
-prefix_label.grid(row=13, column=0, sticky="W")
-prefix_entry = tk.Entry(run_tab)
-prefix_entry.insert(0, "0000-0000")
-prefix_entry.grid(row=13, column=1)
-
-noise_label = tk.Label(run_tab, text="NOISE:")
-noise_label.grid(row=14, column=0, sticky="W")
-noise_entry = tk.Entry(run_tab)
-noise_entry.insert(0, "True")
-noise_entry.grid(row=14, column=1)
-
-
-# colummns 2 - 5: Model
-model_label = tk.Label(run_tab, text="Model options:")
-model_label.grid(row=0, column=2, sticky="W")
-
-model_label = tk.Label(run_tab, text="Default values:")
-model_label.grid(row=0, column=3, sticky="W")
-
-model_label = tk.Label(run_tab, text="Lower bounds:")
-model_label.grid(row=0, column=4, sticky="W")
-
-model_label = tk.Label(run_tab, text="Upper bounds:")
-model_label.grid(row=0, column=5, sticky="W")
-
-model_label = tk.Label(run_tab, text="Transformation:")
-model_label.grid(row=0, column=6, sticky="W")
-
-core_model_label = tk.Label(run_tab, text="Core model")
-core_model_label.grid(row=1, column=2, sticky="W")
-core_model_values = ["NetLightRegression", "TransformerLightRegression"]
-for filename in os.listdir("userModel"):
-    if filename.endswith(".json"):
-        core_model_values.append(os.path.splitext(filename)[0])
-core_model_combo = ttk.Combobox(run_tab, values=core_model_values)
-core_model_combo.set("Select model")  # Default selection
-core_model_combo.bind("<<ComboboxSelected>>", update_hyperparams)
-core_model_combo.grid(row=1, column=3)
-
-
-# column 8: Save and run button
-save_button = ttk.Button(run_tab, text="Save Experiment", command=lambda: run_experiment(save_only=True))
-save_button.grid(row=7, column=8, columnspan=2, sticky="E")
-run_button = ttk.Button(run_tab, text="Run Experiment", command=run_experiment)
-run_button.grid(row=8, column=8, columnspan=2, sticky="E")
-load_button = ttk.Button(run_tab, text="Load Experiment", command=load_experiment)
-load_button.grid(row=9, column=8, columnspan=2, sticky="E")
-
-# Create and pack the "Analysis" tab with a button to run the analysis
-analysis_tab = ttk.Frame(notebook)
-notebook.add(analysis_tab, text="Analysis")
-
-notebook.pack()
-
-# Add the Logo image in both tabs
-logo_image = tk.PhotoImage(file="images/spotlogo.png")
-logo_label = tk.Label(run_tab, image=logo_image)
-logo_label.grid(row=0, column=8, rowspan=1, columnspan=1)
-
-analysis_label = tk.Label(analysis_tab, text="Analysis options:")
-analysis_label.grid(row=0, column=1, sticky="W")
-
-progress_plot_button = ttk.Button(analysis_tab, text="Progress plot", command=call_progress_plot)
-progress_plot_button.grid(row=1, column=1, columnspan=2, sticky="W")
-
-importance_plot_button = ttk.Button(analysis_tab, text="Importance plot", command=call_importance_plot)
-importance_plot_button.grid(row=3, column=1, columnspan=2, sticky="W")
-
-contour_plot_button = ttk.Button(analysis_tab, text="Contour plot", command=call_contour_plot)
-contour_plot_button.grid(row=4, column=1, columnspan=2, sticky="W")
-
-parallel_plot_button = ttk.Button(analysis_tab, text="Parallel plot (Browser)", command=call_parallel_plot)
-parallel_plot_button.grid(row=5, column=1, columnspan=2, sticky="W")
-
-analysis_logo_label = tk.Label(analysis_tab, image=logo_image)
-analysis_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
-
-# TODO: Add logo to river tab
-# river_logo_label = tk.Label(river_tab, image=logo_image)
-# river_logo_label.grid(row=0, column=6, rowspan=1, columnspan=1)
-
-# Run the mainloop
-app.mainloop()
+if __name__ == "__main__":
+    customtkinter.set_appearance_mode("light")
+    customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+    app = spotPythonApp()
+    app.mainloop()

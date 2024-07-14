@@ -17,7 +17,11 @@ class SelectOptionMenuFrame(customtkinter.CTkFrame):
         self.optionmenu_var.set(item_default)
 
     def get_selected_optionmenu_item(self):
-        return self.optionmenu_var.get()
+        # if self.optionmenu_var exists, return the value of the optionmenu_var
+        if self.optionmenu_var:
+            return self.optionmenu_var.get()
+        else:
+            return None
 
     def set_selected_optionmenu_item(self, item):
         self.optionmenu_var.set(item)

@@ -88,7 +88,22 @@ def get_river_prep_models():
     return prep_models
 
 
+# ---------------- spotPython entries ---------------- #
+
+
+def get_spotpython_regression_core_model_names():
+    regression_core_model_names = [
+        "light.regression.NNLinearRegressor",
+    ]
+    # for filename in os.listdir("userModel"):
+    #     if filename.endswith(".json"):
+    #         regression_core_model_names.append(os.path.splitext(filename)[0])
+    return regression_core_model_names
+
+
 # ---------------- sklearn entries ---------------- #
+
+
 def get_classification_metric_sklearn_levels():
     classification_metric_sklearn_levels = [
         "accuracy_score",
@@ -194,6 +209,12 @@ def get_scenario_dict(scenario) -> dict:
         scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["rules_task"]["prep_models"] = copy.deepcopy(prep_models)
+        return scenario_dict
+    elif scenario == "spotPython":
+        scenario_entries = get_scenario_entries()
+        scenario_dict = {"regression_task": copy.deepcopy(scenario_entries)}
+        scenario_dict["regression_task"]["core_model_names"] = get_spotpython_regression_core_model_names()
+        scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
         return scenario_dict
     else:
         return None

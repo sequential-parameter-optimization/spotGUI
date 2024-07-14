@@ -245,6 +245,7 @@ class CTkApp(customtkinter.CTk):
         self.task_frame.configure(width=500)
         #
         # ................. Core Model Frame ....................................... #
+        print(f"scenario_dict = {self.scenario_dict}")
         self.core_model_name = self.scenario_dict[self.task_name]["core_model_names"][0]
         # Uncomment to get user defined core models (not useful for spotRiver):
         # for filename in os.listdir("userModel"):
@@ -256,19 +257,22 @@ class CTkApp(customtkinter.CTk):
         #
         # ................. Prep Model Frame ....................................... #
         # create select prep model frame inside sidebar frame
-        self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
-        self.prep_model_values.extend(
-            [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
-        )
-        self.select_prep_model_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.select_prep_model_frame_event,
-            item_list=self.prep_model_values,
-            item_default=None,
-            title="Select Prep Model",
-        )
-        self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
-        self.select_prep_model_frame.configure(width=500)
+        # if key "prep_models" exists in the scenario_dict, get the prep models from the scenario_dict
+        if "prep_models" in self.scenario_dict[self.task_name]:
+            self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
+            if self.prep_model_values is not None:
+                self.prep_model_values.extend(
+                    [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
+                )
+                self.select_prep_model_frame = SelectOptionMenuFrame(
+                    master=self.sidebar_frame,
+                    command=self.select_prep_model_frame_event,
+                    item_list=self.prep_model_values,
+                    item_default=None,
+                    title="Select Prep Model",
+                )
+                self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
+                self.select_prep_model_frame.configure(width=500)
         #
         #  ................. Data Frame ....................................... #
         # select data frame in data main frame
@@ -712,9 +716,10 @@ class CTkApp(customtkinter.CTk):
             print(f'Core model set to loaded core model:{self.fun_control["core_model_name"]}')
             self.core_model_name = self.fun_control["core_model_name"]
             #
-            self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
-            print(f'Prep model set to loaded prep model:{self.fun_control["prep_model_name"]}')
-            self.prep_model_name = self.fun_control["prep_model_name"]
+            if "prep_models" in self.scenario_dict[self.task_name]:
+                self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
+                print(f'Prep model set to loaded prep model:{self.fun_control["prep_model_name"]}')
+                self.prep_model_name = self.fun_control["prep_model_name"]
             #
             self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
             print(f'Data set set to loaded data set:{self.fun_control["data_set_name"]}')
