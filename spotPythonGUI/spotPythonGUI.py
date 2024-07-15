@@ -38,17 +38,17 @@ from spotPython.hyperparameters.values import (
 )
 from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.fun.hyperlight import HyperLight
+from spotPython.fun.hypersklearn import HyperSklearn
 
 
 class spotPythonApp(CTkApp):
     def __init__(self):
         super().__init__()
-
-        self.scenario = "spotPython"
-        self.hyperdict = LightHyperDict
         self.title("spotRiver GUI")
         self.logo_text = "    SPOTPython"
 
+        self.scenario = "river"
+        self.hyperdict = RiverHyperDict
         self.task_name = "regression_task"
         self.scenario_dict = get_scenario_dict(scenario=self.scenario)
         pprint.pprint(self.scenario_dict)
@@ -63,44 +63,6 @@ class spotPythonApp(CTkApp):
         # create experiment main frame with widgets in row 0 and column 1
         #
         self.make_experiment_frame()
-        # # ................. Experiment_Eval Frame .......................................#
-        # # create experiment_eval frame with widgets in experiment_main frame
-        # self.experiment_eval_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
-        # self.experiment_eval_frame.grid(row=4, column=0, sticky="ew")
-        # #
-        # # experiment_eval frame title
-        # self.experiment_eval_frame_title = customtkinter.CTkLabel(
-        #     self.experiment_eval_frame, text="Eval Options", font=customtkinter.CTkFont(weight="bold"), corner_radius=6
-        # )
-        # self.experiment_eval_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
-        # #
-        # # weights entry in experiment_model frame
-        # self.weights_label = customtkinter.CTkLabel(self.experiment_eval_frame, text="weights", corner_radius=6)
-        # self.weights_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
-        # self.weights_var = customtkinter.StringVar(value="1000, 1, 1")
-        # self.weights_entry = customtkinter.CTkEntry(
-        #     self.experiment_eval_frame, textvariable=self.weights_var, width=self.entry_width
-        # )
-        # self.weights_entry.grid(row=1, column=1, padx=0, pady=10, sticky="w")
-        # # horizon entry in experiment_model frame
-        # self.horizon_label = customtkinter.CTkLabel(self.experiment_eval_frame, text="horizon", corner_radius=6)
-        # self.horizon_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
-        # self.horizon_var = customtkinter.StringVar(value="10")
-        # self.horizon_entry = customtkinter.CTkEntry(
-        #     self.experiment_eval_frame, textvariable=self.horizon_var, width=self.entry_width
-        # )
-        # self.horizon_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
-        # # oml_grace_periond entry in experiment_model frame
-        # self.oml_grace_period_label = customtkinter.CTkLabel(
-        #     self.experiment_eval_frame, text="oml_grace_period", corner_radius=6
-        # )
-        # self.oml_grace_period_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
-        # self.oml_grace_period_var = customtkinter.StringVar(value="None")
-        # self.oml_grace_period_entry = customtkinter.CTkEntry(
-        #     self.experiment_eval_frame, textvariable=self.oml_grace_period_var, width=self.entry_width
-        # )
-        # self.oml_grace_period_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-
         # ---------------------------------------------------------------------- #
         # ------------------ 2 Hyperparameter Main Frame ----------------------- #
         # ---------------------------------------------------------------------- #
@@ -183,13 +145,6 @@ class spotPythonApp(CTkApp):
         self.textbox.configure(height=20, width=10)
         self.textbox.insert(tk.END, "Welcome to SPOTPython\n")
         #
-        # Start the thread that will update the text area
-        # update_thread = threading.Thread(target=self.update_text, daemon=True)
-        # update_thread.start()
-        # e = ThreadPoolExecutor(max_workers=1)
-        # e.submit(self.update_text)
-        # e.shutdown(wait=False)
-
         # ---------------------------------------------------------------------- #
 
     # -------------- River specific plots ----------------- #
@@ -285,6 +240,7 @@ class spotPythonApp(CTkApp):
             metric_sklearn_name = None
             metric_sklearn = None
 
+        n_cols = None  # number of features in the data_set
         n_total = get_n_total(self.n_total_var.get())
         max_time = float(self.max_time_var.get())
         fun_evals = get_fun_evals(self.fun_evals_var.get())
@@ -304,7 +260,8 @@ class spotPythonApp(CTkApp):
         # dictionary name for the database
         # similar for all spotRiver experiments
         if self.scenario == "river":
-            db_dict_name = "spotRiver_db.json"
+            data_set = None
+            db_dict_name = None  # experimental, do not use
             train, test, n_samples, target_type = self.prepare_data()
             weights_entry = self.weights_var.get()
             weights = get_weights(
@@ -313,7 +270,7 @@ class spotPythonApp(CTkApp):
             horizon = int(self.horizon_var.get())
             oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
             self.fun = HyperRiver(log_level=log_level).fun_oml_horizon
-        elif self.scenario == "spotPython":
+        elif self.scenario == "lightning":
             db_dict_name = None  # experimental, do not use
             train = None
             test = None
@@ -331,6 +288,7 @@ class spotPythonApp(CTkApp):
             else:
                 raise ValueError("Invalid data set format. Check userData directory.")
             n_samples = len(data_set)
+            n_cols = data_set.__ncols__()
             print(f"Data set number of columns: {data_set.__ncols__()}")
             # Set batch size for DataLoader
             batch_size = 5
@@ -347,10 +305,15 @@ class spotPythonApp(CTkApp):
                 print(f"Inputs: {inputs}")
                 print(f"Targets: {targets}")
                 break
+        elif self.scenario == "sklearn":
+            data_set = None
+            db_dict_name = None  # experimental, do not use
+            train, test, n_samples, target_type = self.prepare_data()
+            self.fun = HyperSklearn(log_level=log_level).fun_sklearn
 
         # ----------------- fun_control ----------------- #
         self.fun_control = fun_control_init(
-            _L_in=data_set.__ncols__(),
+            _L_in=n_cols, # number of input features
             _L_out=1,
             _torchmetric=None,
             PREFIX=PREFIX,

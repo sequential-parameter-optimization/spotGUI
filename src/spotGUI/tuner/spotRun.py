@@ -88,10 +88,10 @@ def get_river_prep_models():
     return prep_models
 
 
-# ---------------- spotPython entries ---------------- #
+# ---------------- lightning entries ---------------- #
 
 
-def get_spotpython_regression_core_model_names():
+def get_lightning_regression_core_model_names():
     regression_core_model_names = [
         "light.regression.NNLinearRegressor",
     ]
@@ -189,13 +189,13 @@ def get_scenario_dict(scenario) -> dict:
             get_scenario_dict("river")
 
     """
+    scenario_entries = get_scenario_entries()
+    scenario_dict = {
+        "classification_task": copy.deepcopy(scenario_entries),
+        "regression_task": copy.deepcopy(scenario_entries),
+        "rules_task": copy.deepcopy(scenario_entries),
+    }
     if scenario == "river":
-        scenario_entries = get_scenario_entries()
-        scenario_dict = {
-            "classification_task": copy.deepcopy(scenario_entries),
-            "regression_task": copy.deepcopy(scenario_entries),
-            "rules_task": copy.deepcopy(scenario_entries),
-        }
         scenario_dict["classification_task"]["core_model_names"] = get_river_classification_core_model_names()
         scenario_dict["classification_task"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
         scenario_dict["classification_task"]["datasets"] = get_river_binary_classification_datasets()
@@ -210,11 +210,12 @@ def get_scenario_dict(scenario) -> dict:
         scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["rules_task"]["prep_models"] = copy.deepcopy(prep_models)
         return scenario_dict
-    elif scenario == "spotPython":
-        scenario_entries = get_scenario_entries()
+    elif scenario == "lightning":
         scenario_dict = {"regression_task": copy.deepcopy(scenario_entries)}
-        scenario_dict["regression_task"]["core_model_names"] = get_spotpython_regression_core_model_names()
+        scenario_dict["regression_task"]["core_model_names"] = get_lightning_regression_core_model_names()
         scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
+        return scenario_dict
+    elif scenario == "sklearn":
         return scenario_dict
     else:
         return None

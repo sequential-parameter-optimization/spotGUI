@@ -7,6 +7,7 @@ from spotGUI.tuner.spotRun import (
     contour_plot,
     importance_plot,
     load_file_dialog,
+    get_scenario_dict,
 )
 from PIL import Image
 import time
@@ -17,6 +18,9 @@ from spotGUI.ctk.SelectOptions import SelectOptionMenuFrame
 from spotGUI.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
 from spotPython.utils.file import load_experiment as load_experiment_spot
 from spotPython.hyperparameters.values import get_prep_model, get_core_model_from_name
+from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
+from spotPython.hyperdict.light_hyper_dict import LightHyperDict
+from spotPython.hyperdict.sklearn_hyper_dict import SklearnHyperDict
 
 
 class CTkApp(customtkinter.CTk):
@@ -30,7 +34,7 @@ class CTkApp(customtkinter.CTk):
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
         self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "spotlogo.png")), size=(85, 37))
-        self.geometry(f"{1600}x{900}")
+        self.geometry(f"{1600}x{1200}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
@@ -138,6 +142,25 @@ class CTkApp(customtkinter.CTk):
         self.select_core_model_frame.configure(width=500)
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
 
+    def create_prep_model_frame(self, row, column):
+        if self.scenario == "lightning":
+            self.select_prep_model_frame.destroy()
+        else:
+            self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
+            if self.prep_model_values is not None:
+                self.prep_model_values.extend(
+                    [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
+                )
+                self.select_prep_model_frame = SelectOptionMenuFrame(
+                    master=self.sidebar_frame,
+                    command=self.select_prep_model_frame_event,
+                    item_list=self.prep_model_values,
+                    item_default=None,
+                    title="Select Prep Model",
+                )
+                self.select_prep_model_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nsew")
+                self.select_prep_model_frame.configure(width=500)
+
     def create_select_data_frame(self, row, column):
         data_set_values = copy.deepcopy(self.scenario_dict[self.task_name]["datasets"])
         data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
@@ -191,6 +214,32 @@ class CTkApp(customtkinter.CTk):
         print(f"Metric sklearn modified: {self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()}")
         self.metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
 
+    def change_scenario_event(self, new_scenario: str):
+        print(f"Scenario changed to: {new_scenario}")
+        self.scenario_dict = get_scenario_dict(scenario=new_scenario)
+        if new_scenario == "river":
+            self.scenario = "river"
+            self.hyperdict = RiverHyperDict
+        elif new_scenario == "sklearn":
+            self.scenario = "sklearn"
+            self.hyperdict = SklearnHyperDict
+        elif new_scenario == "lightning":
+            self.scenario = "lightning"
+            self.hyperdict = LightHyperDict
+        else:
+            print("Error: Scenario not found")
+        self.select_prep_model_frame.destroy()
+        self.create_prep_model_frame(row=3, column=0)
+        self.select_core_model_frame.destroy()
+        self.create_core_model_frame(row=4, column=0)
+        self.num_hp_frame.destroy()
+        self.create_num_hp_frame()
+        self.cat_hp_frame.destroy()
+        self.create_cat_hp_frame()
+        self.select_data_frame.destroy()
+        self.create_select_data_frame(row=5, column=0)
+        self.create_experiment_eval_frame()
+
     def change_task_event(self, new_task: str):
         print(f"Task changed to: {new_task}")
         if new_task == "Binary Classification":
@@ -201,14 +250,16 @@ class CTkApp(customtkinter.CTk):
             self.task_name = "rules_task"
         else:
             print("Error: Task not found")
+        self.select_prep_model_frame.destroy()
+        self.create_prep_model_frame(row=3, column=0)
         self.select_core_model_frame.destroy()
-        self.create_core_model_frame(row=2, column=0)
+        self.create_core_model_frame(row=4, column=0)
         self.num_hp_frame.destroy()
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
         self.select_data_frame.destroy()
-        self.create_select_data_frame(row=4, column=0)
+        self.create_select_data_frame(row=5, column=0)
 
     def run_button_event(self):
         self.run_experiment()
@@ -232,6 +283,17 @@ class CTkApp(customtkinter.CTk):
         )
         self.logo_label.grid(row=0, column=0, padx=10, pady=(7.5, 2.5), sticky="ew")
         #
+        # ................. Scenario Frame ....................................... #
+        # create scenario frame inside sidebar frame
+        self.scenario_frame = SelectOptionMenuFrame(
+            master=self.sidebar_frame,
+            command=self.change_scenario_event,
+            item_list=["lightning", "sklearn", "river"],
+            item_default="river",
+            title="Select Scenario",
+        )
+        self.scenario_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
+        self.scenario_frame.configure(width=500)
         # ................. Task Frame ....................................... #
         # create task frame inside sidebar frame
         self.task_frame = SelectOptionMenuFrame(
@@ -241,8 +303,14 @@ class CTkApp(customtkinter.CTk):
             item_default="Regression",
             title="Select Task",
         )
-        self.task_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
+        self.task_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
         self.task_frame.configure(width=500)
+        #
+        # ................. Prep Model Frame ....................................... #
+        # create select prep model frame inside sidebar frame
+        # if key "prep_models" exists in the scenario_dict, get the prep models from the scenario_dict
+        if "prep_models" in self.scenario_dict[self.task_name]:
+            self.create_prep_model_frame(row=3, column=0)
         #
         # ................. Core Model Frame ....................................... #
         print(f"scenario_dict = {self.scenario_dict}")
@@ -251,32 +319,11 @@ class CTkApp(customtkinter.CTk):
         # for filename in os.listdir("userModel"):
         #     if filename.endswith(".json"):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
-
         # create core model frame inside sidebar frame
-        self.create_core_model_frame(row=2, column=0)
-        #
-        # ................. Prep Model Frame ....................................... #
-        # create select prep model frame inside sidebar frame
-        # if key "prep_models" exists in the scenario_dict, get the prep models from the scenario_dict
-        if "prep_models" in self.scenario_dict[self.task_name]:
-            self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
-            if self.prep_model_values is not None:
-                self.prep_model_values.extend(
-                    [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
-                )
-                self.select_prep_model_frame = SelectOptionMenuFrame(
-                    master=self.sidebar_frame,
-                    command=self.select_prep_model_frame_event,
-                    item_list=self.prep_model_values,
-                    item_default=None,
-                    title="Select Prep Model",
-                )
-                self.select_prep_model_frame.grid(row=3, column=0, padx=15, pady=15, sticky="nsew")
-                self.select_prep_model_frame.configure(width=500)
-        #
+        self.create_core_model_frame(row=4, column=0)  #
         #  ................. Data Frame ....................................... #
         # select data frame in data main frame
-        self.create_select_data_frame(row=4, column=0)
+        self.create_select_data_frame(row=5, column=0)
         #
         # # create plot data button
         # self.plot_data_button = customtkinter.CTkButton(
@@ -293,7 +340,7 @@ class CTkApp(customtkinter.CTk):
             item_default=None,
             title="Select sklearn metric",
         )
-        self.select_metric_sklearn_levels_frame.grid(row=5, column=0, padx=15, pady=15, sticky="nsew")
+        self.select_metric_sklearn_levels_frame.grid(row=7, column=0, padx=15, pady=15, sticky="nsew")
         self.select_metric_sklearn_levels_frame.configure(width=500)
         #
         # ................. Appearance Frame ....................................... #
@@ -307,7 +354,7 @@ class CTkApp(customtkinter.CTk):
             item_default="System",
             title="Appearance Mode",
         )
-        self.appearance_frame.grid(row=6, column=0, padx=15, pady=15, sticky="ew")
+        self.appearance_frame.grid(row=8, column=0, padx=15, pady=15, sticky="ew")
         #
         self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
         self.scaling_label.grid(row=2, column=0, padx=20, pady=(10, 0))
@@ -447,6 +494,9 @@ class CTkApp(customtkinter.CTk):
             offvalue="False",
         )
         self.noise_checkbox.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # ................. River: Experiment_Eval Options Frame .................................#
+        self.create_experiment_eval_frame()
 
     def make_hyperparameter_frame(self):
         self.hp_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -708,6 +758,7 @@ class CTkApp(customtkinter.CTk):
                 self.optimizer_control,
             ) = load_experiment_spot(filename)
             #
+            self.scenario_frame.set_selected_optionmenu_item(self.fun_control["scenario"])
             self.task_frame.set_selected_optionmenu_item(self.fun_control["task"])
             print(f'Task set to loaded tast:{self.fun_control["task"]}')
             self.change_task_event(self.fun_control["task"])
@@ -804,3 +855,48 @@ class CTkApp(customtkinter.CTk):
             self.loaded_label.configure(text=self.experiment_name)
             self.experiment_name_entry.delete(0, "end")
             self.experiment_name_entry.insert(0, self.experiment_name)
+
+    def create_experiment_eval_frame(self):
+        if self.scenario == "river":
+            # ................. Experiment_Eval Frame .......................................#
+            # create experiment_eval frame with widgets in experiment_main frame
+            self.experiment_eval_frame = customtkinter.CTkFrame(self.experiment_main_frame, corner_radius=6)
+            self.experiment_eval_frame.grid(row=4, column=0, sticky="ew")
+            #
+            # experiment_eval frame title
+            self.experiment_eval_frame_title = customtkinter.CTkLabel(
+                self.experiment_eval_frame,
+                text="Eval Options",
+                font=customtkinter.CTkFont(weight="bold"),
+                corner_radius=6,
+            )
+            self.experiment_eval_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsew")
+            #
+            # weights entry in experiment_model frame
+            self.weights_label = customtkinter.CTkLabel(self.experiment_eval_frame, text="weights", corner_radius=6)
+            self.weights_label.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="w")
+            self.weights_var = customtkinter.StringVar(value="1000, 1, 1")
+            self.weights_entry = customtkinter.CTkEntry(
+                self.experiment_eval_frame, textvariable=self.weights_var, width=self.entry_width
+            )
+            self.weights_entry.grid(row=1, column=1, padx=0, pady=10, sticky="w")
+            # horizon entry in experiment_model frame
+            self.horizon_label = customtkinter.CTkLabel(self.experiment_eval_frame, text="horizon", corner_radius=6)
+            self.horizon_label.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="w")
+            self.horizon_var = customtkinter.StringVar(value="10")
+            self.horizon_entry = customtkinter.CTkEntry(
+                self.experiment_eval_frame, textvariable=self.horizon_var, width=self.entry_width
+            )
+            self.horizon_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+            # oml_grace_periond entry in experiment_model frame
+            self.oml_grace_period_label = customtkinter.CTkLabel(
+                self.experiment_eval_frame, text="oml_grace_period", corner_radius=6
+            )
+            self.oml_grace_period_label.grid(row=3, column=0, padx=0, pady=(10, 0), sticky="w")
+            self.oml_grace_period_var = customtkinter.StringVar(value="None")
+            self.oml_grace_period_entry = customtkinter.CTkEntry(
+                self.experiment_eval_frame, textvariable=self.oml_grace_period_var, width=self.entry_width
+            )
+            self.oml_grace_period_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+        elif self.scenario == "lightning" or "sklearn":
+            self.experiment_eval_frame.destroy()
