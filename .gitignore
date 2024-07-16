@@ -74,3 +74,4 @@ spot_test_report.txt
 spotRiverGUI/test_output.py
 spotRiverGUI/spotPython_db.json
 spotPythonGUI/db_dicts/spotPython_db.json
+spotPythonGUI/progress.txt

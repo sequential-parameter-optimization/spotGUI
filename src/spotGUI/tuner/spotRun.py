@@ -12,6 +12,8 @@ from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.utils.file import load_experiment
 from spotPython.utils.metrics import get_metric_sign
+from spotPython.utils.file import get_experiment_from_PREFIX
+
 
 import river
 from river import compose
@@ -509,6 +511,10 @@ def run_spot_python_experiment(
     if os.path.exists("progress.txt"):
         os.remove("progress.txt")
     print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
+    config = get_experiment_from_PREFIX(fun_control["PREFIX"])["config"]
+    print(f"\nBest configuration (transformed hyperparameter values) for experiment {fun_control['PREFIX']}:")
+    pprint.pprint(config)
+    print(f"Min y (mean min y if repeats): {spot_tuner.min_mean_y}")
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:

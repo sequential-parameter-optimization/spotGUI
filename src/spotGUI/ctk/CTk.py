@@ -186,6 +186,17 @@ class CTkApp(customtkinter.CTk):
         self.select_data_frame.configure(width=500)
         self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
 
+    def create_metric_sklearn_levels_frame(self, row, column):
+        self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(
+            master=self.sidebar_frame,
+            command=self.select_metric_sklearn_levels_frame_event,
+            item_list=self.scenario_dict[self.task_name]["metric_sklearn_levels"],
+            item_default=None,
+            title="Select sklearn metric",
+        )
+        self.select_metric_sklearn_levels_frame.grid(row=row, column=0, padx=15, pady=15, sticky="nsew")
+        self.select_metric_sklearn_levels_frame.configure(width=500)
+
     def select_core_model_frame_event(self, new_core_model: str):
         self.core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
         self.num_hp_frame.destroy()
@@ -216,9 +227,12 @@ class CTkApp(customtkinter.CTk):
             print(f"prep_model_name = {prep_model_name}")
             __import__(prep_model_name)
             prepmodel = sys.modules[prep_model_name].set_prep_model()
-        else:
+        elif self.scenario == "river":
             # get the river prep model from river.preprocessing
             prepmodel = get_river_prep_model(prep_model_name)
+        else:
+            # get the prep model from the sklearn.preprocessing module
+            prepmodel = get_prep_model(prep_model_name)
         return prepmodel
 
     def select_metric_sklearn_levels_frame_event(self, new_metric_sklearn_levels: str):
@@ -271,6 +285,8 @@ class CTkApp(customtkinter.CTk):
         self.create_cat_hp_frame()
         self.select_data_frame.destroy()
         self.create_select_data_frame(row=5, column=0)
+        self.select_metric_sklearn_levels_frame.destroy()
+        self.create_metric_sklearn_levels_frame(row=6, column=0)
 
     def run_button_event(self):
         self.run_experiment()

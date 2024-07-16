@@ -40,6 +40,7 @@ from spotPython.hyperparameters.values import (
 from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.fun.hypersklearn import HyperSklearn
+from spotPython.utils.metrics import get_metric_sign
 
 
 class spotPythonApp(CTkApp):
@@ -360,7 +361,7 @@ class spotPythonApp(CTkApp):
             print(f"test: {test}")
             print(f"n_samples: {n_samples}")
             print(f"target_type: {target_type}")
-            weights = 1.0
+            weights = get_metric_sign(metric_sklearn_name)
             weights_entry = None
             horizon = None
             oml_grace_period = None
