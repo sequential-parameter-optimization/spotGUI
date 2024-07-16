@@ -17,7 +17,10 @@ import sys
 from spotGUI.ctk.SelectOptions import SelectOptionMenuFrame
 from spotGUI.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
 from spotPython.utils.file import load_experiment as load_experiment_spot
-from spotPython.hyperparameters.values import get_prep_model, get_core_model_from_name
+from spotPython.hyperparameters.values import (get_river_prep_model,
+                                               get_river_core_model_from_name,
+                                               get_core_model_from_name,
+                                               get_prep_model)
 from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotPython.hyperdict.sklearn_hyper_dict import SklearnHyperDict
@@ -96,7 +99,10 @@ class CTkApp(customtkinter.CTk):
 
         self.num_hp_frame.grid(row=1, column=0, padx=0, pady=0, sticky="nsew")
         self.num_hp_frame.add_header()
-        coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
+        if self.scenario == "river":
+            coremodel, core_model_instance = get_river_core_model_from_name(self.core_model_name)
+        else:
+            coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
         if dict is None:
             dict = self.hyperdict().hyper_dict[coremodel]
         for i, (key, value) in enumerate(dict.items()):
@@ -116,7 +122,10 @@ class CTkApp(customtkinter.CTk):
     def create_cat_hp_frame(self, dict=None):
         self.cat_hp_frame = CatHyperparameterFrame(master=self.hp_main_frame, command=self.label_button_frame_event)
         self.cat_hp_frame.grid(row=2, column=0, padx=0, pady=0, sticky="nsew")
-        coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
+        if self.scenario == "river":
+            coremodel, core_model_instance = get_river_core_model_from_name(self.core_model_name)
+        else:
+            coremodel, core_model_instance = get_core_model_from_name(self.core_model_name)
         if dict is None:
             dict = self.hyperdict().hyper_dict[coremodel]
         empty = True
@@ -207,7 +216,7 @@ class CTkApp(customtkinter.CTk):
             prepmodel = sys.modules[prep_model_name].set_prep_model()
         else:
             # get the river prep model from river.preprocessing
-            prepmodel = get_prep_model(prep_model_name)
+            prepmodel = get_river_prep_model(prep_model_name)
         return prepmodel
 
     def select_metric_sklearn_levels_frame_event(self, new_metric_sklearn_levels: str):

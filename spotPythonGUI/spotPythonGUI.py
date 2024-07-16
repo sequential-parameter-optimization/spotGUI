@@ -33,6 +33,7 @@ from spotRiver.utils.data_conversion import split_df
 from spotPython.hyperparameters.values import (
     add_core_model_to_fun_control,
     get_core_model_from_name,
+    get_river_core_model_from_name,
     get_metric_sklearn,
     update_fun_control_with_hyper_num_cat_dicts,
 )
@@ -183,7 +184,7 @@ class spotPythonApp(CTkApp):
         else:
             test_size = int(test_size)
         shuffle = map_to_True_False(self.shuffle_var.get())
-        if self.scenario == "river":
+        if self.scenario == "river" or self.scenario == "sklearn":
             data_set_name = self.select_data_frame.get_selected_optionmenu_item()
             dataset, n_samples = get_river_dataset_from_name(
                 data_set_name=data_set_name,
@@ -212,6 +213,7 @@ class spotPythonApp(CTkApp):
         fun_repeats = 1
         target_column = "y"
         n_theta = 2
+        eval = None
 
         task_name = self.task_frame.get_selected_optionmenu_item()
         core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
@@ -306,11 +308,19 @@ class spotPythonApp(CTkApp):
                 print(f"Targets: {targets}")
                 break
         elif self.scenario == "sklearn":
+            eval = "eval_test"
             data_set = None
             db_dict_name = None  # experimental, do not use
             train, test, n_samples, target_type = self.prepare_data()
+            print(f"train: {train}")
+            print(f"test: {test}")
+            print(f"n_samples: {n_samples}")
+            print(f"target_type: {target_type}")
+            weights = 1.0
+            weights_entry = None
+            horizon = None
+            oml_grace_period = None
             self.fun = HyperSklearn(log_level=log_level).fun_sklearn
-
         # ----------------- fun_control ----------------- #
         self.fun_control = fun_control_init(
             _L_in=n_cols, # number of input features
@@ -322,6 +332,7 @@ class spotPythonApp(CTkApp):
             data_set_name=data_set_name,
             data_set=data_set,
             db_dict_name=db_dict_name,
+            eval=eval,
             fun_evals=fun_evals,
             fun_repeats=fun_repeats,
             horizon=horizon,
@@ -352,7 +363,10 @@ class spotPythonApp(CTkApp):
             weights_entry=weights_entry,
             log_level=log_level,
         )
-        coremodel, core_model_instance = get_core_model_from_name(core_model_name)
+        if self.scenario == "river":
+            coremodel, core_model_instance = get_river_core_model_from_name(core_model_name)
+        else:
+            coremodel, core_model_instance = get_core_model_from_name(core_model_name)
         add_core_model_to_fun_control(
             core_model=core_model_instance,
             fun_control=self.fun_control,

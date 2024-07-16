@@ -16,8 +16,9 @@ from spotPython.utils.metrics import get_metric_sign
 import river
 from river import compose
 import river.preprocessing
-import river
 
+import sklearn
+import sklearn.preprocessing
 
 from spotRiver.evaluation.eval_bml import eval_oml_horizon
 from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics, plot_bml_oml_horizon_predictions
@@ -26,9 +27,62 @@ from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
 from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
 from spotPython.utils.file import get_experiment_filename
+from spotPython.utils.eda import gen_design_table
 
+
+# ---------------- sklearn entries ---------------- #
+
+
+def get_sklearn_classification_core_model_names():
+    classification_core_model_names = [
+        "ensemble.RandomForestClassifier",
+        "ensemble.HistGradientBoostingClassifier",
+        "ensemble.GradientBoostingClassifier",
+        "linear_model.LogisticRegression",
+        "neighbors.KNeighborsClassifier",
+        "svm.SVC",
+    ]
+    return classification_core_model_names
+
+
+# def get_sklearn_binary_classification_datasets():
+#     river_binary_classification_datasets = [
+#         "Phishing",
+#         "Bananas",
+#         "CreditCard",
+#         "Elec2",
+#         "Higgs",
+#         "HTTP",
+#     ]
+#     return river_binary_classification_datasets
+
+
+def get_sklearn_regression_core_model_names():
+    regression_core_model_names = [
+        "ensemble.RandomForestRegressor",
+        "ensemble.GradientBoostingRegressor",
+        "linear_model.RidgeCV",
+    ]
+    return regression_core_model_names
+
+
+# def get_sklearn_regression_datasets():
+#     river_regression_datasets = ["ChickWeights", "Bikes", "Taxis", "TrumpApproval"]
+#     return river_regression_datasets
+
+
+def get_sklearn_prep_models():
+    prep_models = [
+        "None",
+        "MaxAbsScaler",
+        "MinMaxScaler",
+        "StandardScaler",
+    ]
+    return prep_models
 
 # ---------------- river entries ---------------- #
+
+
 def get_river_classification_core_model_names():
     classification_core_model_names = [
         "linear_model.LogisticRegression",
@@ -79,11 +133,11 @@ def get_river_regression_datasets():
 
 def get_river_prep_models():
     prep_models = [
+        "None",
         "AdaptiveStandardScaler",
         "MaxAbsScaler",
         "MinMaxScaler",
         "StandardScaler",
-        "None",
     ]
     return prep_models
 
@@ -216,6 +270,13 @@ def get_scenario_dict(scenario) -> dict:
         scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
         return scenario_dict
     elif scenario == "sklearn":
+        scenario_dict["classification_task"]["core_model_names"] = get_sklearn_classification_core_model_names()
+        scenario_dict["classification_task"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
+        scenario_dict["regression_task"]["core_model_names"] = get_sklearn_regression_core_model_names()
+        scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
+        prep_models = get_sklearn_prep_models()
+        scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
+        scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
         return scenario_dict
     else:
         return None
@@ -447,6 +508,7 @@ def run_spot_python_experiment(
     # if file progress.txt exists, delete it
     if os.path.exists("progress.txt"):
         os.remove("progress.txt")
+    print(gen_design_table(fun_control=fun_control, spot=spot_tuner))
 
 
 def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
@@ -802,7 +864,7 @@ def get_oml_grace_period(oml_grace_period) -> int:
 
 def get_weights(metric_name, metric_weights, default_weights=["1000,1,1"]) -> np.array:
     """
-    Returns the weights for the metric.
+    River. Returns the weights for the metric.
 
     Args:
         metric_name (str): The name of the metric.
