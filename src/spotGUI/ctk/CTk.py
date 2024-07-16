@@ -17,10 +17,12 @@ import sys
 from spotGUI.ctk.SelectOptions import SelectOptionMenuFrame
 from spotGUI.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
 from spotPython.utils.file import load_experiment as load_experiment_spot
-from spotPython.hyperparameters.values import (get_river_prep_model,
-                                               get_river_core_model_from_name,
-                                               get_core_model_from_name,
-                                               get_prep_model)
+from spotPython.hyperparameters.values import (
+    get_river_prep_model,
+    get_river_core_model_from_name,
+    get_core_model_from_name,
+    get_prep_model,
+)
 from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
 from spotPython.hyperdict.sklearn_hyper_dict import SklearnHyperDict
@@ -276,6 +278,9 @@ class CTkApp(customtkinter.CTk):
 
     def save_button_event(self):
         self.save_experiment()
+
+    def print_data_botton_event(self):
+        self.print_data()
 
     def make_sidebar_frame(self):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=240, corner_radius=0)
@@ -678,16 +683,21 @@ class CTkApp(customtkinter.CTk):
         )
         self.experiment_run_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         #
+        # create print_data button
+        self.print_data_button = customtkinter.CTkButton(
+            master=self.experiment_run_frame, text="Print Data", command=self.print_data_botton_event
+        )
+        self.print_data_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         # create save button
         self.save_button = customtkinter.CTkButton(
             master=self.experiment_run_frame, text="Save", command=self.save_button_event
         )
-        self.save_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        self.save_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
         # create run button
         self.run_button = customtkinter.CTkButton(
             master=self.experiment_run_frame, text="Run", command=self.run_button_event
         )
-        self.run_button.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        self.run_button.grid(row=4, column=0, sticky="ew", padx=10, pady=10)
 
     def make_analysis_frame(self):
         self.analysis_main_frame = customtkinter.CTkFrame(self, corner_radius=0)

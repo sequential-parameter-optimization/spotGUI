@@ -27,7 +27,6 @@ from spotPython.plot.validation import plot_confusion_matrix
 from spotPython.hyperparameters.values import get_one_core_model_from_X
 from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
 from spotPython.utils.file import get_experiment_filename
-from spotPython.utils.eda import gen_design_table
 
 
 # ---------------- sklearn entries ---------------- #
@@ -79,6 +78,7 @@ def get_sklearn_prep_models():
         "StandardScaler",
     ]
     return prep_models
+
 
 # ---------------- river entries ---------------- #
 

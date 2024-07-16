@@ -175,7 +175,7 @@ class spotPythonApp(CTkApp):
         #           n_samples=1000)
         print("\nData shown. No result saved.")
 
-    def prepare_data(self):
+    def get_data(self):
         seed = int(self.seed_var.get())
         test_size = self.test_size_var.get()
         # if test_size contains a point, it is a float, otherwise an integer:
@@ -194,6 +194,50 @@ class spotPythonApp(CTkApp):
         val = copy.deepcopy(dataset.iloc[0, -1])
         target_type = check_type(val)
         dataset = set_dataset_target_type(dataset=dataset, target="y")
+        return dataset, n_samples, target_type, seed, test_size, shuffle
+
+    def print_data(self):
+        if self.scenario == "lightning":
+            data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+            print(f"\nData set name: {data_set_name}")
+            if data_set_name.endswith(".csv"):
+                data_set = spotPythonCSVDataset(filename=data_set_name, directory="./userData/")
+            elif data_set_name.endswith(".pkl"):
+                data_set = spotPythonPKLDataset(filename=data_set_name, directory="./userData/")
+            else:
+                raise ValueError("Invalid data set format. Check userData directory.")
+            n_samples = len(data_set)
+            print(f"Number of samples: {n_samples}")
+            n_cols = data_set.__ncols__()
+            print(f"Data set number of columns: {n_cols}")
+            # Set batch size for DataLoader
+            batch_size = 5
+            # Create DataLoader
+            from torch.utils.data import DataLoader
+            dataloader = DataLoader(data_set, batch_size=batch_size, shuffle=False)
+            # Iterate over the data in the DataLoader
+            for batch in dataloader:
+                inputs, targets = batch
+                print(f"Batch Size for Display: {inputs.size(0)}")
+                print(f"Inputs Shape: {inputs.shape}")
+                print(f"Targets Shape: {targets.shape}")
+                print("---------------")
+                print(f"Inputs: {inputs}")
+                print(f"Targets: {targets}")
+                break
+        else:
+            dataset, n_samples, target_type, seed, test_size, shuffle = self.get_data()
+            print("\nDataset in prepare_data():")
+            print(f"n_samples: {n_samples}")
+            print(f"target_type: {target_type}")
+            print(f"seed: {seed}")
+            print(f"test_size: {test_size}")
+            print(f"shuffle: {shuffle}")
+            print(f"{dataset.describe(include='all')}")
+            print(f"Header of the dataset:\n {dataset.head()}")
+
+    def prepare_data(self):
+        dataset, n_samples, target_type, seed, test_size, shuffle = self.get_data()
         train, test, n_samples = split_df(
             dataset=dataset,
             test_size=test_size,
