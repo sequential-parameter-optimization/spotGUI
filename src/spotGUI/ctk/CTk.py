@@ -22,6 +22,7 @@ from spotPython.hyperparameters.values import (
     get_river_core_model_from_name,
     get_core_model_from_name,
     get_prep_model,
+    get_sklearn_scaler,
 )
 from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
@@ -172,6 +173,29 @@ class CTkApp(customtkinter.CTk):
                 self.select_prep_model_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nsew")
                 self.select_prep_model_frame.configure(width=500)
 
+    def create_scaler_frame(self, row, column):
+        if self.scenario == "lightning" or self.scenario == "river":
+            self.select_scaler_frame.destroy()
+        else:
+            self.scaler_values = self.scenario_dict[self.task_name]["scalers"]
+            directory = "userScaler"
+            if os.path.exists(directory):
+                self.scaler_values.extend(
+                    [f for f in os.listdir(directory) if f.endswith(".py") and not f.startswith("__")]
+                )
+            if self.scaler_values is not None:
+                self.select_scaler_frame = SelectOptionMenuFrame(
+                    master=self.sidebar_frame,
+                    command=self.select_scaler_frame_event,
+                    item_list=self.scaler_values,
+                    item_default=None,
+                    title="Select Scaler",
+                )
+                self.select_scaler_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nsew")
+                self.select_scaler_frame.configure(width=500)
+            else:
+                self.select_scaler_frame = None
+
     def create_select_data_frame(self, row, column):
         data_set_values = copy.deepcopy(self.scenario_dict[self.task_name]["datasets"])
         data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
@@ -207,6 +231,9 @@ class CTkApp(customtkinter.CTk):
     def select_prep_model_frame_event(self, new_prep_model: str):
         print(f"Prep Model modified: {self.select_prep_model_frame.get_selected_optionmenu_item()}")
 
+    def select_scaler_frame_event(self, new_scaler: str):
+        print(f"Scaler modified: {self.select_scaler_frame.get_selected_optionmenu_item()}")
+
     def check_user_prep_model(self, prep_model_name) -> object:
         """Check if the prep model is a user defined prep model.
         If it is a user defined prep model, import the prep model from the userPrepModel directory.
@@ -235,6 +262,32 @@ class CTkApp(customtkinter.CTk):
             prepmodel = get_prep_model(prep_model_name)
         return prepmodel
 
+    def check_user_scaler(self, scaler_name) -> object:
+        """Check if the scaler is a user defined scaler.
+        Aplies to sklearn and lightning scenarios.
+        If it is a user defined scaler, import the scaler from the userScaler directory.
+        Otherwise, get the scaler from the sklearn.preprocessing module.
+
+        Args:
+            scaler_name (str): The name of the scaler.
+
+        Returns:
+            scaler: The scaler object.
+
+        """
+        if scaler_name.endswith(".py"):
+            print(f"scaler_name = {scaler_name}")
+            sys.path.insert(0, "./userScaler")
+            # remove the file extension from the scaler_name
+            scaler_name = scaler_name[:-3]
+            print(f"scaler_name = {scaler_name}")
+            __import__(scaler_name)
+            scaler = sys.modules[scaler_name].set_scaler()
+        else:
+            # get the prep model from the sklearn.preprocessing module
+            scaler = get_sklearn_scaler(scaler_name)
+        return scaler
+
     def select_metric_sklearn_levels_frame_event(self, new_metric_sklearn_levels: str):
         print(f"Metric sklearn modified: {self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()}")
         self.metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
@@ -242,12 +295,15 @@ class CTkApp(customtkinter.CTk):
     def change_scenario_event(self, new_scenario: str):
         print(f"Scenario changed to: {new_scenario}")
         self.scenario_dict = get_scenario_dict(scenario=new_scenario)
+        if hasattr(self, "select_scaler_frame"):
+            self.select_scaler_frame.destroy()
         if new_scenario == "river":
             self.scenario = "river"
             self.hyperdict = RiverHyperDict
         elif new_scenario == "sklearn":
             self.scenario = "sklearn"
             self.hyperdict = SklearnHyperDict
+            self.create_scaler_frame(row=4, column=0)
         elif new_scenario == "lightning":
             self.scenario = "lightning"
             self.hyperdict = LightHyperDict
@@ -256,13 +312,13 @@ class CTkApp(customtkinter.CTk):
         self.select_prep_model_frame.destroy()
         self.create_prep_model_frame(row=3, column=0)
         self.select_core_model_frame.destroy()
-        self.create_core_model_frame(row=4, column=0)
+        self.create_core_model_frame(row=5, column=0)
         self.num_hp_frame.destroy()
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
         self.select_data_frame.destroy()
-        self.create_select_data_frame(row=5, column=0)
+        self.create_select_data_frame(row=6, column=0)
         self.create_experiment_eval_frame()
 
     def change_task_event(self, new_task: str):
@@ -277,16 +333,19 @@ class CTkApp(customtkinter.CTk):
             print("Error: Task not found")
         self.select_prep_model_frame.destroy()
         self.create_prep_model_frame(row=3, column=0)
+        if hasattr(self, "select_scaler_frame"):
+            self.select_scaler_frame.destroy()
+            self.create_scaler_frame(row=4, column=0)
         self.select_core_model_frame.destroy()
-        self.create_core_model_frame(row=4, column=0)
+        self.create_core_model_frame(row=5, column=0)
         self.num_hp_frame.destroy()
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
         self.select_data_frame.destroy()
-        self.create_select_data_frame(row=5, column=0)
+        self.create_select_data_frame(row=6, column=0)
         self.select_metric_sklearn_levels_frame.destroy()
-        self.create_metric_sklearn_levels_frame(row=6, column=0)
+        self.create_metric_sklearn_levels_frame(row=7, column=0)
 
     def run_button_event(self):
         self.run_experiment()
@@ -342,6 +401,12 @@ class CTkApp(customtkinter.CTk):
         if "prep_models" in self.scenario_dict[self.task_name]:
             self.create_prep_model_frame(row=3, column=0)
         #
+        # ................. Scaler Frame ....................................... #
+        # create select scaler frame inside sidebar frame
+        # if key "scaler" exists in the scenario_dict, get the scaler from the scenario_dict
+        if "scalers" in self.scenario_dict[self.task_name]:
+            self.create_scaler_frame(row=4, column=0)
+        #
         # ................. Core Model Frame ....................................... #
         print(f"scenario_dict = {self.scenario_dict}")
         self.core_model_name = self.scenario_dict[self.task_name]["core_model_names"][0]
@@ -350,10 +415,10 @@ class CTkApp(customtkinter.CTk):
         #     if filename.endswith(".json"):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
         # create core model frame inside sidebar frame
-        self.create_core_model_frame(row=4, column=0)  #
+        self.create_core_model_frame(row=5, column=0)  #
         #  ................. Data Frame ....................................... #
         # select data frame in data main frame
-        self.create_select_data_frame(row=5, column=0)
+        self.create_select_data_frame(row=6, column=0)
         #
         # # create plot data button
         # self.plot_data_button = customtkinter.CTkButton(
@@ -806,6 +871,11 @@ class CTkApp(customtkinter.CTk):
                 self.select_prep_model_frame.set_selected_optionmenu_item(self.fun_control["prep_model_name"])
                 print(f'Prep model set to loaded prep model:{self.fun_control["prep_model_name"]}')
                 self.prep_model_name = self.fun_control["prep_model_name"]
+            #
+            if "scalers" in self.scenario_dict[self.task_name]:
+                self.select_scaler_frame.set_selected_optionmenu_item(self.fun_control["scaler_name"])
+                print(f'Scaler set to loaded scaler:{self.fun_control["scaler_name"]}')
+                self.scaler_name = self.fun_control["scaler_name"]
             #
             self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
             print(f'Data set set to loaded data set:{self.fun_control["data_set_name"]}')

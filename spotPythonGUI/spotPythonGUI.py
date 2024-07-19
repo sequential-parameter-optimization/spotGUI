@@ -270,6 +270,14 @@ class spotPythonApp(CTkApp):
             prep_model_name = None
             prepmodel = None
 
+        # if self has the attribute select_scaler_frame, get the selected optionmenu item
+        if hasattr(self, "select_scaler_frame"):
+            scaler_name = self.select_scaler_frame.get_selected_optionmenu_item()
+            scaler = self.check_user_prep_model(prep_model_name=scaler_name)
+        else:
+            scaler_name = None
+            scaler = None
+        
         data_set_name = self.select_data_frame.get_selected_optionmenu_item()
 
         seed = int(self.seed_var.get())
@@ -353,7 +361,7 @@ class spotPythonApp(CTkApp):
                 print(f"Targets: {targets}")
                 break
         elif self.scenario == "sklearn":
-            eval = "eval_test"
+            eval = "evaluate_hold_out" # "eval_test" #
             data_set = None
             db_dict_name = None  # experimental, do not use
             train, test, n_samples, target_type = self.prepare_data()
@@ -393,6 +401,8 @@ class spotPythonApp(CTkApp):
             prep_model=prepmodel,
             prep_model_name=prep_model_name,
             progress_file=self.progress_file,
+            scaler=scaler,
+            scaler_name=scaler_name,
             scenario=self.scenario,
             seed=seed,
             shuffle=shuffle,

@@ -36,10 +36,10 @@ from spotPython.utils.file import get_experiment_filename
 
 def get_sklearn_classification_core_model_names():
     classification_core_model_names = [
+        "linear_model.LogisticRegression",
         "ensemble.RandomForestClassifier",
         "ensemble.HistGradientBoostingClassifier",
         "ensemble.GradientBoostingClassifier",
-        "linear_model.LogisticRegression",
         "neighbors.KNeighborsClassifier",
         "svm.SVC",
     ]
@@ -60,9 +60,9 @@ def get_sklearn_classification_core_model_names():
 
 def get_sklearn_regression_core_model_names():
     regression_core_model_names = [
+        "linear_model.RidgeCV",
         "ensemble.RandomForestRegressor",
         "ensemble.GradientBoostingRegressor",
-        "linear_model.RidgeCV",
     ]
     return regression_core_model_names
 
@@ -80,6 +80,16 @@ def get_sklearn_prep_models():
         "StandardScaler",
     ]
     return prep_models
+
+
+def get_sklearn_scalers():
+    scalers = [
+        "None",
+        "MaxAbsScaler",
+        "MinMaxScaler",
+        "StandardScaler",
+    ]
+    return scalers
 
 
 # ---------------- river entries ---------------- #
@@ -279,6 +289,9 @@ def get_scenario_dict(scenario) -> dict:
         prep_models = get_sklearn_prep_models()
         scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
+        scalers = get_sklearn_scalers()
+        scenario_dict["classification_task"]["scalers"] = copy.deepcopy(scalers)
+        scenario_dict["regression_task"]["scalers"] = copy.deepcopy(scalers)
         return scenario_dict
     else:
         return None
