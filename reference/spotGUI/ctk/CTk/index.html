@@ -2028,7 +2028,25 @@
 <span class="normal">1004</span>
 <span class="normal">1005</span>
 <span class="normal">1006</span>
-<span class="normal">1007</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
+<span class="normal">1007</span>
+<span class="normal">1008</span>
+<span class="normal">1009</span>
+<span class="normal">1010</span>
+<span class="normal">1011</span>
+<span class="normal">1012</span>
+<span class="normal">1013</span>
+<span class="normal">1014</span>
+<span class="normal">1015</span>
+<span class="normal">1016</span>
+<span class="normal">1017</span>
+<span class="normal">1018</span>
+<span class="normal">1019</span>
+<span class="normal">1020</span>
+<span class="normal">1021</span>
+<span class="normal">1022</span>
+<span class="normal">1023</span>
+<span class="normal">1024</span>
+<span class="normal">1025</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># name of the progress file</span>
@@ -2308,6 +2326,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">hyperdict</span> <span class="o">=</span> <span class="n">LightHyperDict</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Scenario not found&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
+            <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">,</span> <span class="s2">&quot;Rules&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">change_task_event</span><span class="p">,</span>
+            <span class="n">item_list</span><span class="o">=</span><span class="n">item_list</span><span class="p">,</span>
+            <span class="n">item_default</span><span class="o">=</span><span class="s2">&quot;Regression&quot;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Task&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_core_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
@@ -2384,10 +2416,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="c1"># ................. Task Frame ....................................... #</span>
         <span class="c1"># create task frame inside sidebar frame</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
+            <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">,</span> <span class="s2">&quot;Rules&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
             <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">change_task_event</span><span class="p">,</span>
-            <span class="n">item_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">,</span> <span class="s2">&quot;Rules&quot;</span><span class="p">],</span>
+            <span class="n">item_list</span><span class="o">=</span><span class="n">item_list</span><span class="p">,</span>
             <span class="n">item_default</span><span class="o">=</span><span class="s2">&quot;Regression&quot;</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Task&quot;</span><span class="p">,</span>
         <span class="p">)</span>

@@ -2,57 +2,57 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/about/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/download/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/examples/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/hyperparameter-tuning-cookbook/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/reference/SUMMARY/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/reference/spotGUI/ctk/CTk/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/reference/spotGUI/ctk/HyperparameterFrame/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/reference/spotGUI/ctk/SelectOptions/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/reference/spotGUI/eda/pairplot/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/sequential-parameter-optimization/spotGUI/reference/spotGUI/tuner/spotRun/</loc>
-         <lastmod>2024-07-19</lastmod>
+         <lastmod>2024-07-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
