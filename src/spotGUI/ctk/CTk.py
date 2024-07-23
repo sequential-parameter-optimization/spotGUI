@@ -309,6 +309,20 @@ class CTkApp(customtkinter.CTk):
             self.hyperdict = LightHyperDict
         else:
             print("Error: Scenario not found")
+        self.task_frame.destroy()
+        if self.scenario == "river":
+            item_list = ["Binary Classification", "Regression", "Rules"]
+        else:
+            item_list = ["Binary Classification", "Regression"]
+        self.task_frame = SelectOptionMenuFrame(
+            master=self.sidebar_frame,
+            command=self.change_task_event,
+            item_list=item_list,
+            item_default="Regression",
+            title="Select Task",
+        )
+        self.task_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
+        self.task_frame.configure(width=500)
         self.select_prep_model_frame.destroy()
         self.create_prep_model_frame(row=3, column=0)
         self.select_core_model_frame.destroy()
@@ -385,10 +399,14 @@ class CTkApp(customtkinter.CTk):
         self.scenario_frame.configure(width=500)
         # ................. Task Frame ....................................... #
         # create task frame inside sidebar frame
+        if self.scenario == "river":
+            item_list = ["Binary Classification", "Regression", "Rules"]
+        else:
+            item_list = ["Binary Classification", "Regression"]
         self.task_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.change_task_event,
-            item_list=["Binary Classification", "Regression", "Rules"],
+            item_list=item_list,
             item_default="Regression",
             title="Select Task",
         )

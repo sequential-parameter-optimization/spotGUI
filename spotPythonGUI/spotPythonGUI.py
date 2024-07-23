@@ -11,6 +11,7 @@ from spotGUI.ctk.CTk import CTkApp, SelectOptionMenuFrame
 
 from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
 from spotPython.hyperdict.light_hyper_dict import LightHyperDict
+from spotPython.hyperdict.sklearn_hyper_dict import SklearnHyperDict
 from spotGUI.tuner.spotRun import (
     save_spot_python_experiment,
     run_spot_python_experiment,
