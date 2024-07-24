@@ -8,6 +8,11 @@ from spotGUI.tuner.spotRun import (
     importance_plot,
     load_file_dialog,
     get_scenario_dict,
+    actual_vs_prediction_river,
+    compare_river_tuned_default,
+    plot_confusion_matrices_river,
+    plot_rocs_river,
+    show_y_hist,
 )
 from PIL import Image
 import time
@@ -864,6 +869,88 @@ class CTkApp(customtkinter.CTk):
             master=self.analysis_hyperparameter_frame, text="Importance", command=self.plot_importance_button_event
         )
         self.importance_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # ................. Comparison_Analysis Frame .......................................#
+        # create analysis_comparison_frame with widgets in analysis_main frame
+        self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_comparison_frame.grid(row=5, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_comparison_frame_title = customtkinter.CTkLabel(
+            self.analysis_comparison_frame,
+            text="Comparisons",
+            font=customtkinter.CTkFont(weight="bold"),
+            corner_radius=6,
+        )
+        self.analysis_comparison_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        # create tuned default button
+        self.compare_river_tuned_default_button = customtkinter.CTkButton(
+            master=self.analysis_comparison_frame,
+            text="Tuned vs. default",
+            command=self.plot_tuned_default_button_event,
+        )
+        self.compare_river_tuned_default_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create actual prediction button
+        self.compare_actual_prediction_button = customtkinter.CTkButton(
+            master=self.analysis_comparison_frame,
+            text="Actual vs. prediction",
+            command=self.plot_actual_prediction_button_event,
+        )
+        self.compare_actual_prediction_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # ................. Classification_Analysis Frame .......................................#
+        # create analysis_classification_frame with widgets in analysis_main frame
+        self.analysis_classification_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
+        self.analysis_classification_frame.grid(row=6, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.analysis_classification_frame_title = customtkinter.CTkLabel(
+            self.analysis_classification_frame,
+            text="Classification",
+            font=customtkinter.CTkFont(weight="bold"),
+            corner_radius=6,
+        )
+        self.analysis_classification_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        #
+        # create confusion plot  button
+        self.confusion_button = customtkinter.CTkButton(
+            master=self.analysis_classification_frame, text="Confusion matrix", command=self.plot_confusion_button_event
+        )
+        self.confusion_button.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        #
+        # create roc button
+        self.roc_button = customtkinter.CTkButton(
+            master=self.analysis_classification_frame, text="ROC", command=self.plot_roc_button_event
+        )
+        self.roc_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
+
+    # -------------- River specific plots ----------------- #
+    def plot_tuned_default_button_event(self):
+        if self.spot_tuner is not None:
+            compare_river_tuned_default(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+
+    def plot_actual_prediction_button_event(self):
+        if self.spot_tuner is not None:
+            actual_vs_prediction_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control)
+
+    def plot_confusion_button_event(self):
+        if self.spot_tuner is not None:
+            plot_confusion_matrices_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+
+    def plot_roc_button_event(self):
+        if self.spot_tuner is not None:
+            plot_rocs_river(spot_tuner=self.spot_tuner, fun_control=self.fun_control, show=True)
+
+    def plot_data_button_event(self):
+        train, test, n_samples, target_type = self.prepare_data()
+        show_y_hist(train=train, test=test, target_column="y")
+        # TODO: show_data
+        # show_data(train=self.train,
+        #           test=self.test,
+        #           target_column=self.target_column,
+        #           n_samples=1000)
+        print("\nData shown. No result saved.")
 
     def load_button_event(self):
         filename = load_file_dialog()
