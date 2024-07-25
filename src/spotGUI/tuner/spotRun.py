@@ -209,17 +209,45 @@ def get_regression_metric_sklearn_levels():
 
 
 # ---------------- common scenario entries ---------------- #
-def get_scenario_entries():
+def get_scenario_entries() -> dict:
+    """Returns a dictionary with the scenario entries. This is similar to the fun_control dictionary,
+    but contains only the entries that are selected from the GUI.
+    Specifically, it contains the entries (as lists) for the core_model_names, metric_sklearn_levels, and datasets.
+
+    Returns:
+        dict: A dictionary with the scenario entries.
+
+    Examples:
+        >>> from spotGUI.tuner.spotRun import get_scenario_entries
+            get_scenario_entries()
+            {'core_model_names': [],
+            'metric_sklearn_levels': [],
+            'datasets': [],
+            'n_total_entry': None,
+            'target_type_entry': None,
+            'test_size_entry': None,
+            'shuffle': None,
+            'max_sp_entry': None,
+            'max_time_entry': None,
+            'fun_evals_entry': None,
+            'init_size_entry': None,
+            'noise_entry': None,
+            'lambda_min_max_entry': None,
+            'seed_entry': None,
+            'metric_weights_entry': None,
+            'horizon_entry': None,
+            'oml_grace_period_entry': None,
+            'prefix_entry': None,
+            'tb_clean': None,
+            'tb_start': None,
+            'tb_stop': None}"""
     scenario_entries = dict(
         core_model_names=[],
         metric_sklearn_levels=[],
         datasets=[],
-        core_model_combo=None,
-        data_set_combo=None,
         n_total_entry=None,
         target_type_entry=None,
         test_size_entry=None,
-        prep_model_combo=None,
         shuffle=None,
         max_sp_entry=None,
         max_time_entry=None,
@@ -228,7 +256,6 @@ def get_scenario_entries():
         noise_entry=None,
         lambda_min_max_entry=None,
         seed_entry=None,
-        metric_combo=None,
         metric_weights_entry=None,
         horizon_entry=None,
         oml_grace_period_entry=None,
@@ -252,8 +279,84 @@ def get_scenario_dict(scenario) -> dict:
 
     Examples:
         >>> from spotGUI.tuner.spotRun import get_scenario_dict
-            get_scenario_dict("river")
-
+            get_scenario_dict("sklearn")
+            {'classification_task': {'core_model_names': ['linear_model.LogisticRegression',
+                'ensemble.RandomForestClassifier',
+                'ensemble.HistGradientBoostingClassifier',
+                'ensemble.GradientBoostingClassifier',
+                'neighbors.KNeighborsClassifier',
+                'svm.SVC'],
+                'metric_sklearn_levels': ['accuracy_score',
+                'cohen_kappa_score',
+                'f1_score',
+                'hamming_loss',
+                'hinge_loss',
+                'jaccard_score',
+                'matthews_corrcoef',
+                'precision_score',
+                'recall_score',
+                'roc_auc_score',
+                'zero_one_loss'],
+                'datasets': [],
+                'n_total_entry': None,
+                'target_type_entry': None,
+                'test_size_entry': None,
+                'shuffle': None,
+                'max_sp_entry': None,
+                'max_time_entry': None,
+                'fun_evals_entry': None,
+                'init_size_entry': None,
+                'noise_entry': None,
+                'lambda_min_max_entry': None,
+                'seed_entry': None,
+                'metric_weights_entry': None,
+                'horizon_entry': None,
+                'oml_grace_period_entry': None,
+                'prefix_entry': None,
+                'tb_clean': None,
+                'tb_start': None,
+                'tb_stop': None,
+                'prep_models': ['None', 'MaxAbsScaler', 'MinMaxScaler', 'StandardScaler'],
+                'scalers': ['None', 'MaxAbsScaler', 'MinMaxScaler', 'StandardScaler']},
+                'regression_task': {'core_model_names': ['linear_model.RidgeCV',
+                'ensemble.RandomForestRegressor',
+                'ensemble.GradientBoostingRegressor'],
+                'metric_sklearn_levels': ['mean_absolute_error',
+                'explained_variance_score',
+                'max_error',
+                'mean_squared_error',
+                'root_mean_squared_error',
+                'mean_squared_log_error',
+                'root_mean_squared_log_error',
+                'median_absolute_error',
+                'r2_score',
+                'mean_poisson_deviance',
+                'mean_gamma_deviance',
+                'mean_absolute_percentage_error',
+                'd2_absolute_error_score',
+                'd2_pinball_score',
+                'd2_tweedie_score'],
+                'datasets': [],
+                'n_total_entry': None,
+                'target_type_entry': None,
+                'test_size_entry': None,
+                'shuffle': None,
+                'max_sp_entry': None,
+                'max_time_entry': None,
+                'fun_evals_entry': None,
+                'init_size_entry': None,
+                'noise_entry': None,
+                'lambda_min_max_entry': None,
+                'seed_entry': None,
+                'metric_weights_entry': None,
+                'horizon_entry': None,
+                'oml_grace_period_entry': None,
+                'prefix_entry': None,
+                'tb_clean': None,
+                'tb_start': None,
+                'tb_stop': None,
+                'prep_models': ['None', 'MaxAbsScaler', 'MinMaxScaler', 'StandardScaler'],
+                'scalers': ['None', 'MaxAbsScaler', 'MinMaxScaler', 'StandardScaler']}}
     """
     scenario_entries = get_scenario_entries()
     if scenario == "river":
@@ -265,26 +368,27 @@ def get_scenario_dict(scenario) -> dict:
         scenario_dict["classification_task"]["core_model_names"] = get_river_classification_core_model_names()
         scenario_dict["classification_task"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
         scenario_dict["classification_task"]["datasets"] = get_river_binary_classification_datasets()
+
         scenario_dict["regression_task"]["core_model_names"] = get_river_regression_core_model_names()
         scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
         scenario_dict["regression_task"]["datasets"] = get_river_regression_datasets()
+
         scenario_dict["rules_task"]["core_model_names"] = get_river_rules_core_model_names()
         scenario_dict["rules_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
         scenario_dict["rules_task"]["datasets"] = get_river_regression_datasets()
+
         prep_models = get_river_prep_models()
         scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["rules_task"]["prep_models"] = copy.deepcopy(prep_models)
         return scenario_dict
+
     elif scenario == "lightning":
-        scenario_dict = {
-            "classification_task": copy.deepcopy(scenario_entries),
-            "regression_task": copy.deepcopy(scenario_entries),
-        }
         scenario_dict = {"regression_task": copy.deepcopy(scenario_entries)}
         scenario_dict["regression_task"]["core_model_names"] = get_lightning_regression_core_model_names()
         scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
         return scenario_dict
+
     elif scenario == "sklearn":
         scenario_dict = {
             "classification_task": copy.deepcopy(scenario_entries),
@@ -292,11 +396,14 @@ def get_scenario_dict(scenario) -> dict:
         }
         scenario_dict["classification_task"]["core_model_names"] = get_sklearn_classification_core_model_names()
         scenario_dict["classification_task"]["metric_sklearn_levels"] = get_classification_metric_sklearn_levels()
+
         scenario_dict["regression_task"]["core_model_names"] = get_sklearn_regression_core_model_names()
         scenario_dict["regression_task"]["metric_sklearn_levels"] = get_regression_metric_sklearn_levels()
+
         prep_models = get_sklearn_prep_models()
         scenario_dict["classification_task"]["prep_models"] = copy.deepcopy(prep_models)
         scenario_dict["regression_task"]["prep_models"] = copy.deepcopy(prep_models)
+
         scalers = get_sklearn_scalers()
         scenario_dict["classification_task"]["scalers"] = copy.deepcopy(scalers)
         scenario_dict["regression_task"]["scalers"] = copy.deepcopy(scalers)
@@ -307,12 +414,22 @@ def get_scenario_dict(scenario) -> dict:
 
 def get_report_file_name(fun_control) -> str:
     """Returns the name of the report file.
+    The report file name is constructed from the PREFIX in the fun_control dictionary as follows:
+    "spot_" + PREFIX + "_report.txt".
 
     Args:
         fun_control (dict):
 
     Returns:
-        str: The name of the report file.
+        str:
+            The name of the report file.
+
+    Examples:
+        >>> from spotGUI.tuner.spotRun import get_report_file_name
+            from spotPython.utils.init import fun_control_init
+            fun_control = fun_control_init(PREFIX="test")
+            get_report_file_name(fun_control)
+            'spot_test_report.txt'
     """
     PREFIX = fun_control["PREFIX"]
     REP_NAME = "spot_" + PREFIX + "_report.txt"

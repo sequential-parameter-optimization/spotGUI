@@ -397,7 +397,7 @@ class CTkApp(customtkinter.CTk):
             master=self.sidebar_frame,
             command=self.change_scenario_event,
             item_list=["lightning", "sklearn", "river"],
-            item_default="river",
+            item_default=self.scenario,
             title="Select Scenario",
         )
         self.scenario_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
@@ -412,7 +412,7 @@ class CTkApp(customtkinter.CTk):
             master=self.sidebar_frame,
             command=self.change_task_event,
             item_list=item_list,
-            item_default="Regression",
+            item_default=self.task_name,
             title="Select Task",
         )
         self.task_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
@@ -1109,4 +1109,5 @@ class CTkApp(customtkinter.CTk):
             )
             self.oml_grace_period_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
         elif self.scenario == "lightning" or "sklearn":
-            self.experiment_eval_frame.destroy()
+            if hasattr(self, "experiment_eval_frame"):
+                self.experiment_eval_frame.destroy()

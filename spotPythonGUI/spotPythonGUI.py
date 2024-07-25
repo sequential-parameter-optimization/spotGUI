@@ -4,6 +4,7 @@ import tkinter as tk
 import customtkinter
 import pprint
 import os
+import pickle
 import numpy as np
 import copy
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
@@ -37,16 +38,20 @@ from spotRiver.fun.hyperriver import HyperRiver
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.fun.hypersklearn import HyperSklearn
 from spotPython.utils.metrics import get_metric_sign
+from spotPython.utils.scaler import TorchStandardScaler
 
 
 class spotPythonApp(CTkApp):
     def __init__(self):
         super().__init__()
-        self.title("spotRiver GUI")
+        self.title("spotPython GUI")
         self.logo_text = "    SPOTPython"
 
-        self.scenario = "river"
-        self.hyperdict = RiverHyperDict
+        # self.scenario = "river"
+        # self.hyperdict = RiverHyperDict
+        self.scenario = "sklearn"
+        self.hyperdict = SklearnHyperDict
+
         self.task_name = "regression_task"
         self.scenario_dict = get_scenario_dict(scenario=self.scenario)
         pprint.pprint(self.scenario_dict)
@@ -107,14 +112,18 @@ class spotPythonApp(CTkApp):
             print(f"\nData set name: {data_set_name}")
             if data_set_name.endswith(".csv"):
                 data_set = spotPythonCSVDataset(filename=data_set_name, directory="./userData/")
-            elif data_set_name.endswith(".pkl"):
+            elif data_set_name.endswith(".pkl") and not data_set_name.startswith("tensor_"):
                 data_set = spotPythonPKLDataset(filename=data_set_name, directory="./userData/")
+            elif data_set_name.endswith(".pkl") and data_set_name.startswith("tensor_"):
+                filename = os.path.join("./userData/", data_set_name)
+                with open(filename, 'rb') as f:
+                    data_set = pickle.load(f)
             else:
                 raise ValueError("Invalid data set format. Check userData directory.")
             n_samples = len(data_set)
             print(f"Number of samples: {n_samples}")
-            n_cols = data_set.__ncols__()
-            print(f"Data set number of columns: {n_cols}")
+            # n_cols = data_set.__ncols__()
+            # print(f"Data set number of columns: {n_cols}")
             # Set batch size for DataLoader
             batch_size = 5
             # Create DataLoader
@@ -231,6 +240,8 @@ class spotPythonApp(CTkApp):
             self.fun = HyperRiver(log_level=log_level).fun_oml_horizon
         elif self.scenario == "lightning":
             db_dict_name = None  # experimental, do not use
+            scaler = TorchStandardScaler()
+            scaler_name = "TorchStandardScaler"
             train = None
             test = None
             n_samples = None
@@ -242,13 +253,20 @@ class spotPythonApp(CTkApp):
             self.fun = HyperLight(log_level=log_level).fun
             if data_set_name.endswith(".csv"):
                 data_set = spotPythonCSVDataset(filename=data_set_name, directory="./userData/")
-            elif data_set_name.endswith(".pkl"):
+            elif data_set_name.endswith(".pkl") and not data_set_name.startswith("tensor_"):
                 data_set = spotPythonPKLDataset(filename=data_set_name, directory="./userData/")
+            elif data_set_name.endswith(".pkl") and data_set_name.startswith("tensor_"):
+                filename = os.path.join("./userData/", data_set_name)
+                with open(filename, 'rb') as f:
+                    data_set = pickle.load(f)
             else:
                 raise ValueError("Invalid data set format. Check userData directory.")
             n_samples = len(data_set)
-            n_cols = data_set.__ncols__()
-            print(f"Data set number of columns: {data_set.__ncols__()}")
+            if hasattr(data_set, "__ncols__"):
+                n_cols = data_set.__ncols__()
+            else:
+                n_cols = data_set.__getitem__(0)[0].shape[0]
+            print(f"Data set number of columns: {n_cols}")
             # Set batch size for DataLoader
             batch_size = 5
             # Create DataLoader
