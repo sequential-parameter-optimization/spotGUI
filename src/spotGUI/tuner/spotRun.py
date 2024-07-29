@@ -655,29 +655,6 @@ def run_spot_python_experiment(
     print(f"Min y (mean min y if repeats): {spot_tuner.min_mean_y}")
 
 
-def load_and_run_spot_python_experiment(spot_pkl_name) -> spot.Spot:
-    """Loads and runs a spot experiment.
-
-    Args:
-        spot_pkl_name (str): The name of the spot experiment file.
-
-    Returns:
-        spot.Spot: The spot experiment.
-
-    """
-    p_open = None
-    (spot_tuner, fun_control, design_control, surrogate_control, optimizer_control) = load_experiment(spot_pkl_name)
-    print("\nLoaded fun_control in spotRun():")
-    pprint.pprint(fun_control)
-    print(gen_design_table(fun_control))
-    p_open = start_tensorboard()
-    spot_tuner.run()
-    spot_tuner.save_experiment()
-    # tensorboard --logdir="runs/"
-    stop_tensorboard(p_open)
-    return spot_tuner, fun_control, design_control, surrogate_control, optimizer_control, p_open
-
-
 def parallel_plot(spot_tuner, fun_control):
     fig = spot_tuner.parallel_plot()
     plt.title(fun_control["PREFIX"])
