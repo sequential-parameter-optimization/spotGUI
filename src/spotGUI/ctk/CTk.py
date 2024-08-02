@@ -203,7 +203,10 @@ class CTkApp(customtkinter.CTk):
 
     def create_select_data_frame(self, row, column):
         data_set_values = copy.deepcopy(self.scenario_dict[self.task_name]["datasets"])
-        data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
+        if self.scenario == "river" or self.scenario == "sklearn":
+            data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
+        elif self.scenario == "lightning":
+            data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".tkl")])
         self.select_data_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.select_data_frame_event,
@@ -964,6 +967,8 @@ class CTkApp(customtkinter.CTk):
             ) = load_experiment_spot(filename)
             #
             self.scenario_frame.set_selected_optionmenu_item(self.fun_control["scenario"])
+            self.change_scenario_event(self.fun_control["scenario"])
+            print(f'Scenario set to loaded scenario:{self.fun_control["scenario"]}')
             self.task_frame.set_selected_optionmenu_item(self.fun_control["task"])
             print(f'Task set to loaded tast:{self.fun_control["task"]}')
             self.change_task_event(self.fun_control["task"])
@@ -1040,6 +1045,7 @@ class CTkApp(customtkinter.CTk):
             #
             # ----------------- River specific ----------------- #
             if self.fun_control["scenario"] == "river":
+                self.create_experiment_eval_frame()
                 self.weights = self.fun_control["weights_entry"]
                 self.weights_entry.delete(0, "end")
                 self.weights_entry.insert(0, self.weights)

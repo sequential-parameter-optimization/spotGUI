@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 import copy
 from torch.utils.data import DataLoader
+import pandas as pd
 
 from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init, optimizer_control_init
 from spotGUI.ctk.CTk import CTkApp, SelectOptionMenuFrame
@@ -87,6 +88,10 @@ class spotPythonApp(CTkApp):
         #
 
     def get_test_size(self):
+        """Sets the test_size attribute to the value of the test_size_var attribute.
+        Sets the following attribute:
+        - test_size (int or float): test size for the data set.
+        """
         test_size = self.test_size_var.get()
         # if test_size contains a point, it is a float, otherwise an integer:
         if "." in test_size:
@@ -94,64 +99,72 @@ class spotPythonApp(CTkApp):
         else:
             self.test_size = int(test_size)
 
-    def get_data(self):
-        if self.scenario == "river" or self.scenario == "sklearn":
-            data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-            dataset, n_samples = get_river_dataset_from_name(
-                data_set_name=data_set_name,
-                n_total=get_n_total(self.n_total_var.get()),
-                river_datasets=self.scenario_dict[self.task_name]["datasets"],
-            )
-        val = copy.deepcopy(dataset.iloc[0, -1])
-        target_type = check_type(val)
-        dataset = set_dataset_target_type(dataset=dataset, target="y")
-        return dataset, n_samples, target_type
+    def get_target_type(self):
+        """Sets the target_type attribute to the type of the target column in the data set.
+        Sets the following attribute:
+        - target_type (str): type of the target column in the data set.
+        """
+        if hasattr(self, "data_set"):
+            val = copy.deepcopy(self.data_set.iloc[0, -1])
+            self.target_type = check_type(val)
+            print(f"Target type: {self.target_type}")
+        else:
+            print("No data set available. Setting target_type to None.")
+            self.target_type = None
 
     def print_data(self):
-        data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-        print(f"\nData set name: {data_set_name}")
-        if self.scenario == "lightning":
+        self.set_global_attributes()
+        if self.scenario == "river":
+            self.set_river_attributes()
+            self.get_river_data()
+            self.get_csv_data()
+            self.get_pkl_data()
+            self.prepare_data()
+            self.print_cvs_pkl_data()
+        elif self.scenario == "lightning":
+            self.set_lightning_attributes()
             self.get_tkl_data()
+            self.get_tkl_data_dimensions()
             self.print_lightning_data()
-        else:
-            dataset, n_samples, target_type = self.get_data()
-            shuffle = map_to_True_False(self.shuffle_var.get())
-            self.get_test_size()
-            print("\nDataset in print_data():")
-            print(f"n_samples: {n_samples}")
-            print(f"target_type: {target_type}")
-            print(f"test_size: {self.test_size}")
-            print(f"shuffle: {shuffle}")
-            print(f"{dataset.describe(include='all')}")
-            print(f"Header of the dataset:\n {dataset.head()}")
+        elif self.scenario == "sklearn":
+            self.set_sklearn_attributes()
+            self.get_csv_data()
+            self.get_pkl_data()
+            self.prepare_data()
+            self.print_cvs_pkl_data()
 
     def prepare_data(self):
-        dataset, n_samples, target_type = self.get_data()
-        train, test, n_samples = split_df(
-            dataset=dataset,
+        """Splits the data-set into training and test sets.
+        Applies to sklearn and river scenarios.
+        Sets the following attributes:
+        - train: training data set
+        - test: test data set
+        - n_samples: number of samples in the data set
+        """
+        self.train, self.test, self.n_samples = split_df(
+            dataset=self.data_set,
             test_size=self.test_size,
-            target_type=target_type,
+            target_type=self.target_type,
             seed=self.seed,
             shuffle=self.shuffle,
             stratify=None,
         )
-        return train, test, n_samples, target_type
 
     def set_lightning_attributes(self):
-        """ Set the attributes for the lightning scenario.
-            These include:
-            - db_dict_name
-            - scaler
-            - scaler_name
-            - train
-            - test
-            - n_samples
-            - target_type
-            - weights
-            - weights_entry
-            - horizon
-            - oml_grace_period
-            - fun
+        """Set the attributes for the lightning scenario.
+        These include:
+        - db_dict_name
+        - scaler
+        - scaler_name
+        - train
+        - test
+        - n_samples
+        - target_type
+        - weights
+        - weights_entry
+        - horizon
+        - oml_grace_period
+        - fun
         """
         self.db_dict_name = None  # experimental, do not use
         self.scaler = TorchStandardScaler()
@@ -166,36 +179,64 @@ class spotPythonApp(CTkApp):
         self.oml_grace_period = None
         self.fun = HyperLight(log_level=self.log_level).fun
 
+    def get_river_data(self):
+        """Sets the data_set attribute to the selected data set.
+        If the data set is a river data set, it is loaded as a river data set.
+        Sets the following attributes:
+        - data_set: river data set
+        - n_samples: number of samples in the data set
+        """
+        self.data_set, self.n_samples = get_river_dataset_from_name(
+            data_set_name=self.data_set_name,
+            n_total=get_n_total(self.n_total_var.get()),
+            river_datasets=self.scenario_dict[self.task_name]["datasets"],
+        )
+        if self.data_set is not None:
+            print(f"Loading river data set: {self.data_set_name}")
+            self.get_target_type()
+            self.data_set = set_dataset_target_type(dataset=self.data_set, target="y")
+
     def get_csv_data(self):
-        """ Sets the data_set attribute to the selected data set.
-            If the data set is a CSV file, it is loaded as a spotPythonCSVDataset.
+        """Sets the data_set attribute to the selected data set.
+        If the data set is a CSV file, it is loaded as a spotPythonCSVDataset.
         """
         if self.data_set_name.endswith(".csv"):
-            self.data_set = spotPythonCSVDataset(filename=self.data_set_name, directory="./userData/")
+            print(f"Loading CSV data set: {self.data_set_name}")
+            # Load the CSV file from the userData directory as a pandas DataFrame
+            file_path = os.path.join("./userData/", self.data_set_name)
+            self.data_set = pd.read_csv(file_path)
+            self.n_samples = self.data_set.shape[0]
+            self.get_target_type()
+            self.data_set = set_dataset_target_type(dataset=self.data_set, target="y")
         else:
             print("No CSV data set loaded.")
 
     def get_pkl_data(self):
-        """ Sets the data_set attribute to the selected data set.
-            If the data set is a PKL file, it is loaded as a spotPythonPKLDataset."""
+        """Sets the data_set attribute to the selected data set.
+        If the data set is a PKL file, it is loaded as a spotPythonPKLDataset."""
         if self.data_set_name.endswith(".pkl"):
             self.data_set = spotPythonPKLDataset(filename=self.data_set_name, directory="./userData/")
+            self.n_samples = self.data_set.shape[0]
+            self.get_target_type()
+            self.data_set = set_dataset_target_type(dataset=self.data_set, target="y")
         else:
             print("No PKL data set loaded.")
 
     def get_tkl_data(self):
-        """ Sets the data_set attribute to the selected data set.
-            If the data set is a TKL (Tensor pKL) file,
-            it is loaded as a pickle file."""
+        """Sets the data_set attribute to the selected data set.
+        If the data set is a TKL (Tensor pKL) file,
+        it is loaded as a pickle file."""
         if self.data_set_name.endswith(".tkl"):
             filename = os.path.join("./userData/", self.data_set_name)
-            with open(filename, 'rb') as f:
+            with open(filename, "rb") as f:
                 self.data_set = pickle.load(f)
+            self.n_samples = len(self.data_set)
+            self.target_type = None
         else:
             print("No TKL data set loaded.")
 
-    def get_data_dimensions(self):
-        """ Get dimensions of the data sets.
+    def get_tkl_data_dimensions(self):
+        """Get dimensions of the data sets.
         Applicable to all data sets.
         Sets the following attributes:
         - n_samples: number of samples in the data set
@@ -233,36 +274,53 @@ class spotPythonApp(CTkApp):
         else:
             print("No lightning data_set available. Please select a data_set.")
 
+    def print_cvs_pkl_data(self):
+        print("\nDataset in print_data():")
+        print(f"n_samples: {self.n_samples}")
+        print(f"target_type: {self.target_type}")
+        print(f"test_size: {self.test_size}")
+        print(f"shuffle: {self.shuffle}")
+        print(f"{self.data_set.describe(include='all')}")
+        print(f"Header of the dataset:\n {self.data_set.head()}")
+
     def set_global_attributes(self):
-        """ Set the global attributes for the spotPythonApp.
-            These include:
-            - log_level
-            - verbosity
-            - tolerance_x
-            - ocba_delta
-            - repeats
-            - fun_repeats
-            - target_column
-            - n_theta
-            - db_dict_name
-            - n_cols
-            - seed
-            - test_size
-            - shuffle
-            - n_total
-            - max_time
-            - fun_evals
-            - init_size
-            - noise
-            - lbd_min
-            - lbd_max
-            - kriging_noise
-            - max_surrogate_points
-            - TENSORBOARD_CLEAN
-            - tensorboard_start
-            - tensorboard_stop
-            - PREFIX
-            """
+        """Set the global attributes for the spotPythonApp.
+        These include:
+        - log_level
+        - verbosity
+        - tolerance_x
+        - ocba_delta
+        - repeats
+        - fun_repeats
+        - target_column
+        - n_theta
+        - db_dict_name
+        - eval
+        - n_cols
+        - seed
+        - test_size
+        - shuffle
+        - n_total
+        - max_time
+        - fun_evals
+        - init_size
+        - noise
+        - lbd_min
+        - lbd_max
+        - kriging_noise
+        - max_surrogate_points
+        - TENSORBOARD_CLEAN
+        - tensorboard_start
+        - tensorboard_stop
+        - PREFIX
+        - data_set_name
+        - prep_model_name
+        - prepmodel
+        - scaler_name
+        - scaler
+        - metric_sklearn_name
+        - metric_sklearn
+        """
         # Entries NOT handled by the GUI:
         self.log_level = 50
         self.verbosity = 1
@@ -273,6 +331,7 @@ class spotPythonApp(CTkApp):
         self.target_column = "y"
         self.n_theta = 2
         self.db_dict_name = None  # experimental, do not use
+        self.eval = None
         # Entries handled by the GUI:
         self.n_cols = None
         self.seed = int(self.seed_var.get())
@@ -290,55 +349,7 @@ class spotPythonApp(CTkApp):
         self.tensorboard_start = map_to_True_False(self.tb_start_var.get())
         self.tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         self.PREFIX = self.experiment_name_entry.get()
-
-    def set_sklearn_attributes(self):
-        """ Set the attributes for the sklearn scenario.
-            These include:
-            - eval (str): "evaluate_hold_out"
-        """
-        self.eval = "evaluate_hold_out"
-        self.data_set = None
-        self.db_dict_name = None  # experimental, do not use
-        self.train, self.test, self.n_samples, self.target_type = self.prepare_data()
-        print(f"train: {self.train}")
-        print(f"test: {self.test}")
-        print(f"n_samples: {self.n_samples}")
-        print(f"target_type: {self.target_type}")
-        self.weights = get_metric_sign(self.metric_sklearn_name)
-        self.weights_entry = None
-        self.horizon = None
-        self.oml_grace_period = None
-        self.fun = HyperSklearn(log_level=self.log_level).fun_sklearn
-
-    def set_river_attributes(self):
-        """ Set the attributes for the river scenario.
-            These include:
-            - data_set (None): data set
-            - db_dict_name (None): dictionary name for the database
-            - train (DataFrame): training data set
-            - test (DataFrame): test data set
-            - n_samples (int): number of samples in the data set
-            - target_type (str): type of the target column
-            - weights_entry (None): entry for the weights
-            - weights (np.ndarray): weights for the metric
-            - horizon (int): horizon for the OML
-            - oml_grace_period (int): grace period for the OML
-            - fun (function): function to be used for the experiment
-            """
-        self.data_set = None
-        self.train, self.test, self.n_samples, self.target_type = self.prepare_data()
-        self.weights_entry = self.weights_var.get()
-        self.weights = get_weights(
-            self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item(), self.weights_var.get()
-        )
-        self.horizon = int(self.horizon_var.get())
-        self.oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
-        self.fun = HyperRiver(log_level=self.log_level).fun_oml_horizon
-
-    def prepare_experiment(self):
-        self.set_global_attributes()
-        task_name = self.task_frame.get_selected_optionmenu_item()
-        core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
+        self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
         # if self has the attribute select_prep_model_frame, get the selected
         # optionmenu item
         if hasattr(self, "select_prep_model_frame"):
@@ -355,9 +366,6 @@ class spotPythonApp(CTkApp):
         else:
             self.scaler_name = None
             self.scaler = None
-
-        data_set_name = self.select_data_frame.get_selected_optionmenu_item()
-
         if hasattr(self, "select_metric_sklearn_levels_frame"):
             self.metric_sklearn_name = self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item()
             self.metric_sklearn = get_metric_sklearn(self.metric_sklearn_name)
@@ -365,18 +373,66 @@ class spotPythonApp(CTkApp):
             self.metric_sklearn_name = None
             self.metric_sklearn = None
 
+    def set_sklearn_attributes(self):
+        """Set the attributes for the sklearn scenario.
+        These include:
+        - eval (str): "evaluate_hold_out"
+        """
+        self.eval = "evaluate_hold_out"
+        self.data_set = None
+        self.db_dict_name = None  # experimental, do not use
+        self.weights = get_metric_sign(self.metric_sklearn_name)
+        self.weights_entry = None
+        self.horizon = None
+        self.oml_grace_period = None
+        self.fun = HyperSklearn(log_level=self.log_level).fun_sklearn
+
+    def set_river_attributes(self):
+        """Set the attributes for the river scenario.
+        These include:
+        - data_set (None): data set
+        - db_dict_name (None): dictionary name for the database
+        - train (DataFrame): training data set
+        - test (DataFrame): test data set
+        - n_samples (int): number of samples in the data set
+        - target_type (str): type of the target column
+        - weights_entry (str): GUI entry for the weights, this is a string
+        - weights (np.ndarray): weights for the metric
+        - horizon (int): horizon for the OML
+        - oml_grace_period (int): grace period for the OML
+        - fun (function): function to be used for the experiment
+        """
+        self.data_set = None
+        self.weights_entry = self.weights_var.get()
+        self.weights = get_weights(
+            self.select_metric_sklearn_levels_frame.get_selected_optionmenu_item(), self.weights_var.get()
+        )
+        self.horizon = int(self.horizon_var.get())
+        self.oml_grace_period = get_oml_grace_period(self.oml_grace_period_var.get())
+        self.fun = HyperRiver(log_level=self.log_level).fun_oml_horizon
+
+    def prepare_experiment(self):
+        self.set_global_attributes()
+        task_name = self.task_frame.get_selected_optionmenu_item()
+        core_model_name = self.select_core_model_frame.get_selected_optionmenu_item()
+
         # ----------------- Scenario specific ----------------- #
         if self.scenario == "river":
             self.set_river_attributes()
+            self.get_river_data()
+            self.get_csv_data()
+            self.get_pkl_data()
+            self.prepare_data()
         elif self.scenario == "lightning":
             self.set_lightning_attributes()
             self.get_tkl_data()
+            self.get_tkl_data_dimensions()
             self.print_lightning_data()
         elif self.scenario == "sklearn":
             self.set_sklearn_attributes()
-
-        # ----------------- Data for all Scenarios-------------- #
-        self.get_data_dimensions()
+            self.get_csv_data()
+            self.get_pkl_data()
+            self.prepare_data()
 
         # ----------------- fun_control ----------------- #
         self.fun_control = fun_control_init(
@@ -386,7 +442,7 @@ class spotPythonApp(CTkApp):
             PREFIX=self.PREFIX,
             TENSORBOARD_CLEAN=self.TENSORBOARD_CLEAN,
             core_model_name=core_model_name,
-            data_set_name=data_set_name,
+            data_set_name=self.data_set_name,
             data_set=self.data_set,
             db_dict_name=self.db_dict_name,
             eval=self.eval,
@@ -464,9 +520,10 @@ class spotPythonApp(CTkApp):
             design_control=self.design_control,
             surrogate_control=self.surrogate_control,
             optimizer_control=self.optimizer_control,
-            fun=self.fun
+            fun=self.fun,
         )
         print("\nExperiment saved.")
+        pprint.pprint(self.fun_control)
 
     def run_experiment(self):
         self.prepare_experiment()

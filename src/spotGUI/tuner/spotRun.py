@@ -984,7 +984,8 @@ def get_oml_grace_period(oml_grace_period) -> int:
 
 def get_weights(metric_name, metric_weights, default_weights=["1000,1,1"]) -> np.array:
     """
-    River. Returns the weights for the metric.
+    River. Returns the weights for the metric, i.e., score, time, memory.
+    Based on the metric name, the sign of the score metric is determined.
 
     Args:
         metric_name (str): The name of the metric.
