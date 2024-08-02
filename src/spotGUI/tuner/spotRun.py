@@ -10,7 +10,6 @@ from spotPython.spot import spot
 from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
-from spotPython.utils.file import load_experiment
 from spotPython.utils.metrics import get_metric_sign
 from spotPython.utils.file import get_experiment_from_PREFIX
 
