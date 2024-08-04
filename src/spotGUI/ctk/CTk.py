@@ -15,7 +15,6 @@ from spotGUI.tuner.spotRun import (
     show_y_hist,
 )
 from PIL import Image
-import time
 from spotPython.utils.eda import gen_design_table
 import tkinter as tk
 import sys
@@ -45,9 +44,20 @@ class CTkApp(customtkinter.CTk):
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
         self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "spotlogo.png")), size=(85, 37))
-        self.geometry(f"{1600}x{1200}")
+        # if the subdirectories "userData", "userPrepModel", "userModel" and "userScaler" do not exist, create them
+        if not os.path.exists("userData"):
+            os.makedirs("userData")
+        if not os.path.exists("userPrepModel"):
+            os.makedirs("userPrepModel")
+        if not os.path.exists("userModel"):
+            os.makedirs("userModel")
+        if not os.path.exists("userScaler"):
+            os.makedirs("userScaler")
+        if not os.path.exists("userExperiment"):
+            os.makedirs("userExperiment")
+        self.geometry(f"{1600}x{1000}")
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
-        self.grid_rowconfigure((0, 1), weight=1)
+        # self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
@@ -74,23 +84,6 @@ class CTkApp(customtkinter.CTk):
         text = gen_design_table(self.fun_control)
         self.textbox.delete("1.0", tk.END)
         self.textbox.insert(tk.END, text)
-
-    def update_text(self):
-        # This method runs in a separate thread to update the text area
-        while True:  # Infinite loop to continuously update the textbox
-            try:
-                with open("progress.txt", "r") as file:
-                    lines = file.readlines()
-                    last_line = lines[-1] if lines else ""
-                    # Get the last line or an empty string if file is empty
-                    # text = file.read()  # Read the entire file
-                    self.textbox.delete("1.0", tk.END)
-                    self.textbox.insert(tk.END, last_line)
-            except FileNotFoundError:
-                # text = "File not found."
-                # self.textbox.insert(tk.END, text)
-                pass
-            time.sleep(1)  # Wait for 1 second before the next update
 
     def label_button_frame_event(self, item):
         print(f"label button frame clicked: {item}")
@@ -161,10 +154,11 @@ class CTkApp(customtkinter.CTk):
 
     def create_prep_model_frame(self, row, column):
         if self.scenario == "lightning":
-            self.select_prep_model_frame.destroy()
+            if hasattr(self, "select_prep_model_frame"):
+                self.select_prep_model_frame.destroy()
         else:
             self.prep_model_values = self.scenario_dict[self.task_name]["prep_models"]
-            if self.prep_model_values is not None:
+            if hasattr(self, "prep_model_values"):
                 self.prep_model_values.extend(
                     [f for f in os.listdir("userPrepModel") if f.endswith(".py") and not f.startswith("__")]
                 )
@@ -245,7 +239,8 @@ class CTkApp(customtkinter.CTk):
     def check_user_prep_model(self, prep_model_name) -> object:
         """Check if the prep model is a user defined prep model.
         If it is a user defined prep model, import the prep model from the userPrepModel directory.
-        Otherwise, get the prep model from the river.preprocessing module.
+        Otherwise, get the prep model from the river.preprocessing module or
+        from the sklearn.preprocessing module.
 
         Args:
             prep_model_name (str): The name of the prep model.
@@ -262,12 +257,15 @@ class CTkApp(customtkinter.CTk):
             print(f"prep_model_name = {prep_model_name}")
             __import__(prep_model_name)
             prepmodel = sys.modules[prep_model_name].set_prep_model()
+            print(f"prepmodel: {prepmodel} imported from userPrepModel")
         elif self.scenario == "river":
             # get the river prep model from river.preprocessing
             prepmodel = get_river_prep_model(prep_model_name)
+            print(f"prepmodel: {prepmodel} imported from river.preprocessing")
         else:
             # get the prep model from the sklearn.preprocessing module
             prepmodel = get_prep_model(prep_model_name)
+            print(f"prepmodel: {prepmodel} imported from sklearn.preprocessing")
         return prepmodel
 
     def check_user_scaler(self, scaler_name) -> object:
@@ -320,8 +318,10 @@ class CTkApp(customtkinter.CTk):
         self.task_frame.destroy()
         if self.scenario == "river":
             item_list = ["Binary Classification", "Regression", "Rules"]
-        else:
+        elif self.scenario == "sklearn":
             item_list = ["Binary Classification", "Regression"]
+        else:
+            item_list = ["Regression"]
         self.task_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.change_task_event,
@@ -331,7 +331,8 @@ class CTkApp(customtkinter.CTk):
         )
         self.task_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
         self.task_frame.configure(width=500)
-        self.select_prep_model_frame.destroy()
+        if hasattr(self, "select_prep_model_frame"):
+            self.select_prep_model_frame.destroy()
         self.create_prep_model_frame(row=3, column=0)
         self.select_core_model_frame.destroy()
         self.create_core_model_frame(row=5, column=0)
@@ -341,6 +342,8 @@ class CTkApp(customtkinter.CTk):
         self.create_cat_hp_frame()
         self.select_data_frame.destroy()
         self.create_select_data_frame(row=6, column=0)
+        if hasattr(self, "experiment_eval_frame"):
+            self.experiment_eval_frame.destroy()
         self.create_experiment_eval_frame()
 
     def change_task_event(self, new_task: str):

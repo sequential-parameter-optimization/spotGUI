@@ -160,9 +160,9 @@ def get_lightning_regression_core_model_names():
     regression_core_model_names = [
         "light.regression.NNLinearRegressor",
     ]
-    # for filename in os.listdir("userModel"):
-    #     if filename.endswith(".json"):
-    #         regression_core_model_names.append(os.path.splitext(filename)[0])
+    for filename in os.listdir("userModel"):
+        if filename.endswith(".json"):
+            regression_core_model_names.append(os.path.splitext(filename)[0])
     return regression_core_model_names
 
 
@@ -585,6 +585,10 @@ def save_spot_python_experiment(fun_control, design_control, surrogate_control, 
         optimizer_control=optimizer_control,
     )
     filename = get_experiment_filename(fun_control["PREFIX"])
+    # if userExperimnents directory does not exist, create it
+    if not os.path.exists("userExperiment"):
+        os.makedirs("userExperiment")
+    filename = os.path.join("userExperiment", filename)
     if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
         fun_control["spot_writer"].close()
     spot_tuner.save_experiment(filename=filename)
@@ -643,6 +647,10 @@ def run_spot_python_experiment(
     if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
         fun_control["spot_writer"].close()
     filename = get_experiment_filename(fun_control["PREFIX"])
+    # if userExperimnents directory does not exist, create it
+    if not os.path.exists("userExperiment"):
+        os.makedirs("userExperiment")
+    filename = os.path.join("userExperiment", filename)
     spot_tuner.save_experiment(filename=filename)
     # if file progress.txt exists, delete it
     if os.path.exists("progress.txt"):
@@ -899,7 +907,13 @@ def load_file_dialog() -> str:
         str: The name of the selected file.
 
     """
-    current_dir = os.getcwd()
+    # set current directory to the subdirectory "userExperiment" of the current working directory
+    # check if "userExperiment" directory exists
+    if not os.path.exists("userExperiment"):
+        os.makedirs("userExperiment")
+        print("No previous experiments found.")
+        print("Directory 'userExperiment' created for saving forthcoming experiments.")
+    current_dir = os.path.join(os.getcwd(), "userExperiment")
     filetypes = (("Pickle files", "*.pickle"), ("All files", "*.*"))
     filename = fd.askopenfilename(title="Select a Pickle File", initialdir=current_dir, filetypes=filetypes)
     return filename
