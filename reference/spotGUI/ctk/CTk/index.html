@@ -1053,11 +1053,7 @@
 
             <details class="quote">
               <summary>Source code in <code>spotGUI/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">  32</span>
-<span class="normal">  33</span>
-<span class="normal">  34</span>
-<span class="normal">  35</span>
-<span class="normal">  36</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">  36</span>
 <span class="normal">  37</span>
 <span class="normal">  38</span>
 <span class="normal">  39</span>
@@ -2046,7 +2042,104 @@
 <span class="normal">1022</span>
 <span class="normal">1023</span>
 <span class="normal">1024</span>
-<span class="normal">1025</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
+<span class="normal">1025</span>
+<span class="normal">1026</span>
+<span class="normal">1027</span>
+<span class="normal">1028</span>
+<span class="normal">1029</span>
+<span class="normal">1030</span>
+<span class="normal">1031</span>
+<span class="normal">1032</span>
+<span class="normal">1033</span>
+<span class="normal">1034</span>
+<span class="normal">1035</span>
+<span class="normal">1036</span>
+<span class="normal">1037</span>
+<span class="normal">1038</span>
+<span class="normal">1039</span>
+<span class="normal">1040</span>
+<span class="normal">1041</span>
+<span class="normal">1042</span>
+<span class="normal">1043</span>
+<span class="normal">1044</span>
+<span class="normal">1045</span>
+<span class="normal">1046</span>
+<span class="normal">1047</span>
+<span class="normal">1048</span>
+<span class="normal">1049</span>
+<span class="normal">1050</span>
+<span class="normal">1051</span>
+<span class="normal">1052</span>
+<span class="normal">1053</span>
+<span class="normal">1054</span>
+<span class="normal">1055</span>
+<span class="normal">1056</span>
+<span class="normal">1057</span>
+<span class="normal">1058</span>
+<span class="normal">1059</span>
+<span class="normal">1060</span>
+<span class="normal">1061</span>
+<span class="normal">1062</span>
+<span class="normal">1063</span>
+<span class="normal">1064</span>
+<span class="normal">1065</span>
+<span class="normal">1066</span>
+<span class="normal">1067</span>
+<span class="normal">1068</span>
+<span class="normal">1069</span>
+<span class="normal">1070</span>
+<span class="normal">1071</span>
+<span class="normal">1072</span>
+<span class="normal">1073</span>
+<span class="normal">1074</span>
+<span class="normal">1075</span>
+<span class="normal">1076</span>
+<span class="normal">1077</span>
+<span class="normal">1078</span>
+<span class="normal">1079</span>
+<span class="normal">1080</span>
+<span class="normal">1081</span>
+<span class="normal">1082</span>
+<span class="normal">1083</span>
+<span class="normal">1084</span>
+<span class="normal">1085</span>
+<span class="normal">1086</span>
+<span class="normal">1087</span>
+<span class="normal">1088</span>
+<span class="normal">1089</span>
+<span class="normal">1090</span>
+<span class="normal">1091</span>
+<span class="normal">1092</span>
+<span class="normal">1093</span>
+<span class="normal">1094</span>
+<span class="normal">1095</span>
+<span class="normal">1096</span>
+<span class="normal">1097</span>
+<span class="normal">1098</span>
+<span class="normal">1099</span>
+<span class="normal">1100</span>
+<span class="normal">1101</span>
+<span class="normal">1102</span>
+<span class="normal">1103</span>
+<span class="normal">1104</span>
+<span class="normal">1105</span>
+<span class="normal">1106</span>
+<span class="normal">1107</span>
+<span class="normal">1108</span>
+<span class="normal">1109</span>
+<span class="normal">1110</span>
+<span class="normal">1111</span>
+<span class="normal">1112</span>
+<span class="normal">1113</span>
+<span class="normal">1114</span>
+<span class="normal">1115</span>
+<span class="normal">1116</span>
+<span class="normal">1117</span>
+<span class="normal">1118</span>
+<span class="normal">1119</span>
+<span class="normal">1120</span>
+<span class="normal">1121</span>
+<span class="normal">1122</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># name of the progress file</span>
@@ -2057,9 +2150,20 @@
         <span class="n">current_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="n">image_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_path</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logo_image</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkImage</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s2">&quot;spotlogo.png&quot;</span><span class="p">)),</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">85</span><span class="p">,</span> <span class="mi">37</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">1600</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="mi">1200</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># if the subdirectories &quot;userData&quot;, &quot;userPrepModel&quot;, &quot;userModel&quot; and &quot;userScaler&quot; do not exist, create them</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;userPrepModel&quot;</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;userPrepModel&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;userModel&quot;</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;userModel&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;userScaler&quot;</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;userScaler&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;userExperiment&quot;</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;userExperiment&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">1600</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="mi">1000</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># self.grid_rowconfigure((0, 1), weight=1)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">entry_width</span> <span class="o">=</span> <span class="mi">80</span>
 
     <span class="k">def</span> <span class="nf">change_appearance_mode_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_appearance_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -2086,23 +2190,6 @@
         <span class="n">text</span> <span class="o">=</span> <span class="n">gen_design_table</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">update_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># This method runs in a separate thread to update the text area</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># Infinite loop to continuously update the textbox</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;progress.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-                    <span class="n">lines</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-                    <span class="n">last_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">lines</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-                    <span class="c1"># Get the last line or an empty string if file is empty</span>
-                    <span class="c1"># text = file.read()  # Read the entire file</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">textbox</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="n">last_line</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                <span class="c1"># text = &quot;File not found.&quot;</span>
-                <span class="c1"># self.textbox.insert(tk.END, text)</span>
-                <span class="k">pass</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Wait for 1 second before the next update</span>
 
     <span class="k">def</span> <span class="nf">label_button_frame_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;label button frame clicked: </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2173,10 +2260,11 @@
 
     <span class="k">def</span> <span class="nf">create_prep_model_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;lightning&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;select_prep_model_frame&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prep_model_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">][</span><span class="s2">&quot;prep_models&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prep_model_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;prep_model_values&quot;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">prep_model_values</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                     <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;userPrepModel&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)]</span>
                 <span class="p">)</span>
@@ -2215,7 +2303,10 @@
 
     <span class="k">def</span> <span class="nf">create_select_data_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
         <span class="n">data_set_values</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">])</span>
-        <span class="n">data_set_values</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pkl&quot;</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;sklearn&quot;</span><span class="p">:</span>
+            <span class="n">data_set_values</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pkl&quot;</span><span class="p">)])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;lightning&quot;</span><span class="p">:</span>
+            <span class="n">data_set_values</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.tkl&quot;</span><span class="p">)])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
             <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame_event</span><span class="p">,</span>
@@ -2254,7 +2345,8 @@
     <span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the prep model is a user defined prep model.</span>
 <span class="sd">        If it is a user defined prep model, import the prep model from the userPrepModel directory.</span>
-<span class="sd">        Otherwise, get the prep model from the river.preprocessing module.</span>
+<span class="sd">        Otherwise, get the prep model from the river.preprocessing module or</span>
+<span class="sd">        from the sklearn.preprocessing module.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            prep_model_name (str): The name of the prep model.</span>
@@ -2271,12 +2363,15 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prep_model_name = </span><span class="si">{</span><span class="n">prep_model_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="nb">__import__</span><span class="p">(</span><span class="n">prep_model_name</span><span class="p">)</span>
             <span class="n">prepmodel</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">prep_model_name</span><span class="p">]</span><span class="o">.</span><span class="n">set_prep_model</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prepmodel: </span><span class="si">{</span><span class="n">prepmodel</span><span class="si">}</span><span class="s2"> imported from userPrepModel&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
             <span class="c1"># get the river prep model from river.preprocessing</span>
             <span class="n">prepmodel</span> <span class="o">=</span> <span class="n">get_river_prep_model</span><span class="p">(</span><span class="n">prep_model_name</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prepmodel: </span><span class="si">{</span><span class="n">prepmodel</span><span class="si">}</span><span class="s2"> imported from river.preprocessing&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># get the prep model from the sklearn.preprocessing module</span>
             <span class="n">prepmodel</span> <span class="o">=</span> <span class="n">get_prep_model</span><span class="p">(</span><span class="n">prep_model_name</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prepmodel: </span><span class="si">{</span><span class="n">prepmodel</span><span class="si">}</span><span class="s2"> imported from sklearn.preprocessing&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">prepmodel</span>
 
     <span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
@@ -2329,8 +2424,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
             <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">,</span> <span class="s2">&quot;Rules&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;sklearn&quot;</span><span class="p">:</span>
             <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Binary Classification&quot;</span><span class="p">,</span> <span class="s2">&quot;Regression&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Regression&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
             <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">change_task_event</span><span class="p">,</span>
@@ -2340,7 +2437,8 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;select_prep_model_frame&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_core_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -2350,6 +2448,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">create_cat_hp_frame</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_select_data_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;experiment_eval_frame&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">experiment_eval_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_experiment_eval_frame</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">change_task_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_task</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -2409,7 +2509,7 @@
             <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">change_scenario_event</span><span class="p">,</span>
             <span class="n">item_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lightning&quot;</span><span class="p">,</span> <span class="s2">&quot;sklearn&quot;</span><span class="p">,</span> <span class="s2">&quot;river&quot;</span><span class="p">],</span>
-            <span class="n">item_default</span><span class="o">=</span><span class="s2">&quot;river&quot;</span><span class="p">,</span>
+            <span class="n">item_default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Scenario&quot;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
@@ -2424,7 +2524,7 @@
             <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">change_task_event</span><span class="p">,</span>
             <span class="n">item_list</span><span class="o">=</span><span class="n">item_list</span><span class="p">,</span>
-            <span class="n">item_default</span><span class="o">=</span><span class="s2">&quot;Regression&quot;</span><span class="p">,</span>
+            <span class="n">item_default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Task&quot;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
@@ -2881,6 +2981,88 @@
             <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_hyperparameter_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Importance&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_importance_button_event</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">importance_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># ................. Comparison_Analysis Frame .......................................#</span>
+        <span class="c1"># create analysis_comparison_frame with widgets in analysis_main frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_main_frame</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># analysis_data frame title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame_title</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Comparisons&quot;</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFont</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">),</span>
+            <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame_title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="c1"># create tuned default button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compare_river_tuned_default_button</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Tuned vs. default&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_tuned_default_button_event</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compare_river_tuned_default_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># create actual prediction button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compare_actual_prediction_button</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Actual vs. prediction&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_actual_prediction_button_event</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compare_actual_prediction_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># ................. Classification_Analysis Frame .......................................#</span>
+        <span class="c1"># create analysis_classification_frame with widgets in analysis_main frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_main_frame</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># analysis_data frame title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame_title</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Classification&quot;</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFont</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">),</span>
+            <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame_title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># create confusion plot  button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confusion_button</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Confusion matrix&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_confusion_button_event</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confusion_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># create roc button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roc_button</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;ROC&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_roc_button_event</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roc_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># -------------- River specific plots ----------------- #</span>
+    <span class="k">def</span> <span class="nf">plot_tuned_default_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">compare_river_tuned_default</span><span class="p">(</span><span class="n">spot_tuner</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span><span class="p">,</span> <span class="n">fun_control</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">plot_actual_prediction_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">actual_vs_prediction_river</span><span class="p">(</span><span class="n">spot_tuner</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span><span class="p">,</span> <span class="n">fun_control</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">plot_confusion_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plot_confusion_matrices_river</span><span class="p">(</span><span class="n">spot_tuner</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span><span class="p">,</span> <span class="n">fun_control</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">plot_roc_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plot_rocs_river</span><span class="p">(</span><span class="n">spot_tuner</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spot_tuner</span><span class="p">,</span> <span class="n">fun_control</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">plot_data_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">target_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_data</span><span class="p">()</span>
+        <span class="n">show_y_hist</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="n">test</span><span class="p">,</span> <span class="n">target_column</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="c1"># TODO: show_data</span>
+        <span class="c1"># show_data(train=self.train,</span>
+        <span class="c1">#           test=self.test,</span>
+        <span class="c1">#           target_column=self.target_column,</span>
+        <span class="c1">#           n_samples=1000)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Data shown. No result saved.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">load_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">load_file_dialog</span><span class="p">()</span>
@@ -2894,6 +3076,8 @@
             <span class="p">)</span> <span class="o">=</span> <span class="n">load_experiment_spot</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
             <span class="c1">#</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span><span class="o">.</span><span class="n">set_selected_optionmenu_item</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;scenario&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_scenario_event</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;scenario&quot;</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Scenario set to loaded scenario:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;scenario&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">set_selected_optionmenu_item</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">])</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Task set to loaded tast:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">change_task_event</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">])</span>
@@ -2970,6 +3154,7 @@
             <span class="c1">#</span>
             <span class="c1"># ----------------- River specific ----------------- #</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;scenario&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">create_experiment_eval_frame</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;weights_entry&quot;</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">weights_entry</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">weights_entry</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
@@ -3039,7 +3224,8 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">oml_grace_period_entry</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;lightning&quot;</span> <span class="ow">or</span> <span class="s2">&quot;sklearn&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">experiment_eval_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;experiment_eval_frame&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">experiment_eval_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
             </details>
 
@@ -3071,7 +3257,8 @@
   
       <p>Check if the prep model is a user defined prep model.
 If it is a user defined prep model, import the prep model from the userPrepModel directory.
-Otherwise, get the prep model from the river.preprocessing module.</p>
+Otherwise, get the prep model from the river.preprocessing module or
+from the sklearn.preprocessing module.</p>
 
 
 
@@ -3129,9 +3316,7 @@ Otherwise, get the prep model from the river.preprocessing module.</p>
 
           <details class="quote">
             <summary>Source code in <code>spotGUI/ctk/CTk.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">239</span>
 <span class="normal">240</span>
 <span class="normal">241</span>
 <span class="normal">242</span>
@@ -3155,10 +3340,17 @@ Otherwise, get the prep model from the river.preprocessing module.</p>
 <span class="normal">260</span>
 <span class="normal">261</span>
 <span class="normal">262</span>
-<span class="normal">263</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the prep model is a user defined prep model.</span>
 <span class="sd">    If it is a user defined prep model, import the prep model from the userPrepModel directory.</span>
-<span class="sd">    Otherwise, get the prep model from the river.preprocessing module.</span>
+<span class="sd">    Otherwise, get the prep model from the river.preprocessing module or</span>
+<span class="sd">    from the sklearn.preprocessing module.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        prep_model_name (str): The name of the prep model.</span>
@@ -3175,12 +3367,15 @@ Otherwise, get the prep model from the river.preprocessing module.</p>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prep_model_name = </span><span class="si">{</span><span class="n">prep_model_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">__import__</span><span class="p">(</span><span class="n">prep_model_name</span><span class="p">)</span>
         <span class="n">prepmodel</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">prep_model_name</span><span class="p">]</span><span class="o">.</span><span class="n">set_prep_model</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prepmodel: </span><span class="si">{</span><span class="n">prepmodel</span><span class="si">}</span><span class="s2"> imported from userPrepModel&quot;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
         <span class="c1"># get the river prep model from river.preprocessing</span>
         <span class="n">prepmodel</span> <span class="o">=</span> <span class="n">get_river_prep_model</span><span class="p">(</span><span class="n">prep_model_name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prepmodel: </span><span class="si">{</span><span class="n">prepmodel</span><span class="si">}</span><span class="s2"> imported from river.preprocessing&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># get the prep model from the sklearn.preprocessing module</span>
         <span class="n">prepmodel</span> <span class="o">=</span> <span class="n">get_prep_model</span><span class="p">(</span><span class="n">prep_model_name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prepmodel: </span><span class="si">{</span><span class="n">prepmodel</span><span class="si">}</span><span class="s2"> imported from sklearn.preprocessing&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">prepmodel</span>
 </code></pre></div></td></tr></table></div>
           </details>
@@ -3263,13 +3458,7 @@ Otherwise, get the scaler from the sklearn.preprocessing module.</p>
 
           <details class="quote">
             <summary>Source code in <code>spotGUI/ctk/CTk.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">265</span>
-<span class="normal">266</span>
-<span class="normal">267</span>
-<span class="normal">268</span>
-<span class="normal">269</span>
-<span class="normal">270</span>
-<span class="normal">271</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">271</span>
 <span class="normal">272</span>
 <span class="normal">273</span>
 <span class="normal">274</span>
@@ -3287,7 +3476,13 @@ Otherwise, get the scaler from the sklearn.preprocessing module.</p>
 <span class="normal">286</span>
 <span class="normal">287</span>
 <span class="normal">288</span>
-<span class="normal">289</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the scaler is a user defined scaler.</span>
 <span class="sd">    Aplies to sklearn and lightning scenarios.</span>
 <span class="sd">    If it is a user defined scaler, import the scaler from the userScaler directory.</span>
