@@ -1074,6 +1074,22 @@ class CTkApp(customtkinter.CTk):
             self.loaded_label.configure(text=self.experiment_name)
             self.experiment_name_entry.delete(0, "end")
             self.experiment_name_entry.insert(0, self.experiment_name)
+            # ----------------- Tensorboard options ----------------- #
+            self.tb_clean = self.fun_control["TENSORBOARD_CLEAN"]
+            self.tb_clean_checkbox.deselect()
+            if self.tb_clean:
+                self.tb_clean_checkbox.select()
+            #
+            self.tb_start = self.fun_control["tensorboard_start"]
+            self.tb_start_checkbox.deselect()
+            if self.tb_start:
+                self.tb_start_checkbox.select()
+            #
+            self.tb_stop = self.fun_control["tensorboard_stop"]
+            self.tb_stop_checkbox.deselect()
+            if self.tb_stop:
+                self.tb_stop_checkbox.select()
+            #
 
     def create_experiment_eval_frame(self):
         if self.scenario == "river":

@@ -473,6 +473,8 @@ class spotPythonApp(CTkApp):
             task=task_name,
             target_column=self.target_column,
             target_type=self.target_type,
+            tensorboard_start=self.tensorboard_start,
+            tensorboard_stop=self.tensorboard_stop,
             test=self.test,
             test_size=self.test_size,
             train=self.train,

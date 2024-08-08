@@ -160,9 +160,11 @@ def get_lightning_regression_core_model_names():
     regression_core_model_names = [
         "light.regression.NNLinearRegressor",
     ]
-    for filename in os.listdir("userModel"):
-        if filename.endswith(".json"):
-            regression_core_model_names.append(os.path.splitext(filename)[0])
+    # if userModel exists, add the names of the models in the userModel directory
+    if os.path.exists("userModel"):
+        for filename in os.listdir("userModel"):
+            if filename.endswith(".json"):
+                regression_core_model_names.append(os.path.splitext(filename)[0])
     return regression_core_model_names
 
 
@@ -589,8 +591,11 @@ def save_spot_python_experiment(fun_control, design_control, surrogate_control, 
     if not os.path.exists("userExperiment"):
         os.makedirs("userExperiment")
     filename = os.path.join("userExperiment", filename)
-    if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
-        fun_control["spot_writer"].close()
+    if spot_tuner.spot_writer is not None:
+        spot_tuner.spot_writer.close()
+    # remove attribute spot_writer from spot_tuner object
+    if hasattr(spot_tuner, "spot_writer"):
+        delattr(spot_tuner, "spot_writer")
     spot_tuner.save_experiment(filename=filename)
 
 
