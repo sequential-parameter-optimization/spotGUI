@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 import copy
 
-from spotGUI.tuner.spotRun import get_scenario_dict
+from spotgui.tuner.spotRun import get_scenario_dict
 
 
 @pytest.fixture
@@ -16,15 +16,15 @@ def prep_models_mock():
 
 
 # Test when scenario is "river"
-@patch("spotGUI.tuner.spotRun.get_river_prep_models")
-@patch("spotGUI.tuner.spotRun.get_river_regression_datasets")
-@patch("spotGUI.tuner.spotRun.get_river_rules_core_model_names")
-@patch("spotGUI.tuner.spotRun.get_regression_metric_sklearn_levels")
-@patch("spotGUI.tuner.spotRun.get_river_regression_core_model_names")
-@patch("spotGUI.tuner.spotRun.get_river_binary_classification_datasets")
-@patch("spotGUI.tuner.spotRun.get_classification_metric_sklearn_levels")
-@patch("spotGUI.tuner.spotRun.get_river_classification_core_model_names")
-@patch("spotGUI.tuner.spotRun.get_scenario_entries")
+@patch("spotgui.tuner.spotRun.get_river_prep_models")
+@patch("spotgui.tuner.spotRun.get_river_regression_datasets")
+@patch("spotgui.tuner.spotRun.get_river_rules_core_model_names")
+@patch("spotgui.tuner.spotRun.get_regression_metric_sklearn_levels")
+@patch("spotgui.tuner.spotRun.get_river_regression_core_model_names")
+@patch("spotgui.tuner.spotRun.get_river_binary_classification_datasets")
+@patch("spotgui.tuner.spotRun.get_classification_metric_sklearn_levels")
+@patch("spotgui.tuner.spotRun.get_river_classification_core_model_names")
+@patch("spotgui.tuner.spotRun.get_scenario_entries")
 def test_get_scenario_dict_river(
     get_scenario_entries_mock,
     get_river_classification_core_model_names_mock,

@@ -1,5 +1,5 @@
-include src/spotGUI/data/*.csv
-include src/spotGUI/data/*.json
-include src/spotGUI/data/*.pkl
-include src/spotGUI/hyperdict/*.json
-include src/spotGUI/ctk/images/*.png
+include src/spotgui/data/*.csv
+include src/spotgui/data/*.json
+include src/spotgui/data/*.pkl
+include src/spotgui/hyperdict/*.json
+include src/spotgui/ctk/images/*.png

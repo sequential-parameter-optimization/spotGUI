@@ -219,7 +219,7 @@ def get_scenario_entries() -> dict:
         dict: A dictionary with the scenario entries.
 
     Examples:
-        >>> from spotGUI.tuner.spotRun import get_scenario_entries
+        >>> from spotgui.tuner.spotRun import get_scenario_entries
             get_scenario_entries()
             {'core_model_names': [],
             'metric_sklearn_levels': [],
@@ -279,7 +279,7 @@ def get_scenario_dict(scenario) -> dict:
         dict: A dictionary with the scenario entries.
 
     Examples:
-        >>> from spotGUI.tuner.spotRun import get_scenario_dict
+        >>> from spotgui.tuner.spotRun import get_scenario_dict
             get_scenario_dict("sklearn")
             {'classification_task': {'core_model_names': ['linear_model.LogisticRegression',
                 'ensemble.RandomForestClassifier',
@@ -426,7 +426,7 @@ def get_report_file_name(fun_control) -> str:
             The name of the report file.
 
     Examples:
-        >>> from spotGUI.tuner.spotRun import get_report_file_name
+        >>> from spotgui.tuner.spotRun import get_report_file_name
             from spotPython.utils.init import fun_control_init
             fun_control = fun_control_init(PREFIX="test")
             get_report_file_name(fun_control)

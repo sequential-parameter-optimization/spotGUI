@@ -2,7 +2,7 @@ import customtkinter
 import os
 import webbrowser
 import copy
-from spotGUI.tuner.spotRun import (
+from spotgui.tuner.spotRun import (
     progress_plot,
     contour_plot,
     importance_plot,
@@ -18,8 +18,8 @@ from PIL import Image
 from spotPython.utils.eda import gen_design_table
 import tkinter as tk
 import sys
-from spotGUI.ctk.SelectOptions import SelectOptionMenuFrame
-from spotGUI.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
+from spotgui.ctk.SelectOptions import SelectOptionMenuFrame
+from spotgui.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
 from spotPython.utils.file import load_experiment as load_experiment_spot
 from spotPython.hyperparameters.values import (
     get_river_prep_model,
@@ -316,16 +316,10 @@ class CTkApp(customtkinter.CTk):
         else:
             print("Error: Scenario not found")
         self.task_frame.destroy()
-        if self.scenario == "river":
-            item_list = ["Binary Classification", "Regression", "Rules"]
-        elif self.scenario == "sklearn":
-            item_list = ["Binary Classification", "Regression"]
-        else:
-            item_list = ["Regression"]
         self.task_frame = SelectOptionMenuFrame(
             master=self.sidebar_frame,
             command=self.change_task_event,
-            item_list=item_list,
+            item_list=self.get_tasks_for_scenario(),
             item_default="Regression",
             title="Select Task",
         )
@@ -344,7 +338,8 @@ class CTkApp(customtkinter.CTk):
         self.create_select_data_frame(row=6, column=0)
         if hasattr(self, "experiment_eval_frame"):
             self.experiment_eval_frame.destroy()
-        self.create_experiment_eval_frame()
+        if self.scenario == "river":
+            self.create_experiment_eval_frame()
 
     def change_task_event(self, new_task: str):
         print(f"Task changed to: {new_task}")
@@ -1136,3 +1131,18 @@ class CTkApp(customtkinter.CTk):
         elif self.scenario == "lightning" or "sklearn":
             if hasattr(self, "experiment_eval_frame"):
                 self.experiment_eval_frame.destroy()
+
+    def get_tasks_for_scenario(self):
+        """Get the tasks for the selected scenario.
+
+        Returns:
+            list: List of tasks for the selected scenario.
+
+        """
+        if self.scenario == "river":
+            item_list = ["Binary Classification", "Regression", "Rules"]
+        elif self.scenario == "sklearn":
+            item_list = ["Binary Classification", "Regression"]
+        else:
+            item_list = ["Regression"]
+        return item_list

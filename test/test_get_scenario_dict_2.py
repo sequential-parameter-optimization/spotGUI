@@ -1,7 +1,7 @@
 import pytest
 
 # Assuming the main script is named `main.py` and the functions are in it
-from spotGUI.tuner.spotRun import (
+from spotgui.tuner.spotRun import (
     get_scenario_dict,
     get_sklearn_classification_core_model_names,
     get_classification_metric_sklearn_levels,

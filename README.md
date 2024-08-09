@@ -2,7 +2,7 @@
   <img height="200" src="img/spotLogo.png" alt="spot_logo">
 </p>
 
-# spotGUI
+# spotgui
 
 GUI for the Sequential Parameter Optimization in Python
 
@@ -14,7 +14,7 @@ GUI for the Sequential Parameter Optimization in Python
 
 * Installation can be done with `pip`:
 
-`pip install spotGUI`
+`pip install spotgui`
 
 # spotPython Documentation
 
