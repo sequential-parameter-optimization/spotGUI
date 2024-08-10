@@ -79,3 +79,5 @@ spotPythonGUI/userData/hcf_dataset.pkl
 spotPythonGUI/userData/tensor_hcf_dataset.pkl
 notebooks/bikeHourly.csv
 notebooks/bikes_numerical_features.csv
+gui/progress.txt
+gui/spot_gui.spec

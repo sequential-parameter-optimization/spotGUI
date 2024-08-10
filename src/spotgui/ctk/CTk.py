@@ -1132,7 +1132,7 @@ class CTkApp(customtkinter.CTk):
             if hasattr(self, "experiment_eval_frame"):
                 self.experiment_eval_frame.destroy()
 
-    def get_tasks_for_scenario(self):
+    def get_tasks_for_scenario(self) -> list:
         """Get the tasks for the selected scenario.
 
         Returns:
