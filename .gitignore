@@ -81,3 +81,4 @@ notebooks/bikeHourly.csv
 notebooks/bikes_numerical_features.csv
 gui/progress.txt
 gui/spot_gui.spec
+gui/userExperiment/spot_100_experiment.pickle
