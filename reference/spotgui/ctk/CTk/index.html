@@ -2187,7 +2187,50 @@
 <span class="normal">1145</span>
 <span class="normal">1146</span>
 <span class="normal">1147</span>
-<span class="normal">1148</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
+<span class="normal">1148</span>
+<span class="normal">1149</span>
+<span class="normal">1150</span>
+<span class="normal">1151</span>
+<span class="normal">1152</span>
+<span class="normal">1153</span>
+<span class="normal">1154</span>
+<span class="normal">1155</span>
+<span class="normal">1156</span>
+<span class="normal">1157</span>
+<span class="normal">1158</span>
+<span class="normal">1159</span>
+<span class="normal">1160</span>
+<span class="normal">1161</span>
+<span class="normal">1162</span>
+<span class="normal">1163</span>
+<span class="normal">1164</span>
+<span class="normal">1165</span>
+<span class="normal">1166</span>
+<span class="normal">1167</span>
+<span class="normal">1168</span>
+<span class="normal">1169</span>
+<span class="normal">1170</span>
+<span class="normal">1171</span>
+<span class="normal">1172</span>
+<span class="normal">1173</span>
+<span class="normal">1174</span>
+<span class="normal">1175</span>
+<span class="normal">1176</span>
+<span class="normal">1177</span>
+<span class="normal">1178</span>
+<span class="normal">1179</span>
+<span class="normal">1180</span>
+<span class="normal">1181</span>
+<span class="normal">1182</span>
+<span class="normal">1183</span>
+<span class="normal">1184</span>
+<span class="normal">1185</span>
+<span class="normal">1186</span>
+<span class="normal">1187</span>
+<span class="normal">1188</span>
+<span class="normal">1189</span>
+<span class="normal">1190</span>
+<span class="normal">1191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># name of the progress file</span>
@@ -2198,6 +2241,7 @@
         <span class="n">current_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="n">image_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_path</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logo_image</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkImage</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s2">&quot;spotlogo.png&quot;</span><span class="p">)),</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">85</span><span class="p">,</span> <span class="mi">37</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
         <span class="c1"># if the subdirectories &quot;userData&quot;, &quot;userPrepModel&quot;, &quot;userModel&quot; and &quot;userScaler&quot; do not exist, create them</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span>
@@ -2213,6 +2257,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># self.grid_rowconfigure((0, 1), weight=1)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">entry_width</span> <span class="o">=</span> <span class="mi">80</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logo_row</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_set_row</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenario_row</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_row</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prep_model_row</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler_row</span> <span class="o">=</span> <span class="mi">7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core_model_row</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric_row</span> <span class="o">=</span> <span class="mi">9</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appearance_row</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaling_row</span> <span class="o">=</span> <span class="mi">11</span>
 
     <span class="k">def</span> <span class="nf">change_appearance_mode_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_appearance_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Appearance Mode changed to: </span><span class="si">{</span><span class="n">new_appearance_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2350,21 +2404,48 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">select_scaler_frame</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">create_select_data_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
-        <span class="n">data_set_values</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;sklearn&quot;</span><span class="p">:</span>
-            <span class="n">data_set_values</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pkl&quot;</span><span class="p">)])</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;lightning&quot;</span><span class="p">:</span>
-            <span class="n">data_set_values</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;userData&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.tkl&quot;</span><span class="p">)])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
-            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span>
-            <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame_event</span><span class="p">,</span>
-            <span class="n">item_list</span><span class="o">=</span><span class="n">data_set_values</span><span class="p">,</span>
-            <span class="n">item_default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Data&quot;</span><span class="p">,</span>
+        <span class="c1"># Create Loaded Data Entry</span>
+        <span class="c1"># the data_set_name has full path information, e.g.,</span>
+        <span class="c1"># &quot;/home/User/userData/iris.csv&quot; or &quot;\home\User\userData\iris.pkl&quot;</span>
+        <span class="c1"># extract the file name from the data_set_name</span>
+        <span class="c1">#</span>
+        <span class="c1"># self.sidebar_frame_title = customtkinter.CTkLabel(</span>
+        <span class="c1">#     self.sidebar_frame,</span>
+        <span class="c1">#     text=&quot;Loaded Data&quot;,</span>
+        <span class="c1">#     font=customtkinter.CTkFont(weight=&quot;bold&quot;),</span>
+        <span class="c1">#     corner_radius=6,</span>
+        <span class="c1"># )</span>
+        <span class="c1"># self.sidebar_frame_title.grid(row=row, column=0, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
+        <span class="c1"># data_set_name = os.path.basename(self.data_set_name)</span>
+        <span class="c1"># self.loaded_data_label = customtkinter.CTkLabel(self.sidebar_frame, text=data_set_name, corner_radius=6)</span>
+        <span class="c1"># self.loaded_data_label.grid(row=row+1, column=column, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
+        <span class="c1"># self.select_data_frame = customtkinter.CTkButton(</span>
+        <span class="c1">#     master=self.sidebar_frame, text=&quot;Load New Data&quot;, command=self.load_data_event</span>
+        <span class="c1"># )</span>
+        <span class="c1"># self.select_data_frame.grid(row=row+2, column=column, sticky=&quot;ew&quot;, padx=10, pady=10)</span>
+        <span class="c1">#</span>
+        <span class="c1"># create data_frame with widgets in sidebar_frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># analysis_data frame title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_frame_title</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Loaded Data&quot;</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFont</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">),</span>
+            <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="n">column</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nswe&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">get_selected_optionmenu_item</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_frame_title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="c1"># Create Loaded Data Entry</span>
+        <span class="n">data_set_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_label</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">data_set_name</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="c1"># self.data_label.configure(text=data_set_name)</span>
+        <span class="c1"># create load button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_button</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Load New Data&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">load_data_event</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">create_metric_sklearn_levels_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
@@ -2463,7 +2544,7 @@
         <span class="k">elif</span> <span class="n">new_scenario</span> <span class="o">==</span> <span class="s2">&quot;sklearn&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">=</span> <span class="s2">&quot;sklearn&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hyperdict</span> <span class="o">=</span> <span class="n">SklearnHyperDict</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">new_scenario</span> <span class="o">==</span> <span class="s2">&quot;lightning&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">=</span> <span class="s2">&quot;lightning&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hyperdict</span> <span class="o">=</span> <span class="n">LightHyperDict</span>
@@ -2477,19 +2558,22 @@
             <span class="n">item_default</span><span class="o">=</span><span class="s2">&quot;Regression&quot;</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Task&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">task_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;select_prep_model_frame&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prep_model_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;select_scaler_frame&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select_scaler_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_core_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">core_model_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_hp_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_num_hp_frame</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cat_hp_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_cat_hp_frame</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_select_data_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_select_data_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;experiment_eval_frame&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">experiment_eval_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
@@ -2506,20 +2590,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Task not found&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_prep_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prep_model_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;select_scaler_frame&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">select_scaler_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_core_model_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">core_model_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_hp_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_num_hp_frame</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cat_hp_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_cat_hp_frame</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_select_data_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># self.select_data_frame.destroy()</span>
+        <span class="c1"># self.create_select_data_frame(row=1, column=0)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_metric_sklearn_levels_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_metric_sklearn_levels_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">run_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_experiment</span><span class="p">()</span>
@@ -2544,8 +2628,12 @@
             <span class="n">compound</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
             <span class="n">font</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFont</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logo_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mf">7.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logo_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logo_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mf">7.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
+        <span class="c1">#  ................. Data Frame ....................................... #</span>
+        <span class="c1"># select data frame in data main frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_select_data_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
         <span class="c1"># ................. Scenario Frame ....................................... #</span>
         <span class="c1"># create scenario frame inside sidebar frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
@@ -2555,7 +2643,7 @@
             <span class="n">item_default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Scenario&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scenario_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="c1"># ................. Task Frame ....................................... #</span>
         <span class="c1"># create task frame inside sidebar frame</span>
@@ -2570,20 +2658,20 @@
             <span class="n">item_default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Task&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">task_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="c1"># ................. Prep Model Frame ....................................... #</span>
         <span class="c1"># create select prep model frame inside sidebar frame</span>
         <span class="c1"># if key &quot;prep_models&quot; exists in the scenario_dict, get the prep models from the scenario_dict</span>
         <span class="k">if</span> <span class="s2">&quot;prep_models&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_prep_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prep_model_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="c1"># ................. Scaler Frame ....................................... #</span>
         <span class="c1"># create select scaler frame inside sidebar frame</span>
         <span class="c1"># if key &quot;scaler&quot; exists in the scenario_dict, get the scaler from the scenario_dict</span>
         <span class="k">if</span> <span class="s2">&quot;scalers&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_scaler_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="c1"># ................. Core Model Frame ....................................... #</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;scenario_dict = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -2593,17 +2681,8 @@
         <span class="c1">#     if filename.endswith(&quot;.json&quot;):</span>
         <span class="c1">#         self.core_model_name.append(os.path.splitext(filename)[0])</span>
         <span class="c1"># create core model frame inside sidebar frame</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1">#</span>
-        <span class="c1">#  ................. Data Frame ....................................... #</span>
-        <span class="c1"># select data frame in data main frame</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_select_data_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_core_model_frame</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">core_model_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1">#</span>
         <span class="c1">#</span>
-        <span class="c1"># # create plot data button</span>
-        <span class="c1"># self.plot_data_button = customtkinter.CTkButton(</span>
-        <span class="c1">#     master=self.sidebar_frame, text=&quot;Plot Data&quot;, command=self.plot_data_button_event</span>
-        <span class="c1"># )</span>
-        <span class="c1"># self.plot_data_button.grid(row=6, column=0, sticky=&quot;nsew&quot;, padx=10, pady=10)</span>
-        <span class="c1"># #</span>
         <span class="c1"># ................. Metric Frame ....................................... #</span>
         <span class="c1"># create select metric_sklearn levels frame inside sidebar frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span> <span class="o">=</span> <span class="n">SelectOptionMenuFrame</span><span class="p">(</span>
@@ -2613,7 +2692,7 @@
             <span class="n">item_default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select sklearn metric&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="c1"># ................. Appearance Frame ....................................... #</span>
@@ -2627,14 +2706,14 @@
             <span class="n">item_default</span><span class="o">=</span><span class="s2">&quot;System&quot;</span><span class="p">,</span>
             <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Appearance Mode&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">appearance_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appearance_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">appearance_row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaling_label</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">appearance_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;UI Scaling&quot;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scaling_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaling_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">appearance_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaling_optionemenu</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkOptionMenu</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">appearance_frame</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;100%&quot;</span><span class="p">,</span> <span class="s2">&quot;80%&quot;</span><span class="p">,</span> <span class="s2">&quot;90%&quot;</span><span class="p">,</span> <span class="s2">&quot;110%&quot;</span><span class="p">,</span> <span class="s2">&quot;120%&quot;</span><span class="p">],</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">change_scaling_event</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scaling_optionemenu</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaling_optionemenu</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">appearance_row</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">make_experiment_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">experiment_main_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -2919,7 +2998,7 @@
         <span class="c1"># experiment_data frame title</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">experiment_name_frame_title</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">experiment_name_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;New experiment name&quot;</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;New Experiment Name&quot;</span><span class="p">,</span>
             <span class="n">font</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFont</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">),</span>
             <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="p">)</span>
@@ -2971,7 +3050,7 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">analysis_main_frame_title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
-        <span class="c1"># ................. Run_Analysis Frame .......................................#</span>
+        <span class="c1"># ................. Analysis Frame .......................................#</span>
         <span class="c1"># create analysis_run_frame with widgets in analysis_main frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_main_frame</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
@@ -2979,18 +3058,18 @@
         <span class="c1"># analysis_data frame title</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame_title</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Loaded experiment&quot;</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Loaded Experiment&quot;</span><span class="p">,</span>
             <span class="n">font</span><span class="o">=</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFont</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">),</span>
             <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame_title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="c1"># Create Loaded Experiment Entry</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loaded_label</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">loaded_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loaded_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="c1"># self.loaded_label.configure(text=self.experiment_name)</span>
         <span class="c1"># create load button</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_button</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkButton</span><span class="p">(</span>
-            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Load&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">load_button_event</span>
+            <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_run_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Load Experiment&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">load_button_event</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="c1"># create plot progress button</span>
@@ -3107,6 +3186,12 @@
         <span class="c1">#           n_samples=1000)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Data shown. No result saved.&quot;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">load_data_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span> <span class="o">=</span> <span class="n">load_data_dialog</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data set selected: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">data_set_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_label</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">data_set_name</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">load_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">load_file_dialog</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
@@ -3139,7 +3224,8 @@
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Scaler set to loaded scaler:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;scaler_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">scaler_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;scaler_name&quot;</span><span class="p">]</span>
             <span class="c1">#</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">select_data_frame</span><span class="o">.</span><span class="n">set_selected_optionmenu_item</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;data_set_name&quot;</span><span class="p">])</span>
+            <span class="c1"># self.select_data_frame.set_selected_optionmenu_item(self.fun_control[&quot;data_set_name&quot;])</span>
+            <span class="c1"># TODO: Display data set name as Loaded experiment</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Data set set to loaded data set:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;data_set_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;data_set_name&quot;</span><span class="p">]</span>
             <span class="c1">#</span>
@@ -3385,37 +3471,37 @@ from the sklearn.preprocessing module.</p>
 
             <details class="quote">
               <summary>Source code in <code>spotgui/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
-<span class="normal">258</span>
-<span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span>
-<span class="normal">266</span>
-<span class="normal">267</span>
-<span class="normal">268</span>
-<span class="normal">269</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the prep model is a user defined prep model.</span>
 <span class="sd">    If it is a user defined prep model, import the prep model from the userPrepModel directory.</span>
 <span class="sd">    Otherwise, get the prep model from the river.preprocessing module or</span>
@@ -3522,31 +3608,31 @@ Otherwise, get the scaler from the sklearn.preprocessing module.</p>
 
             <details class="quote">
               <summary>Source code in <code>spotgui/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">271</span>
-<span class="normal">272</span>
-<span class="normal">273</span>
-<span class="normal">274</span>
-<span class="normal">275</span>
-<span class="normal">276</span>
-<span class="normal">277</span>
-<span class="normal">278</span>
-<span class="normal">279</span>
-<span class="normal">280</span>
-<span class="normal">281</span>
-<span class="normal">282</span>
-<span class="normal">283</span>
-<span class="normal">284</span>
-<span class="normal">285</span>
-<span class="normal">286</span>
-<span class="normal">287</span>
-<span class="normal">288</span>
-<span class="normal">289</span>
-<span class="normal">290</span>
-<span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
-<span class="normal">295</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the scaler is a user defined scaler.</span>
 <span class="sd">    Aplies to sklearn and lightning scenarios.</span>
 <span class="sd">    If it is a user defined scaler, import the scaler from the userScaler directory.</span>
@@ -3615,20 +3701,20 @@ Otherwise, get the scaler from the sklearn.preprocessing module.</p>
 
             <details class="quote">
               <summary>Source code in <code>spotgui/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1135</span>
-<span class="normal">1136</span>
-<span class="normal">1137</span>
-<span class="normal">1138</span>
-<span class="normal">1139</span>
-<span class="normal">1140</span>
-<span class="normal">1141</span>
-<span class="normal">1142</span>
-<span class="normal">1143</span>
-<span class="normal">1144</span>
-<span class="normal">1145</span>
-<span class="normal">1146</span>
-<span class="normal">1147</span>
-<span class="normal">1148</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_tasks_for_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1178</span>
+<span class="normal">1179</span>
+<span class="normal">1180</span>
+<span class="normal">1181</span>
+<span class="normal">1182</span>
+<span class="normal">1183</span>
+<span class="normal">1184</span>
+<span class="normal">1185</span>
+<span class="normal">1186</span>
+<span class="normal">1187</span>
+<span class="normal">1188</span>
+<span class="normal">1189</span>
+<span class="normal">1190</span>
+<span class="normal">1191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_tasks_for_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the tasks for the selected scenario.</span>
 
 <span class="sd">    Returns:</span>
