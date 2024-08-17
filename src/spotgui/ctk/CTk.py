@@ -1,7 +1,6 @@
 import customtkinter
 import os
 import webbrowser
-import copy
 from spotgui.tuner.spotRun import (
     progress_plot,
     contour_plot,
@@ -212,20 +211,44 @@ class CTkApp(customtkinter.CTk):
         # the data_set_name has full path information, e.g.,
         # "/home/User/userData/iris.csv" or "\home\User\userData\iris.pkl"
         # extract the file name from the data_set_name
-        self.sidebar_frame_title = customtkinter.CTkLabel(
-            self.sidebar_frame,
+        #
+        # self.sidebar_frame_title = customtkinter.CTkLabel(
+        #     self.sidebar_frame,
+        #     text="Loaded Data",
+        #     font=customtkinter.CTkFont(weight="bold"),
+        #     corner_radius=6,
+        # )
+        # self.sidebar_frame_title.grid(row=row, column=0, padx=10, pady=(10, 0), sticky="w")
+        # data_set_name = os.path.basename(self.data_set_name)
+        # self.loaded_data_label = customtkinter.CTkLabel(self.sidebar_frame, text=data_set_name, corner_radius=6)
+        # self.loaded_data_label.grid(row=row+1, column=column, padx=10, pady=(10, 0), sticky="w")
+        # self.select_data_frame = customtkinter.CTkButton(
+        #     master=self.sidebar_frame, text="Load New Data", command=self.load_data_event
+        # )
+        # self.select_data_frame.grid(row=row+2, column=column, sticky="ew", padx=10, pady=10)
+        #
+        # create data_frame with widgets in sidebar_frame
+        self.data_frame = customtkinter.CTkFrame(master=self.sidebar_frame, corner_radius=6)
+        self.data_frame.grid(row=row, column=0, sticky="ew")
+        #
+        # analysis_data frame title
+        self.data_frame_title = customtkinter.CTkLabel(
+            self.data_frame,
             text="Loaded Data",
             font=customtkinter.CTkFont(weight="bold"),
             corner_radius=6,
         )
-        self.sidebar_frame_title.grid(row=row, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.data_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        # Create Loaded Data Entry
         data_set_name = os.path.basename(self.data_set_name)
-        self.loaded_data_label = customtkinter.CTkLabel(self.sidebar_frame, text=data_set_name, corner_radius=6)
-        self.loaded_data_label.grid(row=row+1, column=column, padx=10, pady=(10, 0), sticky="w")
-        self.select_data_frame = customtkinter.CTkButton(
+        self.data_label = customtkinter.CTkLabel(self.data_frame, text=data_set_name, corner_radius=6)
+        self.data_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
+        # self.data_label.configure(text=data_set_name)
+        # create load button
+        self.data_button = customtkinter.CTkButton(
             master=self.sidebar_frame, text="Load New Data", command=self.load_data_event
         )
-        self.select_data_frame.grid(row=row+2, column=column, sticky="ew", padx=10, pady=10)
+        self.data_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
 
     def create_metric_sklearn_levels_frame(self, row, column):
         self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(
@@ -352,7 +375,7 @@ class CTkApp(customtkinter.CTk):
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
-        self.select_data_frame.destroy()
+        self.data_frame.destroy()
         self.create_select_data_frame(row=self.data_set_row, column=0)
         if hasattr(self, "experiment_eval_frame"):
             self.experiment_eval_frame.destroy()
@@ -489,11 +512,11 @@ class CTkApp(customtkinter.CTk):
         self.appearance_frame.grid(row=self.appearance_row, column=0, padx=15, pady=15, sticky="ew")
         #
         self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
-        self.scaling_label.grid(row=self.appearance_row+1, column=0, padx=20, pady=(10, 0))
+        self.scaling_label.grid(row=self.appearance_row + 1, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = customtkinter.CTkOptionMenu(
             self.appearance_frame, values=["100%", "80%", "90%", "110%", "120%"], command=self.change_scaling_event
         )
-        self.scaling_optionemenu.grid(row=self.appearance_row+2, column=0, padx=15, pady=15, sticky="ew")
+        self.scaling_optionemenu.grid(row=self.appearance_row + 2, column=0, padx=15, pady=15, sticky="ew")
 
     def make_experiment_frame(self):
         self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -778,7 +801,7 @@ class CTkApp(customtkinter.CTk):
         # experiment_data frame title
         self.experiment_name_frame_title = customtkinter.CTkLabel(
             self.experiment_name_frame,
-            text="New experiment name",
+            text="New Experiment Name",
             font=customtkinter.CTkFont(weight="bold"),
             corner_radius=6,
         )
@@ -830,7 +853,7 @@ class CTkApp(customtkinter.CTk):
         )
         self.analysis_main_frame_title.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         #
-        # ................. Run_Analysis Frame .......................................#
+        # ................. Analysis Frame .......................................#
         # create analysis_run_frame with widgets in analysis_main frame
         self.analysis_run_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
         self.analysis_run_frame.grid(row=1, column=0, sticky="ew")
@@ -970,9 +993,7 @@ class CTkApp(customtkinter.CTk):
         self.data_set_name = load_data_dialog()
         print(f"Data set selected: {self.data_set_name}")
         data_set_name = os.path.basename(self.data_set_name)
-        self.loaded_data_label.configure(text=data_set_name)
-        # self.loaded_data_label.delete(0, "end")
-        # self.loaded_data_label.insert(0, self.data_set_name)
+        self.data_label.configure(text=data_set_name)
 
     def load_button_event(self):
         filename = load_file_dialog()
