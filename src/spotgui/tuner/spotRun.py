@@ -642,13 +642,13 @@ def run_spot_python_experiment(
         optimizer_control=optimizer_control,
     )
     filename = get_experiment_filename(fun_control["PREFIX"])
-    if tensorboard_start:
-        p_open = start_tensorboard()
+    # if tensorboard_start:
+    #     p_open = start_tensorboard()
     # TODO: Implement X_Start handling
     # X_start = get_default_hyperparameters_as_array(fun_control)
     spot_tuner.run()
-    if tensorboard_stop:
-        stop_tensorboard(p_open)
+    # if tensorboard_stop:
+    #     stop_tensorboard(p_open)
     if "spot_writer" in fun_control and fun_control["spot_writer"] is not None:
         fun_control["spot_writer"].close()
     filename = get_experiment_filename(fun_control["PREFIX"])

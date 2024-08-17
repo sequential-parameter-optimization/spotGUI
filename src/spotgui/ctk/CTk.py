@@ -207,27 +207,6 @@ class CTkApp(customtkinter.CTk):
                 self.select_scaler_frame = None
 
     def create_select_data_frame(self, row, column):
-        # Create Loaded Data Entry
-        # the data_set_name has full path information, e.g.,
-        # "/home/User/userData/iris.csv" or "\home\User\userData\iris.pkl"
-        # extract the file name from the data_set_name
-        #
-        # self.sidebar_frame_title = customtkinter.CTkLabel(
-        #     self.sidebar_frame,
-        #     text="Loaded Data",
-        #     font=customtkinter.CTkFont(weight="bold"),
-        #     corner_radius=6,
-        # )
-        # self.sidebar_frame_title.grid(row=row, column=0, padx=10, pady=(10, 0), sticky="w")
-        # data_set_name = os.path.basename(self.data_set_name)
-        # self.loaded_data_label = customtkinter.CTkLabel(self.sidebar_frame, text=data_set_name, corner_radius=6)
-        # self.loaded_data_label.grid(row=row+1, column=column, padx=10, pady=(10, 0), sticky="w")
-        # self.select_data_frame = customtkinter.CTkButton(
-        #     master=self.sidebar_frame, text="Load New Data", command=self.load_data_event
-        # )
-        # self.select_data_frame.grid(row=row+2, column=column, sticky="ew", padx=10, pady=10)
-        #
-        # create data_frame with widgets in sidebar_frame
         self.data_frame = customtkinter.CTkFrame(master=self.sidebar_frame, corner_radius=6)
         self.data_frame.grid(row=row, column=0, sticky="ew")
         #
