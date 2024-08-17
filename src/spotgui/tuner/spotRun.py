@@ -924,6 +924,26 @@ def load_file_dialog() -> str:
     return filename
 
 
+def load_data_dialog() -> str:
+    """
+    Opens a file dialog to select a data file.
+
+    Returns:
+        str: The name of the selected file.
+
+    """
+    # set current directory to the subdirectory "userData" of the current working directory
+    # check if "userData" directory exists
+    if not os.path.exists("userData"):
+        os.makedirs("userData")
+        print("No data found.")
+        print("Directory 'userData' created for saving forthcoming data.")
+    current_dir = os.path.join(os.getcwd(), "userData")
+    filetypes = (("CSV files", "*.csv"), ("All files", "*.*"))
+    filename = fd.askopenfilename(title="Select a Data File", initialdir=current_dir, filetypes=filetypes)
+    return filename
+
+
 def get_n_total(n_total) -> int:
     """
     Returns the number of total iterations.

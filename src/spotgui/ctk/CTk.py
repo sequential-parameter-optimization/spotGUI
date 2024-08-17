@@ -7,6 +7,7 @@ from spotgui.tuner.spotRun import (
     contour_plot,
     importance_plot,
     load_file_dialog,
+    load_data_dialog,
     get_scenario_dict,
     actual_vs_prediction_river,
     compare_river_tuned_default,
@@ -44,6 +45,7 @@ class CTkApp(customtkinter.CTk):
         current_path = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_path, "images")
         self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "spotlogo.png")), size=(85, 37))
+        self.data_set_name = "None"
         # if the subdirectories "userData", "userPrepModel", "userModel" and "userScaler" do not exist, create them
         if not os.path.exists("userData"):
             os.makedirs("userData")
@@ -59,6 +61,16 @@ class CTkApp(customtkinter.CTk):
         self.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
         # self.grid_rowconfigure((0, 1), weight=1)
         self.entry_width = 80
+        self.logo_row = 0
+        self.data_set_row = 1
+        self.scenario_row = 3
+        self.task_row = 4
+        self.prep_model_row = 5
+        self.scaler_row = 6
+        self.core_model_row = 7
+        self.metric_row = 8
+        self.appearance_row = 9
+        self.scaling_row = 10
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Mode changed to: {new_appearance_mode}")
@@ -196,21 +208,32 @@ class CTkApp(customtkinter.CTk):
                 self.select_scaler_frame = None
 
     def create_select_data_frame(self, row, column):
-        data_set_values = copy.deepcopy(self.scenario_dict[self.task_name]["datasets"])
-        if self.scenario == "river" or self.scenario == "sklearn":
-            data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
-        elif self.scenario == "lightning":
-            data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".tkl")])
-        self.select_data_frame = SelectOptionMenuFrame(
-            master=self.sidebar_frame,
-            command=self.select_data_frame_event,
-            item_list=data_set_values,
-            item_default=None,
-            title="Select Data",
+        # Create Loaded Data Entry
+        # the data_set_name has full path information, e.g.,
+        # "/home/User/userData/iris.csv" or "\home\User\userData\iris.pkl"
+        # extract the file name from the data_set_name
+        data_set_name = os.path.basename(self.data_set_name)
+        self.loaded_data_label = customtkinter.CTkLabel(self.sidebar_frame, text=data_set_name, corner_radius=6)
+        self.loaded_data_label.grid(row=row, column=column, padx=0, pady=(10, 0), sticky="w")
+        self.select_data_frame = customtkinter.CTkButton(
+            master=self.sidebar_frame, text="Load Data", command=self.load_data_event
         )
-        self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
-        self.select_data_frame.configure(width=500)
-        self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+        self.select_data_frame.grid(row=row+1, column=column, sticky="ew", padx=10, pady=10)
+        # data_set_values = copy.deepcopy(self.scenario_dict[self.task_name]["datasets"])
+        # if self.scenario == "river" or self.scenario == "sklearn":
+        #     data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".csv") or f.endswith(".pkl")])
+        # elif self.scenario == "lightning":
+        #     data_set_values.extend([f for f in os.listdir("userData") if f.endswith(".tkl")])
+        # self.select_data_frame = SelectOptionMenuFrame(
+        #     master=self.sidebar_frame,
+        #     command=self.select_data_frame_event,
+        #     item_list=data_set_values,
+        #     item_default=None,
+        #     title="Select Data",
+        # )
+        # self.select_data_frame.grid(row=row, column=column, padx=15, pady=15, sticky="nswe")
+        # self.select_data_frame.configure(width=500)
+        # self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
 
     def create_metric_sklearn_levels_frame(self, row, column):
         self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(
@@ -323,19 +346,19 @@ class CTkApp(customtkinter.CTk):
             item_default="Regression",
             title="Select Task",
         )
-        self.task_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
+        self.task_frame.grid(row=4, column=0, padx=15, pady=15, sticky="nsew")
         self.task_frame.configure(width=500)
         if hasattr(self, "select_prep_model_frame"):
             self.select_prep_model_frame.destroy()
-        self.create_prep_model_frame(row=3, column=0)
+        self.create_prep_model_frame(row=5, column=0)
         self.select_core_model_frame.destroy()
-        self.create_core_model_frame(row=5, column=0)
+        self.create_core_model_frame(row=6, column=0)
         self.num_hp_frame.destroy()
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
         self.select_data_frame.destroy()
-        self.create_select_data_frame(row=6, column=0)
+        self.create_select_data_frame(row=1, column=0)
         if hasattr(self, "experiment_eval_frame"):
             self.experiment_eval_frame.destroy()
         if self.scenario == "river":
@@ -352,20 +375,20 @@ class CTkApp(customtkinter.CTk):
         else:
             print("Error: Task not found")
         self.select_prep_model_frame.destroy()
-        self.create_prep_model_frame(row=3, column=0)
+        self.create_prep_model_frame(row=4, column=0)
         if hasattr(self, "select_scaler_frame"):
             self.select_scaler_frame.destroy()
-            self.create_scaler_frame(row=4, column=0)
+            self.create_scaler_frame(row=5, column=0)
         self.select_core_model_frame.destroy()
-        self.create_core_model_frame(row=5, column=0)
+        self.create_core_model_frame(row=6, column=0)
         self.num_hp_frame.destroy()
         self.create_num_hp_frame()
         self.cat_hp_frame.destroy()
         self.create_cat_hp_frame()
-        self.select_data_frame.destroy()
-        self.create_select_data_frame(row=6, column=0)
+        # self.select_data_frame.destroy()
+        # self.create_select_data_frame(row=1, column=0)
         self.select_metric_sklearn_levels_frame.destroy()
-        self.create_metric_sklearn_levels_frame(row=7, column=0)
+        self.create_metric_sklearn_levels_frame(row=9, column=0)
 
     def run_button_event(self):
         self.run_experiment()
@@ -390,8 +413,12 @@ class CTkApp(customtkinter.CTk):
             compound="left",
             font=customtkinter.CTkFont(size=20, weight="bold"),
         )
-        self.logo_label.grid(row=0, column=0, padx=10, pady=(7.5, 2.5), sticky="ew")
+        self.logo_label.grid(row=self.logo_row, column=0, padx=10, pady=(7.5, 2.5), sticky="ew")
         #
+        #  ................. Data Frame ....................................... #
+        # select data frame in data main frame
+        self.create_select_data_frame(row=1, column=0)
+
         # ................. Scenario Frame ....................................... #
         # create scenario frame inside sidebar frame
         self.scenario_frame = SelectOptionMenuFrame(
@@ -401,7 +428,7 @@ class CTkApp(customtkinter.CTk):
             item_default=self.scenario,
             title="Select Scenario",
         )
-        self.scenario_frame.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
+        self.scenario_frame.grid(row=self.scenario_row, column=0, padx=15, pady=15, sticky="nsew")
         self.scenario_frame.configure(width=500)
         # ................. Task Frame ....................................... #
         # create task frame inside sidebar frame
@@ -416,20 +443,20 @@ class CTkApp(customtkinter.CTk):
             item_default=self.task_name,
             title="Select Task",
         )
-        self.task_frame.grid(row=2, column=0, padx=15, pady=15, sticky="nsew")
+        self.task_frame.grid(row=self.task_row, column=0, padx=15, pady=15, sticky="nsew")
         self.task_frame.configure(width=500)
         #
         # ................. Prep Model Frame ....................................... #
         # create select prep model frame inside sidebar frame
         # if key "prep_models" exists in the scenario_dict, get the prep models from the scenario_dict
         if "prep_models" in self.scenario_dict[self.task_name]:
-            self.create_prep_model_frame(row=3, column=0)
+            self.create_prep_model_frame(row=self.prep_model_row, column=0)
         #
         # ................. Scaler Frame ....................................... #
         # create select scaler frame inside sidebar frame
         # if key "scaler" exists in the scenario_dict, get the scaler from the scenario_dict
         if "scalers" in self.scenario_dict[self.task_name]:
-            self.create_scaler_frame(row=4, column=0)
+            self.create_scaler_frame(row=self.scaler_row, column=0)
         #
         # ................. Core Model Frame ....................................... #
         print(f"scenario_dict = {self.scenario_dict}")
@@ -439,17 +466,8 @@ class CTkApp(customtkinter.CTk):
         #     if filename.endswith(".json"):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
         # create core model frame inside sidebar frame
-        self.create_core_model_frame(row=5, column=0)  #
-        #  ................. Data Frame ....................................... #
-        # select data frame in data main frame
-        self.create_select_data_frame(row=6, column=0)
+        self.create_core_model_frame(row=self.core_model_row, column=0)  #
         #
-        # # create plot data button
-        # self.plot_data_button = customtkinter.CTkButton(
-        #     master=self.sidebar_frame, text="Plot Data", command=self.plot_data_button_event
-        # )
-        # self.plot_data_button.grid(row=6, column=0, sticky="nsew", padx=10, pady=10)
-        # #
         # ................. Metric Frame ....................................... #
         # create select metric_sklearn levels frame inside sidebar frame
         self.select_metric_sklearn_levels_frame = SelectOptionMenuFrame(
@@ -459,7 +477,7 @@ class CTkApp(customtkinter.CTk):
             item_default=None,
             title="Select sklearn metric",
         )
-        self.select_metric_sklearn_levels_frame.grid(row=7, column=0, padx=15, pady=15, sticky="nsew")
+        self.select_metric_sklearn_levels_frame.grid(row=self.metric_row, column=0, padx=15, pady=15, sticky="nsew")
         self.select_metric_sklearn_levels_frame.configure(width=500)
         #
         # ................. Appearance Frame ....................................... #
@@ -473,14 +491,14 @@ class CTkApp(customtkinter.CTk):
             item_default="System",
             title="Appearance Mode",
         )
-        self.appearance_frame.grid(row=8, column=0, padx=15, pady=15, sticky="ew")
+        self.appearance_frame.grid(row=self.appearance_row, column=0, padx=15, pady=15, sticky="ew")
         #
         self.scaling_label = customtkinter.CTkLabel(self.appearance_frame, text="UI Scaling", anchor="w")
-        self.scaling_label.grid(row=2, column=0, padx=20, pady=(10, 0))
+        self.scaling_label.grid(row=self.appearance_row+1, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = customtkinter.CTkOptionMenu(
             self.appearance_frame, values=["100%", "80%", "90%", "110%", "120%"], command=self.change_scaling_event
         )
-        self.scaling_optionemenu.grid(row=3, column=0, padx=15, pady=15, sticky="ew")
+        self.scaling_optionemenu.grid(row=self.appearance_row+2, column=0, padx=15, pady=15, sticky="ew")
 
     def make_experiment_frame(self):
         self.experiment_main_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -953,6 +971,10 @@ class CTkApp(customtkinter.CTk):
         #           n_samples=1000)
         print("\nData shown. No result saved.")
 
+    def load_data_event(self):
+        self.data_set_name = load_data_dialog()
+        print(f"Data set selected: {self.data_set_name}")
+
     def load_button_event(self):
         filename = load_file_dialog()
         if filename:
@@ -985,7 +1007,8 @@ class CTkApp(customtkinter.CTk):
                 print(f'Scaler set to loaded scaler:{self.fun_control["scaler_name"]}')
                 self.scaler_name = self.fun_control["scaler_name"]
             #
-            self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
+            # self.select_data_frame.set_selected_optionmenu_item(self.fun_control["data_set_name"])
+            # TODO: Display data set name as Loaded experiment
             print(f'Data set set to loaded data set:{self.fun_control["data_set_name"]}')
             self.data_set_name = self.fun_control["data_set_name"]
             #

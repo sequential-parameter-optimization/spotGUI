@@ -349,7 +349,10 @@ class spotPythonApp(CTkApp):
         self.tensorboard_start = map_to_True_False(self.tb_start_var.get())
         self.tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         self.PREFIX = self.experiment_name_entry.get()
-        self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+
+        # not needed, because handled by load_data_set
+        # self.data_set_name = self.select_data_frame.get_selected_optionmenu_item()
+
         # if self has the attribute select_prep_model_frame, get the selected
         # optionmenu item
         if hasattr(self, "select_prep_model_frame"):
