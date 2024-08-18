@@ -7,7 +7,8 @@ import os
 from math import inf
 from tkinter import filedialog as fd
 from spotPython.spot import spot
-from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
+
+# from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
 from spotPython.utils.eda import gen_design_table
 from spotPython.fun.hyperlight import HyperLight
 from spotPython.utils.metrics import get_metric_sign
@@ -240,6 +241,7 @@ def get_scenario_entries() -> dict:
             'oml_grace_period_entry': None,
             'prefix_entry': None,
             'tb_clean': None,
+            'tb_log': None,
             'tb_start': None,
             'tb_stop': None}"""
     scenario_entries = dict(
@@ -262,6 +264,7 @@ def get_scenario_entries() -> dict:
         oml_grace_period_entry=None,
         prefix_entry=None,
         tb_clean=None,
+        tb_log=None,
         tb_start=None,
         tb_stop=None,
     )
@@ -315,6 +318,7 @@ def get_scenario_dict(scenario) -> dict:
                 'oml_grace_period_entry': None,
                 'prefix_entry': None,
                 'tb_clean': None,
+                'tb_log': None,
                 'tb_start': None,
                 'tb_stop': None,
                 'prep_models': ['None', 'MaxAbsScaler', 'MinMaxScaler', 'StandardScaler'],
@@ -354,6 +358,7 @@ def get_scenario_dict(scenario) -> dict:
                 'oml_grace_period_entry': None,
                 'prefix_entry': None,
                 'tb_clean': None,
+                'tb_log': None,
                 'tb_start': None,
                 'tb_stop': None,
                 'prep_models': ['None', 'MaxAbsScaler', 'MinMaxScaler', 'StandardScaler'],
@@ -605,8 +610,8 @@ def run_spot_python_experiment(
     surrogate_control,
     optimizer_control,
     fun,
-    tensorboard_start=True,
-    tensorboard_stop=True,
+    # tensorboard_start=False,
+    # tensorboard_stop=False,
 ) -> None:
     """Runs a spot experiment.
 
@@ -621,18 +626,12 @@ def run_spot_python_experiment(
             A dictionary with the optimizer control parameters.
         fun (function):
             The function to be optimized.
-        tensorboard_start (bool):
-            If True, the tensorboard process will be started before the spot run.
-            Default is True.
-        tensorboard_stop (bool):
-            If True, the tensorboard process will be stopped after the spot run.
-            Default is True.
 
     Returns:
         None
 
     """
-    p_open = None
+    # p_open = None
     print(gen_design_table(fun_control))
     spot_tuner = spot.Spot(
         fun=fun,
@@ -939,7 +938,7 @@ def load_data_dialog() -> str:
         print("No data found.")
         print("Directory 'userData' created for saving forthcoming data.")
     current_dir = os.path.join(os.getcwd(), "userData")
-    filetypes = (("CSV files", "*.csv"), ("All files", "*.*"))
+    filetypes = (("CSV files", "*.csv"), ("Tensor picKL files", "*.tkl"), ("All files", "*.*"))
     filename = fd.askopenfilename(title="Select a Data File", initialdir=current_dir, filetypes=filetypes)
     return filename
 

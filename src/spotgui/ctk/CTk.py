@@ -676,49 +676,60 @@ class CTkApp(customtkinter.CTk):
         )
         self.execution_tb_frame_title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         #
-        # tb_clean in execution_tb frame
-        self.tb_clean_var = customtkinter.StringVar(value="True")
-        self.tb_clean_checkbox = customtkinter.CTkCheckBox(
+        self.tb_log_var = customtkinter.StringVar(value="False")
+        self.tb_log_checkbox = customtkinter.CTkCheckBox(
             self.execution_tb_frame,
-            text="TENSORBOARD_CLEAN",
+            text="Tensorboard Logger",
             command=None,
-            variable=self.tb_clean_var,
+            variable=self.tb_log_var,
             onvalue="True",
             offvalue="False",
         )
-        self.tb_clean_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
-        # tb_start in execution_tb frame
-        self.tb_start_var = customtkinter.StringVar(value="True")
-        self.tb_start_checkbox = customtkinter.CTkCheckBox(
-            self.execution_tb_frame,
-            text="Start Tensorboard",
-            command=None,
-            variable=self.tb_start_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.tb_start_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
-        # tb_stop in execution_tb frame
-        self.tb_stop_var = customtkinter.StringVar(value="True")
-        self.tb_stop_checkbox = customtkinter.CTkCheckBox(
-            self.execution_tb_frame,
-            text="Stop Tensorboard",
-            command=None,
-            variable=self.tb_stop_var,
-            onvalue="True",
-            offvalue="False",
-        )
-        self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.tb_log_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
         #
-        self.browser_link_label = customtkinter.CTkLabel(
-            self.execution_tb_frame,
-            text="Open http://localhost:6006",
-            text_color=("blue", "orange"),
-            cursor="hand2",
-            corner_radius=6,
-        )
-        self.browser_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
-        self.browser_link_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="w")
+        # # tb_clean in execution_tb frame
+        # self.tb_clean_var = customtkinter.StringVar(value="True")
+        # self.tb_clean_checkbox = customtkinter.CTkCheckBox(
+        #     self.execution_tb_frame,
+        #     text="TENSORBOARD_CLEAN",
+        #     command=None,
+        #     variable=self.tb_clean_var,
+        #     onvalue="True",
+        #     offvalue="False",
+        # )
+        # self.tb_clean_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
+        # tb_start in execution_tb frame
+        # self.tb_start_var = customtkinter.StringVar(value="True")
+        # self.tb_start_checkbox = customtkinter.CTkCheckBox(
+        #     self.execution_tb_frame,
+        #     text="Start Tensorboard",
+        #     command=None,
+        #     variable=self.tb_start_var,
+        #     onvalue="True",
+        #     offvalue="False",
+        # )
+        # self.tb_start_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        # # tb_stop in execution_tb frame
+        # self.tb_stop_var = customtkinter.StringVar(value="True")
+        # self.tb_stop_checkbox = customtkinter.CTkCheckBox(
+        #     self.execution_tb_frame,
+        #     text="Stop Tensorboard",
+        #     command=None,
+        #     variable=self.tb_stop_var,
+        #     onvalue="True",
+        #     offvalue="False",
+        # )
+        # self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky="w")
+        # #
+        # self.browser_link_label = customtkinter.CTkLabel(
+        #     self.execution_tb_frame,
+        #     text="Open http://localhost:6006",
+        #     text_color=("blue", "orange"),
+        #     cursor="hand2",
+        #     corner_radius=6,
+        # )
+        # self.browser_link_label.bind("<Button-1>", lambda e: webbrowser.open_new("http://localhost:6006"))
+        # self.browser_link_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky="w")
         #
         # ................. execution_docs Frame .......................................#
         # create execution_docs frame with widgets in execution_main frame
@@ -886,6 +897,16 @@ class CTkApp(customtkinter.CTk):
         )
         self.importance_button.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         #
+        # River specific Comparisons and Classification
+        if self.scenario == "river":
+            self.make_river_analysis_frame()
+        else:
+            if hasattr(self, "analysis_comparison_frame"):
+                self.analysis_comparison_frame.destroy()
+            if hasattr(self, "analysis_classification_frame"):
+                self.analysis_classification_frame.destroy()
+
+    def make_river_analysis_frame(self):
         # ................. Comparison_Analysis Frame .......................................#
         # create analysis_comparison_frame with widgets in analysis_main frame
         self.analysis_comparison_frame = customtkinter.CTkFrame(self.analysis_main_frame, corner_radius=6)
@@ -1010,6 +1031,8 @@ class CTkApp(customtkinter.CTk):
             # TODO: Display data set name as Loaded experiment
             print(f'Data set set to loaded data set:{self.fun_control["data_set_name"]}')
             self.data_set_name = self.fun_control["data_set_name"]
+            data_set_name = os.path.basename(self.data_set_name)
+            self.data_label.configure(text=data_set_name)
             #
             self.select_metric_sklearn_levels_frame.set_selected_optionmenu_item(
                 self.fun_control["metric_sklearn_name"]
@@ -1092,21 +1115,34 @@ class CTkApp(customtkinter.CTk):
             self.experiment_name_entry.delete(0, "end")
             self.experiment_name_entry.insert(0, self.experiment_name)
             # ----------------- Tensorboard options ----------------- #
-            self.tb_clean = self.fun_control["TENSORBOARD_CLEAN"]
-            self.tb_clean_checkbox.deselect()
-            if self.tb_clean:
-                self.tb_clean_checkbox.select()
+            # self.tb_clean = self.fun_control["TENSORBOARD_CLEAN"]
+            # self.tb_clean_checkbox.deselect()
+            # if self.tb_clean:
+            #     self.tb_clean_checkbox.select()
+            # #
+            self.tb_log = self.fun_control["tensorboard_log"]
+            self.tb_log_checkbox.deselect()
+            if self.tb_log:
+                self.tb_log_checkbox.select()
             #
-            self.tb_start = self.fun_control["tensorboard_start"]
-            self.tb_start_checkbox.deselect()
-            if self.tb_start:
-                self.tb_start_checkbox.select()
+            # self.tb_start = self.fun_control["tensorboard_start"]
+            # self.tb_start_checkbox.deselect()
+            # if self.tb_start:
+            #     self.tb_start_checkbox.select()
+            # #
+            # self.tb_stop = self.fun_control["tensorboard_stop"]
+            # self.tb_stop_checkbox.deselect()
+            # if self.tb_stop:
+            #     self.tb_stop_checkbox.select()
             #
-            self.tb_stop = self.fun_control["tensorboard_stop"]
-            self.tb_stop_checkbox.deselect()
-            if self.tb_stop:
-                self.tb_stop_checkbox.select()
-            #
+            # River specific Comparisons and Classification
+            if self.scenario == "river":
+                self.make_river_analysis_frame()
+            else:
+                if hasattr(self, "analysis_comparison_frame"):
+                    self.analysis_comparison_frame.destroy()
+                if hasattr(self, "analysis_classification_frame"):
+                    self.analysis_classification_frame.destroy()
 
     def create_experiment_eval_frame(self):
         if self.scenario == "river":

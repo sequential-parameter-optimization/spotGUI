@@ -113,25 +113,28 @@ class spotPythonApp(CTkApp):
             self.target_type = None
 
     def print_data(self):
-        self.set_global_attributes()
-        if self.scenario == "river":
-            self.set_river_attributes()
-            self.get_river_data()
-            self.get_csv_data()
-            self.get_pkl_data()
-            self.prepare_data()
-            self.print_cvs_pkl_data()
-        elif self.scenario == "lightning":
-            self.set_lightning_attributes()
-            self.get_tkl_data()
-            self.get_tkl_data_dimensions()
-            self.print_lightning_data()
-        elif self.scenario == "sklearn":
-            self.set_sklearn_attributes()
-            self.get_csv_data()
-            self.get_pkl_data()
-            self.prepare_data()
-            self.print_cvs_pkl_data()
+        if self.data_set_selected():
+            self.set_global_attributes()
+            if self.scenario == "river":
+                self.set_river_attributes()
+                self.get_river_data()
+                self.get_csv_data()
+                self.get_pkl_data()
+                self.prepare_data()
+                self.print_cvs_pkl_data()
+            elif self.scenario == "lightning":
+                self.set_lightning_attributes()
+                self.get_tkl_data()
+                self.get_tkl_data_dimensions()
+                self.print_lightning_data()
+            elif self.scenario == "sklearn":
+                self.set_sklearn_attributes()
+                self.get_csv_data()
+                self.get_pkl_data()
+                self.prepare_data()
+                self.print_cvs_pkl_data()
+        else:
+            print("No data set selected.")
 
     def prepare_data(self):
         """Splits the data-set into training and test sets.
@@ -309,9 +312,7 @@ class spotPythonApp(CTkApp):
         - lbd_max
         - kriging_noise
         - max_surrogate_points
-        - TENSORBOARD_CLEAN
-        - tensorboard_start
-        - tensorboard_stop
+        - tensorboard_log
         - PREFIX
         - data_set_name
         - prep_model_name
@@ -345,9 +346,10 @@ class spotPythonApp(CTkApp):
         self.lbd_min, self.lbd_max = get_lambda_min_max(self.lambda_min_max_var.get())
         self.kriging_noise = get_kriging_noise(self.lbd_min, self.lbd_max)
         self.max_surrogate_points = int(self.max_sp_var.get())
-        self.TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
-        self.tensorboard_start = map_to_True_False(self.tb_start_var.get())
-        self.tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
+#        self.TENSORBOARD_CLEAN = map_to_True_False(self.tb_clean_var.get())
+        self.tensorboard_log = map_to_True_False(self.tb_log_var.get())
+        # self.tensorboard_start = map_to_True_False(self.tb_start_var.get())
+        # self.tensorboard_stop = map_to_True_False(self.tb_stop_var.get())
         self.PREFIX = self.experiment_name_entry.get()
 
         # not needed, because handled by load_data_set
@@ -443,7 +445,7 @@ class spotPythonApp(CTkApp):
             _L_out=1,
             _torchmetric=None,
             PREFIX=self.PREFIX,
-            TENSORBOARD_CLEAN=self.TENSORBOARD_CLEAN,
+            # TENSORBOARD_CLEAN=self.TENSORBOARD_CLEAN,
             core_model_name=core_model_name,
             data_set_name=self.data_set_name,
             data_set=self.data_set,
@@ -472,8 +474,9 @@ class spotPythonApp(CTkApp):
             task=task_name,
             target_column=self.target_column,
             target_type=self.target_type,
-            tensorboard_start=self.tensorboard_start,
-            tensorboard_stop=self.tensorboard_stop,
+            tensorboard_log=self.tensorboard_log,
+            # tensorboard_start=self.tensorboard_start,
+            # tensorboard_stop=self.tensorboard_stop,
             test=self.test,
             test_size=self.test_size,
             train=self.train,
@@ -519,30 +522,43 @@ class spotPythonApp(CTkApp):
         self.optimizer_control = optimizer_control_init()
 
     def save_experiment(self):
-        self.prepare_experiment()
-        save_spot_python_experiment(
-            fun_control=self.fun_control,
-            design_control=self.design_control,
-            surrogate_control=self.surrogate_control,
-            optimizer_control=self.optimizer_control,
-            fun=self.fun,
-        )
-        print("\nExperiment saved.")
-        pprint.pprint(self.fun_control)
+        if self.data_set_selected():
+            self.prepare_experiment()
+            save_spot_python_experiment(
+                fun_control=self.fun_control,
+                design_control=self.design_control,
+                surrogate_control=self.surrogate_control,
+                optimizer_control=self.optimizer_control,
+                fun=self.fun,
+            )
+            print("\nExperiment saved.")
+            pprint.pprint(self.fun_control)
+        else:
+            print("No experiment saved.")
 
     def run_experiment(self):
-        self.prepare_experiment()
-        run_spot_python_experiment(
-            fun_control=self.fun_control,
-            design_control=self.design_control,
-            surrogate_control=self.surrogate_control,
-            optimizer_control=self.optimizer_control,
-            fun=self.fun,
-            tensorboard_start=self.tensorboard_start,
-            tensorboard_stop=self.tensorboard_stop,
-        )
-        print("\nExperiment finished.")
+        if self.data_set_selected():
+            self.prepare_experiment()
+            run_spot_python_experiment(
+                fun_control=self.fun_control,
+                design_control=self.design_control,
+                surrogate_control=self.surrogate_control,
+                optimizer_control=self.optimizer_control,
+                fun=self.fun,
+                # tensorboard_start=self.tensorboard_start,
+                # tensorboard_stop=self.tensorboard_stop,
+            )
+            print("\nExperiment finished.")
+        else:
+            print("No experiment run.")
 
+    def data_set_selected(self):
+        if self.data_set_name is None or self.data_set_name == "None":
+            print("No data set selected.")
+            return False
+        else:
+            print(f"Data set selected: {self.data_set_name}")
+            return True
 
 # TODO:
 # Check the handling of l1/l2 in LogisticRegression. A note (from the River documentation):
