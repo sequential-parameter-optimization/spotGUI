@@ -2230,7 +2230,22 @@
 <span class="normal">1188</span>
 <span class="normal">1189</span>
 <span class="normal">1190</span>
-<span class="normal">1191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
+<span class="normal">1191</span>
+<span class="normal">1192</span>
+<span class="normal">1193</span>
+<span class="normal">1194</span>
+<span class="normal">1195</span>
+<span class="normal">1196</span>
+<span class="normal">1197</span>
+<span class="normal">1198</span>
+<span class="normal">1199</span>
+<span class="normal">1200</span>
+<span class="normal">1201</span>
+<span class="normal">1202</span>
+<span class="normal">1203</span>
+<span class="normal">1204</span>
+<span class="normal">1205</span>
+<span class="normal">1206</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CTkApp</span><span class="p">(</span><span class="n">customtkinter</span><span class="o">.</span><span class="n">CTk</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># name of the progress file</span>
@@ -2404,27 +2419,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">select_scaler_frame</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">create_select_data_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
-        <span class="c1"># Create Loaded Data Entry</span>
-        <span class="c1"># the data_set_name has full path information, e.g.,</span>
-        <span class="c1"># &quot;/home/User/userData/iris.csv&quot; or &quot;\home\User\userData\iris.pkl&quot;</span>
-        <span class="c1"># extract the file name from the data_set_name</span>
-        <span class="c1">#</span>
-        <span class="c1"># self.sidebar_frame_title = customtkinter.CTkLabel(</span>
-        <span class="c1">#     self.sidebar_frame,</span>
-        <span class="c1">#     text=&quot;Loaded Data&quot;,</span>
-        <span class="c1">#     font=customtkinter.CTkFont(weight=&quot;bold&quot;),</span>
-        <span class="c1">#     corner_radius=6,</span>
-        <span class="c1"># )</span>
-        <span class="c1"># self.sidebar_frame_title.grid(row=row, column=0, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
-        <span class="c1"># data_set_name = os.path.basename(self.data_set_name)</span>
-        <span class="c1"># self.loaded_data_label = customtkinter.CTkLabel(self.sidebar_frame, text=data_set_name, corner_radius=6)</span>
-        <span class="c1"># self.loaded_data_label.grid(row=row+1, column=column, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
-        <span class="c1"># self.select_data_frame = customtkinter.CTkButton(</span>
-        <span class="c1">#     master=self.sidebar_frame, text=&quot;Load New Data&quot;, command=self.load_data_event</span>
-        <span class="c1"># )</span>
-        <span class="c1"># self.select_data_frame.grid(row=row+2, column=column, sticky=&quot;ew&quot;, padx=10, pady=10)</span>
-        <span class="c1">#</span>
-        <span class="c1"># create data_frame with widgets in sidebar_frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sidebar_frame</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
@@ -2894,49 +2888,60 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">execution_tb_frame_title</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
-        <span class="c1"># tb_clean in execution_tb frame</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean_var</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean_checkbox</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkCheckBox</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_log_var</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;False&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_log_checkbox</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkCheckBox</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execution_tb_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;TENSORBOARD_CLEAN&quot;</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Tensorboard Logger&quot;</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tb_clean_var</span><span class="p">,</span>
+            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tb_log_var</span><span class="p">,</span>
             <span class="n">onvalue</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
             <span class="n">offvalue</span><span class="o">=</span><span class="s2">&quot;False&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean_checkbox</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
-        <span class="c1"># tb_start in execution_tb frame</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_start_var</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_start_checkbox</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkCheckBox</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">execution_tb_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Start Tensorboard&quot;</span><span class="p">,</span>
-            <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tb_start_var</span><span class="p">,</span>
-            <span class="n">onvalue</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
-            <span class="n">offvalue</span><span class="o">=</span><span class="s2">&quot;False&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_start_checkbox</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
-        <span class="c1"># tb_stop in execution_tb frame</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop_var</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop_checkbox</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkCheckBox</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">execution_tb_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Stop Tensorboard&quot;</span><span class="p">,</span>
-            <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tb_stop_var</span><span class="p">,</span>
-            <span class="n">onvalue</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
-            <span class="n">offvalue</span><span class="o">=</span><span class="s2">&quot;False&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop_checkbox</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_log_checkbox</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">browser_link_label</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">execution_tb_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Open http://localhost:6006&quot;</span><span class="p">,</span>
-            <span class="n">text_color</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;orange&quot;</span><span class="p">),</span>
-            <span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;hand2&quot;</span><span class="p">,</span>
-            <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">browser_link_label</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-1&gt;&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open_new</span><span class="p">(</span><span class="s2">&quot;http://localhost:6006&quot;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">browser_link_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="c1"># # tb_clean in execution_tb frame</span>
+        <span class="c1"># self.tb_clean_var = customtkinter.StringVar(value=&quot;True&quot;)</span>
+        <span class="c1"># self.tb_clean_checkbox = customtkinter.CTkCheckBox(</span>
+        <span class="c1">#     self.execution_tb_frame,</span>
+        <span class="c1">#     text=&quot;TENSORBOARD_CLEAN&quot;,</span>
+        <span class="c1">#     command=None,</span>
+        <span class="c1">#     variable=self.tb_clean_var,</span>
+        <span class="c1">#     onvalue=&quot;True&quot;,</span>
+        <span class="c1">#     offvalue=&quot;False&quot;,</span>
+        <span class="c1"># )</span>
+        <span class="c1"># self.tb_clean_checkbox.grid(row=1, column=0, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
+        <span class="c1"># tb_start in execution_tb frame</span>
+        <span class="c1"># self.tb_start_var = customtkinter.StringVar(value=&quot;True&quot;)</span>
+        <span class="c1"># self.tb_start_checkbox = customtkinter.CTkCheckBox(</span>
+        <span class="c1">#     self.execution_tb_frame,</span>
+        <span class="c1">#     text=&quot;Start Tensorboard&quot;,</span>
+        <span class="c1">#     command=None,</span>
+        <span class="c1">#     variable=self.tb_start_var,</span>
+        <span class="c1">#     onvalue=&quot;True&quot;,</span>
+        <span class="c1">#     offvalue=&quot;False&quot;,</span>
+        <span class="c1"># )</span>
+        <span class="c1"># self.tb_start_checkbox.grid(row=2, column=0, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
+        <span class="c1"># # tb_stop in execution_tb frame</span>
+        <span class="c1"># self.tb_stop_var = customtkinter.StringVar(value=&quot;True&quot;)</span>
+        <span class="c1"># self.tb_stop_checkbox = customtkinter.CTkCheckBox(</span>
+        <span class="c1">#     self.execution_tb_frame,</span>
+        <span class="c1">#     text=&quot;Stop Tensorboard&quot;,</span>
+        <span class="c1">#     command=None,</span>
+        <span class="c1">#     variable=self.tb_stop_var,</span>
+        <span class="c1">#     onvalue=&quot;True&quot;,</span>
+        <span class="c1">#     offvalue=&quot;False&quot;,</span>
+        <span class="c1"># )</span>
+        <span class="c1"># self.tb_stop_checkbox.grid(row=3, column=0, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
+        <span class="c1"># #</span>
+        <span class="c1"># self.browser_link_label = customtkinter.CTkLabel(</span>
+        <span class="c1">#     self.execution_tb_frame,</span>
+        <span class="c1">#     text=&quot;Open http://localhost:6006&quot;,</span>
+        <span class="c1">#     text_color=(&quot;blue&quot;, &quot;orange&quot;),</span>
+        <span class="c1">#     cursor=&quot;hand2&quot;,</span>
+        <span class="c1">#     corner_radius=6,</span>
+        <span class="c1"># )</span>
+        <span class="c1"># self.browser_link_label.bind(&quot;&lt;Button-1&gt;&quot;, lambda e: webbrowser.open_new(&quot;http://localhost:6006&quot;))</span>
+        <span class="c1"># self.browser_link_label.grid(row=4, column=0, padx=10, pady=(10, 0), sticky=&quot;w&quot;)</span>
         <span class="c1">#</span>
         <span class="c1"># ................. execution_docs Frame .......................................#</span>
         <span class="c1"># create execution_docs frame with widgets in execution_main frame</span>
@@ -3104,6 +3109,16 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">importance_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="c1">#</span>
+        <span class="c1"># River specific Comparisons and Classification</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_river_analysis_frame</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;analysis_comparison_frame&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;analysis_classification_frame&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">make_river_analysis_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># ................. Comparison_Analysis Frame .......................................#</span>
         <span class="c1"># create analysis_comparison_frame with widgets in analysis_main frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_main_frame</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
@@ -3228,6 +3243,8 @@
             <span class="c1"># TODO: Display data set name as Loaded experiment</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Data set set to loaded data set:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;data_set_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;data_set_name&quot;</span><span class="p">]</span>
+            <span class="n">data_set_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_set_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_label</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">data_set_name</span><span class="p">)</span>
             <span class="c1">#</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">select_metric_sklearn_levels_frame</span><span class="o">.</span><span class="n">set_selected_optionmenu_item</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;metric_sklearn_name&quot;</span><span class="p">]</span>
@@ -3310,21 +3327,34 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">experiment_name_entry</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">experiment_name_entry</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">)</span>
             <span class="c1"># ----------------- Tensorboard options ----------------- #</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;TENSORBOARD_CLEAN&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean_checkbox</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tb_clean_checkbox</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+            <span class="c1"># self.tb_clean = self.fun_control[&quot;TENSORBOARD_CLEAN&quot;]</span>
+            <span class="c1"># self.tb_clean_checkbox.deselect()</span>
+            <span class="c1"># if self.tb_clean:</span>
+            <span class="c1">#     self.tb_clean_checkbox.select()</span>
+            <span class="c1"># #</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tb_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;tensorboard_log&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tb_log_checkbox</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tb_log</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tb_log_checkbox</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
             <span class="c1">#</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tb_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;tensorboard_start&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tb_start_checkbox</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tb_start</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tb_start_checkbox</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
+            <span class="c1"># self.tb_start = self.fun_control[&quot;tensorboard_start&quot;]</span>
+            <span class="c1"># self.tb_start_checkbox.deselect()</span>
+            <span class="c1"># if self.tb_start:</span>
+            <span class="c1">#     self.tb_start_checkbox.select()</span>
+            <span class="c1"># #</span>
+            <span class="c1"># self.tb_stop = self.fun_control[&quot;tensorboard_stop&quot;]</span>
+            <span class="c1"># self.tb_stop_checkbox.deselect()</span>
+            <span class="c1"># if self.tb_stop:</span>
+            <span class="c1">#     self.tb_stop_checkbox.select()</span>
             <span class="c1">#</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_control</span><span class="p">[</span><span class="s2">&quot;tensorboard_stop&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop_checkbox</span><span class="o">.</span><span class="n">deselect</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tb_stop_checkbox</span><span class="o">.</span><span class="n">select</span><span class="p">()</span>
-            <span class="c1">#</span>
+            <span class="c1"># River specific Comparisons and Classification</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">make_river_analysis_frame</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;analysis_comparison_frame&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">analysis_comparison_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;analysis_classification_frame&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">analysis_classification_frame</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">create_experiment_eval_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">==</span> <span class="s2">&quot;river&quot;</span><span class="p">:</span>
@@ -3471,7 +3501,28 @@ from the sklearn.preprocessing module.</p>
 
             <details class="quote">
               <summary>Source code in <code>spotgui/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">277</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
 <span class="normal">278</span>
 <span class="normal">279</span>
 <span class="normal">280</span>
@@ -3480,28 +3531,7 @@ from the sklearn.preprocessing module.</p>
 <span class="normal">283</span>
 <span class="normal">284</span>
 <span class="normal">285</span>
-<span class="normal">286</span>
-<span class="normal">287</span>
-<span class="normal">288</span>
-<span class="normal">289</span>
-<span class="normal">290</span>
-<span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
-<span class="normal">295</span>
-<span class="normal">296</span>
-<span class="normal">297</span>
-<span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span>
-<span class="normal">301</span>
-<span class="normal">302</span>
-<span class="normal">303</span>
-<span class="normal">304</span>
-<span class="normal">305</span>
-<span class="normal">306</span>
-<span class="normal">307</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="normal">286</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_prep_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prep_model_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the prep model is a user defined prep model.</span>
 <span class="sd">    If it is a user defined prep model, import the prep model from the userPrepModel directory.</span>
 <span class="sd">    Otherwise, get the prep model from the river.preprocessing module or</span>
@@ -3608,31 +3638,31 @@ Otherwise, get the scaler from the sklearn.preprocessing module.</p>
 
             <details class="quote">
               <summary>Source code in <code>spotgui/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">309</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
 <span class="normal">310</span>
 <span class="normal">311</span>
-<span class="normal">312</span>
-<span class="normal">313</span>
-<span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
-<span class="normal">323</span>
-<span class="normal">324</span>
-<span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
-<span class="normal">328</span>
-<span class="normal">329</span>
-<span class="normal">330</span>
-<span class="normal">331</span>
-<span class="normal">332</span>
-<span class="normal">333</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="normal">312</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_user_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the scaler is a user defined scaler.</span>
 <span class="sd">    Aplies to sklearn and lightning scenarios.</span>
 <span class="sd">    If it is a user defined scaler, import the scaler from the userScaler directory.</span>
@@ -3701,20 +3731,20 @@ Otherwise, get the scaler from the sklearn.preprocessing module.</p>
 
             <details class="quote">
               <summary>Source code in <code>spotgui/ctk/CTk.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1178</span>
-<span class="normal">1179</span>
-<span class="normal">1180</span>
-<span class="normal">1181</span>
-<span class="normal">1182</span>
-<span class="normal">1183</span>
-<span class="normal">1184</span>
-<span class="normal">1185</span>
-<span class="normal">1186</span>
-<span class="normal">1187</span>
-<span class="normal">1188</span>
-<span class="normal">1189</span>
-<span class="normal">1190</span>
-<span class="normal">1191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_tasks_for_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1193</span>
+<span class="normal">1194</span>
+<span class="normal">1195</span>
+<span class="normal">1196</span>
+<span class="normal">1197</span>
+<span class="normal">1198</span>
+<span class="normal">1199</span>
+<span class="normal">1200</span>
+<span class="normal">1201</span>
+<span class="normal">1202</span>
+<span class="normal">1203</span>
+<span class="normal">1204</span>
+<span class="normal">1205</span>
+<span class="normal">1206</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_tasks_for_scenario</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the tasks for the selected scenario.</span>
 
 <span class="sd">    Returns:</span>
