@@ -859,7 +859,7 @@
         <li class="md-nav__item">
   <a href="#simple-spotpython-run" class="md-nav__link">
     <span class="md-ellipsis">
-      Simple spotPython run
+      Simple spotpython run
     </span>
   </a>
   
@@ -931,7 +931,7 @@
         <li class="md-nav__item">
   <a href="#simple-spotpython-run" class="md-nav__link">
     <span class="md-ellipsis">
-      Simple spotPython run
+      Simple spotpython run
     </span>
   </a>
   
@@ -965,11 +965,11 @@
 
 
 <h1 id="spot-examples">SPOT Examples<a class="headerlink" href="#spot-examples" title="Permanent link">&para;</a></h1>
-<h2 id="simple-spotpython-run">Simple spotPython run<a class="headerlink" href="#simple-spotpython-run" title="Permanent link">&para;</a></h2>
+<h2 id="simple-spotpython-run">Simple spotpython run<a class="headerlink" href="#simple-spotpython-run" title="Permanent link">&para;</a></h2>
 <pre><code>import numpy as np
-from spotPython.spot import spot
-from spotPython.fun.objectivefunctions import analytical
-from spotPython.utils.init import fun_control_init, design_control_init, surrogate_control_init
+from spotpython.spot import spot
+from spotpython.fun.objectivefunctions import analytical
+from spotpython.utils.init import fun_control_init, design_control_init, surrogate_control_init
 
 fun = analytical().fun_branin
 fun_control = fun_control_init(lower = np.array([-5, 0]),
@@ -980,16 +980,16 @@ surrogate_control = surrogate_control_init(n_theta=2)
 S = spot.Spot(fun=fun, fun_control=fun_control, design_control=design_control)
 S.run()
 </code></pre>
-<pre><code class="language-raw">spotPython tuning: 3.146824136952164 [######----] 55.00% 
-spotPython tuning: 3.146824136952164 [######----] 60.00% 
-spotPython tuning: 3.146824136952164 [######----] 65.00% 
-spotPython tuning: 3.146824136952164 [#######---] 70.00% 
-spotPython tuning: 1.1487233101571483 [########--] 75.00% 
-spotPython tuning: 1.0236891516766402 [########--] 80.00% 
-spotPython tuning: 0.41994270072214057 [########--] 85.00% 
-spotPython tuning: 0.40193544341108023 [#########-] 90.00% 
-spotPython tuning: 0.3991519598268951 [##########] 95.00% 
-spotPython tuning: 0.3991519598268951 [##########] 100.00% Done...
+<pre><code class="language-raw">spotpython tuning: 3.146824136952164 [######----] 55.00% 
+spotpython tuning: 3.146824136952164 [######----] 60.00% 
+spotpython tuning: 3.146824136952164 [######----] 65.00% 
+spotpython tuning: 3.146824136952164 [#######---] 70.00% 
+spotpython tuning: 1.1487233101571483 [########--] 75.00% 
+spotpython tuning: 1.0236891516766402 [########--] 80.00% 
+spotpython tuning: 0.41994270072214057 [########--] 85.00% 
+spotpython tuning: 0.40193544341108023 [#########-] 90.00% 
+spotpython tuning: 0.3991519598268951 [##########] 95.00% 
+spotpython tuning: 0.3991519598268951 [##########] 100.00% Done...
 </code></pre>
 <pre><code class="language-python">S.print_results()
 </code></pre>
@@ -999,10 +999,10 @@ x1: 2.285931113926263
 </code></pre>
 <pre><code>S.plot_progress(log_y=True)
 </code></pre>
-<p><img alt="spotPython progress plot" src="../images/plot-progress.png" /></p>
+<p><img alt="spotpython progress plot" src="../images/plot-progress.png" /></p>
 <pre><code>S.surrogate.plot()
 </code></pre>
-<p><img alt="spotPython surrogate plot" src="../images/surrogate-plot.png" /></p>
+<p><img alt="spotpython surrogate plot" src="../images/surrogate-plot.png" /></p>
 <h2 id="further-examples">Further Examples<a class="headerlink" href="#further-examples" title="Permanent link">&para;</a></h2>
 <p>Examples can be found in the Hyperparameter Tuning Cookbook, e.g., <a href="https://sequential-parameter-optimization.github.io/Hyperparameter-Tuning-Cookbook/a_04_spot_doc.html">Documentation of the Sequential Parameter Optimization</a>.</p>
 

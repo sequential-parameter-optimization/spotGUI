@@ -2670,7 +2670,7 @@
         <span class="c1"># ................. Core Model Frame ....................................... #</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;scenario_dict = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">core_model_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">task_name</span><span class="p">][</span><span class="s2">&quot;core_model_names&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c1"># Uncomment to get user defined core models (not useful for spotRiver):</span>
+        <span class="c1"># Uncomment to get user defined core models (not useful for spotriver):</span>
         <span class="c1"># for filename in os.listdir(&quot;userModel&quot;):</span>
         <span class="c1">#     if filename.endswith(&quot;.json&quot;):</span>
         <span class="c1">#         self.core_model_name.append(os.path.splitext(filename)[0])</span>
@@ -2956,28 +2956,28 @@
         <span class="c1"># spot_doc entry in execution_model frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spot_link_label</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execution_docs_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;spotPython documentation&quot;</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;spotpython documentation&quot;</span><span class="p">,</span>
             <span class="n">text_color</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;orange&quot;</span><span class="p">),</span>
             <span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;hand2&quot;</span><span class="p">,</span>
             <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spot_link_label</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span>
             <span class="s2">&quot;&lt;Button-1&gt;&quot;</span><span class="p">,</span>
-            <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open_new</span><span class="p">(</span><span class="s2">&quot;https://sequential-parameter-optimization.github.io/spotPython/&quot;</span><span class="p">),</span>
+            <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open_new</span><span class="p">(</span><span class="s2">&quot;https://sequential-parameter-optimization.github.io/spotpython/&quot;</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spot_link_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="c1"># spotriver_doc entry in execution_model frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spotriver_link_label</span> <span class="o">=</span> <span class="n">customtkinter</span><span class="o">.</span><span class="n">CTkLabel</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execution_docs_frame</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;spotRiver documentation&quot;</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;spotriver documentation&quot;</span><span class="p">,</span>
             <span class="n">text_color</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;orange&quot;</span><span class="p">),</span>
             <span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;hand2&quot;</span><span class="p">,</span>
             <span class="n">corner_radius</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spotriver_link_label</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span>
             <span class="s2">&quot;&lt;Button-1&gt;&quot;</span><span class="p">,</span>
-            <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open_new</span><span class="p">(</span><span class="s2">&quot;https://sequential-parameter-optimization.github.io/spotRiver/&quot;</span><span class="p">),</span>
+            <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open_new</span><span class="p">(</span><span class="s2">&quot;https://sequential-parameter-optimization.github.io/spotriver/&quot;</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spotriver_link_label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="c1">#</span>
