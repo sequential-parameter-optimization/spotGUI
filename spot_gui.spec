@@ -5,7 +5,7 @@ a = Analysis(
     ['gui/spot_gui.py'],
     pathex=[],
     binaries=[],
-    datas=[('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/customtkinter', 'customtkinter/'), ('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/lightning_fabric', 'lightning_fabric/'),  ( 'src/spotgui/ctk/images', 'spotgui/ctk/images/' ), ('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/spotPython/hyperdict', 'spotPython/hyperdict/'), ('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/spotRiver/hyperdict', 'spotRiver/hyperdict/')],
+    datas=[('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/customtkinter', 'customtkinter/'), ('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/lightning_fabric', 'lightning_fabric/'),  ( 'src/spotgui/ctk/images', 'spotgui/ctk/images/' ), ('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/spotpython/hyperdict', 'spotpython/hyperdict/'), ('/Users/bartz/miniforge3/envs/spot/lib/python3.11/site-packages/spotriver/hyperdict', 'spotriver/hyperdict/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

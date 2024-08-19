@@ -1,4 +1,4 @@
-# Install spotPython
+# Install spotpython
 
-    pip install spotPython
+    pip install spotpython
     pip install spotgui

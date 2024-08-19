@@ -15,22 +15,22 @@ from spotgui.tuner.spotRun import (
     show_y_hist,
 )
 from PIL import Image
-from spotPython.utils.eda import gen_design_table
+from spotpython.utils.eda import gen_design_table
 import tkinter as tk
 import sys
 from spotgui.ctk.SelectOptions import SelectOptionMenuFrame
 from spotgui.ctk.HyperparameterFrame import NumHyperparameterFrame, CatHyperparameterFrame
-from spotPython.utils.file import load_experiment as load_experiment_spot
-from spotPython.hyperparameters.values import (
+from spotpython.utils.file import load_experiment as load_experiment_spot
+from spotpython.hyperparameters.values import (
     get_river_prep_model,
     get_river_core_model_from_name,
     get_core_model_from_name,
     get_prep_model,
     get_sklearn_scaler,
 )
-from spotRiver.hyperdict.river_hyper_dict import RiverHyperDict
-from spotPython.hyperdict.light_hyper_dict import LightHyperDict
-from spotPython.hyperdict.sklearn_hyper_dict import SklearnHyperDict
+from spotriver.hyperdict.river_hyper_dict import RiverHyperDict
+from spotpython.hyperdict.light_hyper_dict import LightHyperDict
+from spotpython.hyperdict.sklearn_hyper_dict import SklearnHyperDict
 
 
 class CTkApp(customtkinter.CTk):
@@ -458,7 +458,7 @@ class CTkApp(customtkinter.CTk):
         # ................. Core Model Frame ....................................... #
         print(f"scenario_dict = {self.scenario_dict}")
         self.core_model_name = self.scenario_dict[self.task_name]["core_model_names"][0]
-        # Uncomment to get user defined core models (not useful for spotRiver):
+        # Uncomment to get user defined core models (not useful for spotriver):
         # for filename in os.listdir("userModel"):
         #     if filename.endswith(".json"):
         #         self.core_model_name.append(os.path.splitext(filename)[0])
@@ -744,28 +744,28 @@ class CTkApp(customtkinter.CTk):
         # spot_doc entry in execution_model frame
         self.spot_link_label = customtkinter.CTkLabel(
             self.execution_docs_frame,
-            text="spotPython documentation",
+            text="spotpython documentation",
             text_color=("blue", "orange"),
             cursor="hand2",
             corner_radius=6,
         )
         self.spot_link_label.bind(
             "<Button-1>",
-            lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotPython/"),
+            lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotpython/"),
         )
         self.spot_link_label.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
         #
         # spotriver_doc entry in execution_model frame
         self.spotriver_link_label = customtkinter.CTkLabel(
             self.execution_docs_frame,
-            text="spotRiver documentation",
+            text="spotriver documentation",
             text_color=("blue", "orange"),
             cursor="hand2",
             corner_radius=6,
         )
         self.spotriver_link_label.bind(
             "<Button-1>",
-            lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotRiver/"),
+            lambda e: webbrowser.open_new("https://sequential-parameter-optimization.github.io/spotriver/"),
         )
         self.spotriver_link_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
         #

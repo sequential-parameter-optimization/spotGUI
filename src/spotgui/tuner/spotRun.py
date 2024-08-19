@@ -6,13 +6,13 @@ import numpy as np
 import os
 from math import inf
 from tkinter import filedialog as fd
-from spotPython.spot import spot
+from spotpython.spot import spot
 
-# from spotPython.utils.tensorboard import start_tensorboard, stop_tensorboard
-from spotPython.utils.eda import gen_design_table
-from spotPython.fun.hyperlight import HyperLight
-from spotPython.utils.metrics import get_metric_sign
-from spotPython.utils.file import get_experiment_from_PREFIX
+# from spotpython.utils.tensorboard import start_tensorboard, stop_tensorboard
+from spotpython.utils.eda import gen_design_table
+from spotpython.fun.hyperlight import HyperLight
+from spotpython.utils.metrics import get_metric_sign
+from spotpython.utils.file import get_experiment_from_PREFIX
 
 
 import river
@@ -22,13 +22,13 @@ import river.preprocessing
 import sklearn
 import sklearn.preprocessing
 
-from spotRiver.evaluation.eval_bml import eval_oml_horizon
-from spotRiver.evaluation.eval_bml import plot_bml_oml_horizon_metrics, plot_bml_oml_horizon_predictions
-from spotPython.plot.validation import plot_roc_from_dataframes
-from spotPython.plot.validation import plot_confusion_matrix
-from spotPython.hyperparameters.values import get_one_core_model_from_X
-from spotPython.hyperparameters.values import get_default_hyperparameters_as_array
-from spotPython.utils.file import get_experiment_filename
+from spotriver.evaluation.eval_bml import eval_oml_horizon
+from spotriver.evaluation.eval_bml import plot_bml_oml_horizon_metrics, plot_bml_oml_horizon_predictions
+from spotpython.plot.validation import plot_roc_from_dataframes
+from spotpython.plot.validation import plot_confusion_matrix
+from spotpython.hyperparameters.values import get_one_core_model_from_X
+from spotpython.hyperparameters.values import get_default_hyperparameters_as_array
+from spotpython.utils.file import get_experiment_filename
 
 
 # ---------------- sklearn entries ---------------- #
@@ -432,7 +432,7 @@ def get_report_file_name(fun_control) -> str:
 
     Examples:
         >>> from spotgui.tuner.spotRun import get_report_file_name
-            from spotPython.utils.init import fun_control_init
+            from spotpython.utils.init import fun_control_init
             fun_control = fun_control_init(PREFIX="test")
             get_report_file_name(fun_control)
             'spot_test_report.txt'
