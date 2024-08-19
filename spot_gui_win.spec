@@ -5,7 +5,7 @@ a = Analysis(
     ['gui/spot_gui.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:/Users/bartz/miniforge-pypy3/envs/spotGUI/Lib/site-packages/spotgui','spotgui/'),('C:/Users/bartz/miniforge-pypy3/envs/spotGUI/Lib/site-packages/customtkinter', 'customtkinter/'), ('C:/Users/bartz/miniforge-pypy3/envs/spotGUI/Lib/site-packages/lightning_fabric', 'lightning_fabric/'),  ( 'src/spotgui/ctk/images', 'spotgui/ctk/images/' ), ('C:/Users/bartz/miniforge-pypy3/envs/spotGUI/Lib/site-packages/spotpython/hyperdict', 'spotpython/hyperdict/'), ('C:/Users/bartz/miniforge-pypy3/envs/spotGUI/Lib/site-packages/spotriver/hyperdict', 'spotriver/hyperdict/')],
+    datas=[('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/spotpython','spotpython/'),('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/spotriver','spotriver/'),('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/spotgui','spotgui/'),('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/customtkinter', 'customtkinter/'), ('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/lightning_fabric', 'lightning_fabric/'),  ( 'src/spotgui/ctk/images', 'spotgui/ctk/images/' ), ('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/spotpython/hyperdict', 'spotpython/hyperdict/'), ('C:/Users/bartz/miniforge-pypy3/envs/spot/Lib/site-packages/spotriver/hyperdict', 'spotriver/hyperdict/')],
     hiddenimports=['spotpython', 'spotriver'],
     hookspath=[],
     hooksconfig={},
@@ -26,7 +26,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -45,6 +45,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='spot_gui.app',
-    icon=None,
+    icon='./images/spotlogo.png',
     bundle_identifier=None,
 )
