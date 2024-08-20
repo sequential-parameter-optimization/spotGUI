@@ -1,0 +1,82 @@
+[build-system]
+requires = [
+  "setuptools>=61.0",
+  "setuptools_scm[toml]"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotgui"
+version = "1.0.1"
+authors = [
+  { name="T. Bartz-Beielstein", email="tbb@bartzundbartz.de" }
+]
+description = "spotgui - GUI for the Sequential Parameter Optimization in Python"
+readme = "README.md"
+license = { text="AGPL-3.0-or-later" }
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Operating System :: OS Independent",
+]
+# PEP 621 dependencies declaration
+# adapt to your dependencies manager
+dependencies = [
+  "captum",
+  "customtkinter",
+  "lightning>=2.4.0",
+  "graphviz",
+  "matplotlib",
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocstrings-python",
+  "mkdocs-exclude",
+  "mkdocs-gen-files",
+  "mkdocs-literate-nav",
+  "mkdocs-section-index",
+  "numpy",
+  "nbformat",
+  "pandas",
+  "plotly",
+  "PyQt6",
+  "python-markdown-math",
+  "pytorch-lightning>=1.4",
+  "river>=0.21.0",
+  "scikit-learn",
+  "scipy",
+  "spotpython>=0.15.3",
+  "spotriver>=0.4.2",
+  "seaborn",
+  "tabulate",
+  "tensorboard",
+  "torch",
+  "torch-tb-profiler",
+  "torchmetrics",
+  "torchvision",
+]
+# dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://www.spotseven.de"
+Issues = "https://github.com/sequential-parameter-optimization/spotgui/issues"
+Repository = "https://github.com/sequential-parameter-optimization/spotgui"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+namespaces = true
+where = ["src"]
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
