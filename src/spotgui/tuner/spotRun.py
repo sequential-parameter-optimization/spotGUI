@@ -1,4 +1,5 @@
 import copy
+import matplotlib
 import matplotlib.pyplot as plt
 import pylab
 import pprint
@@ -695,7 +696,21 @@ def progress_plot(spot_tuner, fun_control):
     plt.show()
 
 
-def plot_confusion_matrices_river(spot_tuner, fun_control, show=False) -> None:
+def plot_confusion_matrices_river(spot_tuner, fun_control, show=False, tkagg=True) -> None:
+    """ Plots confusion matrices for the default and spot models.
+
+    Args:
+        spot_tuner (spot.Spot):
+            The spot experiment.
+        fun_control (dict):
+            A dictionary with the function control parameters.
+        show (bool):
+            If True, the plot is displayed.
+        tkagg (bool):
+            If True, TkAgg is used as the backend for matplotlib.
+    """
+    if tkagg:
+        matplotlib.use("TkAgg")
     X = spot_tuner.to_all_dim(spot_tuner.min_X.reshape(1, -1))
     print(f"X = {X}")
     core_model_spot = get_one_core_model_from_X(X, fun_control)
@@ -840,6 +855,7 @@ def compare_river_tuned_default(spot_tuner, fun_control, show=False) -> None:
         filename=None,
         show=show,
         title=fun_control["PREFIX"],
+        tkagg=True
     )
 
 
@@ -887,6 +903,7 @@ def actual_vs_prediction_river(spot_tuner, fun_control, show=False, length=50) -
         target_column=fun_control["target_column"],
         df_labels=df_labels,
         title=fun_control["PREFIX"],
+        tkagg=True,
     )
 
 
