@@ -673,20 +673,24 @@ def parallel_plot(spot_tuner, fun_control):
 
 
 def contour_plot(spot_tuner, fun_control):
-    spot_tuner.plot_important_hyperparameter_contour(show=False, max_imp=3, threshold=0, title=fun_control["PREFIX"])
+    spot_tuner.plot_important_hyperparameter_contour(show=False,
+                                                     max_imp=3,
+                                                     threshold=0,
+                                                     title=fun_control["PREFIX"],
+                                                     tkagg=True)
     pylab.show()
     # plt.show()
 
 
 def importance_plot(spot_tuner, fun_control):
     plt.figure()
-    spot_tuner.plot_importance(show=False)
+    spot_tuner.plot_importance(show=False, tkagg=True)
     plt.title(fun_control["PREFIX"])
     plt.show()
 
 
 def progress_plot(spot_tuner, fun_control):
-    spot_tuner.plot_progress(show=False)
+    spot_tuner.plot_progress(show=False, tkagg=True)
     plt.title(fun_control["PREFIX"])
     plt.show()
 
@@ -905,7 +909,7 @@ def destroy_entries(entries) -> None:
 
 def load_file_dialog() -> str:
     """
-    Opens a file dialog to select a file.
+    Opens a file dialog to select a file with user experiments.
 
     Returns:
         str: The name of the selected file.

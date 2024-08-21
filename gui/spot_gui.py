@@ -568,6 +568,7 @@ class spotPythonApp(CTkApp):
 # set_control_hyperparameter_value(fun_control, "l1", [0.0, 0.0])
 # modify_hyper_parameter_levels(fun_control, "optimizer", ["SGD"])
 
+
 if __name__ == "__main__":
     customtkinter.set_appearance_mode("light")
     customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
