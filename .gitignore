@@ -84,3 +84,4 @@ gui/spot_gui.spec
 gui/userExperiment/spot_100_experiment.pickle
 gui/userExperiment/spot_001_class_experiment.pickle
 gui/spot_100_experiment.pickle
+gui/userData/adult.csv
